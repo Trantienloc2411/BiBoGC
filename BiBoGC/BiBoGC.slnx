@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="BiBoGC.AppHost/BiBoGC.AppHost.csproj" />
+  <Project Path="BiBoGC.ServiceDefaults/BiBoGC.ServiceDefaults.csproj" />
+  <Project Path="BiBoGC/BiBoGC.csproj" />
+</Solution>
