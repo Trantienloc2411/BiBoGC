@@ -1,62 +1,46 @@
 name: CI/CD .NET 10
-
 on:
   push:
     branches: ["main"]
   pull_request:
     branches: ["main"]
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-
-      # - name: Setup Node.js
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: '20'
-
+      
       # Backend
       - name: Restore .NET dependencies
-        run: dotnet restore
-
+        run: dotnet restore BiBoGC/BiBoGC.slnx
+      
       - name: Build .NET
-        run: dotnet build --no-restore --configuration Release
-
+        run: dotnet build BiBoGC/BiBoGC.slnx --no-restore --configuration Release
+      
+      - name: Check for test projects
+        id: check-tests
+        run: |
+          if dotnet sln BiBoGC/BiBoGC.slnx list | grep -i "test"; then
+            echo "has_tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_tests=false" >> $GITHUB_OUTPUT
+          fi
+      
       - name: Run .NET Tests
-        run: dotnet test --no-build --verbosity normal --configuration Release
-
-      # # Frontend
-      # - name: Install Frontend Dependencies
-      #   working-directory: ./KitPraid.FrontEnd/kitpraid
-      #   run: npm ci
-
-      # - name: Frontend Lint
-      #   working-directory: ./KitPraid.FrontEnd/kitpraid
-      #   run: npm run lint
-      #   continue-on-error: false
-
-      # - name: Build Frontend
-      #   working-directory: ./KitPraid.FrontEnd/kitpraid
-      #   run: npm run build
-
+        if: steps.check-tests.outputs.has_tests == 'true'
+        run: dotnet test BiBoGC/BiBoGC.slnx --no-build --verbosity normal --configuration Release
+      
       # Upload artifacts để deploy
+      - name: Publish .NET Application
+        run: dotnet publish BiBoGC/BiBoGC.slnx --configuration Release --output ./publish
+      
       - name: Publish Backend Artifact
         uses: actions/upload-artifact@v4
         with:
           name: backend-artifact
           path: ./publish
-
-    # - name: Publish Frontend Artifact
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: frontend-artifact
-    #     path: ./KitPraid.FrontEnd/kitpraid/build
