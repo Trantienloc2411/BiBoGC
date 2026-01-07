@@ -1,5 +1,19 @@
 <Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Apps/">
+    <Project Path="BiBoGC/BiBoGC.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/InventoryManagement/">
+    <Project Path="InventoryManagement.Application/InventoryManagement.Application.csproj" />
+    <Project Path="InventoryManagement.Domain/InventoryManagement.Domain.csproj" />
+    <Project Path="InventoryManagement.GraphQL/InventoryManagement.GraphQL.csproj" />
+    <Project Path="InventoryManagement.Infrastructure/InventoryManagement.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="Shared.Application/Shared.Application.csproj" />
+    <Project Path="Shared.Domain/Shared.Domain.csproj" />
+  </Folder>
   <Project Path="BiBoGC.AppHost/BiBoGC.AppHost.csproj" />
   <Project Path="BiBoGC.ServiceDefaults/BiBoGC.ServiceDefaults.csproj" />
-  <Project Path="BiBoGC/BiBoGC.csproj" />
 </Solution>
