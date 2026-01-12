@@ -1,6 +1,137 @@
-﻿namespace InventoryManagement.Infrastructure.Repositories;
+﻿using InventoryManagement.Application.Interfaces;
+using InventoryManagement.Domain.Entities;
+using InventoryManagement.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
-public class ProductRepository
+namespace InventoryManagement.Infrastructure.Repositories;
+
+/// <summary>
+/// Repository implementation for Product entity
+/// </summary>
+public class ProductRepository : IProductRepository
 {
-    
+    private readonly InventoryDbContext _context;
+
+    public ProductRepository(InventoryDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Products
+            .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    }
+
+    public async Task<Product?> GetByIdWithoutBatchesAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Products
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    }
+
+    public async Task<Product?> GetBySkuAsync(string sku, CancellationToken cancellationToken = default)
+    {
+        var normalizedSku = sku.Trim().ToUpper();
+        // Note: EF Core will translate this using the configured ValueConverter
+        var products = await _context.Products
+            .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .ToListAsync(cancellationToken);
+
+        return products.FirstOrDefault(p => p.Sku.Value == normalizedSku);
+    }
+
+    public async Task<(IEnumerable<Product> Products, int TotalCount)> GetAllAsync(
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? searchTerm = null,
+        CancellationToken cancellationToken = default)
+    {
+        // Load all products with batches
+        var allProducts = await _context.Products
+            .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .ToListAsync(cancellationToken);
+
+        IEnumerable<Product> filteredProducts = allProducts;
+
+        // Apply search filter in memory (due to Value Object)
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var search = searchTerm.Trim().ToLower();
+            filteredProducts = filteredProducts.Where(p =>
+                p.Name.ToLower().Contains(search) ||
+                p.Sku.Value.ToLower().Contains(search) ||
+                p.Description.ToLower().Contains(search));
+        }
+
+        // Get total count
+        var totalCount = filteredProducts.Count();
+
+        // Apply pagination
+        var products = filteredProducts
+            .OrderBy(p => p.Name)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return (products, totalCount);
+    }
+
+    public async Task<bool> SkuExistsAsync(string sku, Guid? excludeProductId = null, CancellationToken cancellationToken = default)
+    {
+        var normalizedSku = sku.Trim().ToUpper();
+
+        // Load products and check in memory because of Value Object conversion
+        var products = await _context.Products.ToListAsync(cancellationToken);
+        var query = products.Where(p => p.Sku.Value == normalizedSku);
+
+        if (excludeProductId.HasValue)
+        {
+            query = query.Where(p => p.Id != excludeProductId.Value);
+        }
+
+        return query.Any();
+    }
+
+    public async Task<Product> AddAsync(Product product, CancellationToken cancellationToken = default)
+    {
+        await _context.Products.AddAsync(product, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+        return product;
+    }
+
+    public async Task UpdateAsync(Product product, CancellationToken cancellationToken = default)
+    {
+        _context.Products.Update(product);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteAsync(Product product, CancellationToken cancellationToken = default)
+    {
+        product.SoftDelete();
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Product>> GetLowStockProductsAsync(int threshold, CancellationToken cancellationToken = default)
+    {
+        var products = await _context.Products
+            .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .ToListAsync(cancellationToken);
+
+        // Filter in memory because GetTotalStock involves DateTime calculations
+        return products.Where(p => p.GetAvailableStock() < threshold);
+    }
+
+    public async Task<IEnumerable<Product>> GetProductsWithExpiringSoonBatchesAsync(int daysUntilExpiry = 30, CancellationToken cancellationToken = default)
+    {
+        var expiryThreshold = DateTime.UtcNow.AddDays(daysUntilExpiry);
+
+        return await _context.Products
+            .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .Where(p => p.Batches.Any(b =>
+                !b.IsDeleted &&
+                b.ExpirationDate <= expiryThreshold &&
+                b.ExpirationDate > DateTime.UtcNow))
+            .ToListAsync(cancellationToken);
+    }
 }

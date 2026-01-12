@@ -7,7 +7,6 @@
   <Folder Name="/src/Modules/InventoryManagement/">
     <Project Path="InventoryManagement.Application/InventoryManagement.Application.csproj" />
     <Project Path="InventoryManagement.Domain/InventoryManagement.Domain.csproj" />
-    <Project Path="InventoryManagement.GraphQL/InventoryManagement.GraphQL.csproj" />
     <Project Path="InventoryManagement.Infrastructure/InventoryManagement.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Shared/">
