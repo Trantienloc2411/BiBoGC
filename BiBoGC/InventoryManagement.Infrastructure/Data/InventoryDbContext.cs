@@ -23,6 +23,10 @@ public class InventoryDbContext : DbContext
     /// </summary>
     public DbSet<ProductBatch> ProductBatches { get; set; } = null!;
 
+    public DbSet<Supplier> Suppliers { get; set; } = null!;
+    public DbSet<StockTransaction> StockTransactions { get; set; } = null!;
+    public DbSet<Category> Categories { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

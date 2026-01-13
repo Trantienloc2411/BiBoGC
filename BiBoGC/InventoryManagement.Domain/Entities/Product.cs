@@ -14,8 +14,9 @@ public class Product : BaseEntity
     public string Description { get; private set; }
     public ProductStatuses Status { get; private set; }
     public bool RequiresBatchTracking { get; private set; }
-
+    public Guid? CategoryId { get; private set; }
     private readonly List<ProductBatch> _batches = new();
+    public Category? Category { get; private set; }
     public IReadOnlyCollection<ProductBatch> Batches => _batches.AsReadOnly();
     
     private Product() { }
@@ -44,7 +45,13 @@ public class Product : BaseEntity
         return _batches.Where(b => !b.IsExpired(checkdate) && b.Quantity > 0)
             .Sum(b => b.Quantity);
     }
-    
+
+    public void SetCategory(Guid? categoryId)
+    {
+        CategoryId = categoryId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public IEnumerable<ProductBatch> GetExpiredBatches(DateTime? asOfDate = null)
     {
         var checkDate = asOfDate ?? DateTime.UtcNow;

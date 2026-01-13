@@ -39,6 +39,8 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.HasIndex(p => p.Sku)
             .IsUnique();
 
+        builder.Property(p => p.CategoryId);
+
         // Value Object: Money (Price) - stored as decimal
         builder.Property(p => p.Price)
             .HasConversion(
@@ -69,6 +71,11 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         // Ignore RowVersion for SQLite compatibility - use UpdatedAt instead for concurrency
         builder.Ignore(p => p.RowVersion);
+
+        builder.HasOne(p => p.Category)
+            .WithMany()
+            .HasForeignKey(p => p.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // Soft delete filter
         builder.HasQueryFilter(p => !p.IsDeleted);
