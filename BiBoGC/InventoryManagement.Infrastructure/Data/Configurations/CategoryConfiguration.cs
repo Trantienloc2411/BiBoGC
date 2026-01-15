@@ -1,4 +1,4 @@
-﻿using InventoryManagement.Domain.Entities;
+using InventoryManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -27,6 +27,8 @@ namespace InventoryManagement.Infrastructure.Data.Configurations
             builder.Property(c => c.IsActive)
                 .IsRequired()
                 .HasDefaultValue(true);
+            // Ignore RowVersion - not needed for this application
+            builder.Ignore(c => c.RowVersion);
 
             builder.HasOne(c => c.ParentCategory)
                 .WithMany(c => c.SubCategories)

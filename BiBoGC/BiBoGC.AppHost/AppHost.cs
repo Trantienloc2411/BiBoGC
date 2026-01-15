@@ -2,18 +2,17 @@ using Aspire.Hosting;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+// PostgreSQL container with pgAdmin UI
+var postgres = builder.AddPostgres("postgres")
+    .WithPgAdmin()
+    .WithDataVolume("bibogc-postgres-data");
 
-var postgres = builder.AddPostgres("BiBoGCPostgresDb").WithPgAdmin();
-var postgresDb = postgres.AddDatabase("BiBoGCDb");
+// Database for Inventory module - name must match AddNpgsqlDbContext in Program.cs
+var inventoryDb = postgres.AddDatabase("InventoryDb");
 
-var tempPath = Path.GetTempPath();
-var dbPath = Path.Combine(tempPath, "AspireDb");
-Directory.CreateDirectory(dbPath);
-Console.WriteLine(dbPath);
-
-var sqlite = builder.AddSqlite("sqlite", dbPath, "BiBoGCSqlite.db");
-
-
-builder.AddProject<Projects.BiBoGC>("bibogc");
+// Add BiBoGC API project with database reference
+builder.AddProject<Projects.BiBoGC>("bibogc")
+    .WithReference(inventoryDb)    // Injects ConnectionStrings:InventoryDb
+    .WaitFor(inventoryDb);         // Wait for DB to be ready
 
 builder.Build().Run();

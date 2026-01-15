@@ -1,4 +1,4 @@
-﻿using InventoryManagement.Domain.Entities;
+using InventoryManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -49,10 +49,13 @@ namespace InventoryManagement.Infrastructure.Data.Configurations
             builder.HasIndex(st => st.TransactionDate);
 
 
-            //Soft Delete filter
+            // Soft Delete filter
             builder.HasQueryFilter(st => !st.IsDeleted);
 
-            //Ignore domain events
+            // Ignore RowVersion - not needed for this application
+            builder.Ignore(st => st.RowVersion);
+
+            // Ignore domain events
             builder.Ignore(st => st.DomainEvents);
 
 

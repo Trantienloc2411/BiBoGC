@@ -1,6 +1,7 @@
 using BiBoGC.Middleware;
 using InventoryManagement.Application;
 using InventoryManagement.Infrastructure;
+using InventoryManagement.Infrastructure.Data;
 using Scalar.AspNetCore;
 
 namespace BiBoGC;
@@ -13,16 +14,19 @@ public class Program
         
         // Add Aspire service defaults
         builder.AddServiceDefaults();
+        builder.WebHost.UseUrls("https://*:5001", "https://*5000");
+        // Register DbContext with Aspire PostgreSQL (connection string injected from AppHost)
+        builder.AddNpgsqlDbContext<InventoryDbContext>("InventoryDb", configureDbContextOptions: options =>
+        {
+            options.EnableDetailedErrors();
+            options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
+        });
 
-        // Configure SQLite connection string
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-            ?? "Data Source=BiBoGCSqlite.db";
+        // Register repositories (DbContext already registered by Aspire above)
+        builder.Services.AddInventoryInfrastructureWithAspire();
 
         // Register Application layer (MediatR, Validators)
         builder.Services.AddInventoryApplication();
-
-        // Register Infrastructure layer (DbContext, Repositories)
-        builder.Services.AddInventoryInfrastructure(connectionString);
 
         // Add Controllers
         builder.Services.AddControllers()

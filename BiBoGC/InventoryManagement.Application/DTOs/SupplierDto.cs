@@ -4,7 +4,7 @@ using System.Text;
 
 namespace InventoryManagement.Application.DTOs
 {
-    public class SupplierDto
+    public class SuppliersDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = null!;
@@ -14,4 +14,17 @@ namespace InventoryManagement.Application.DTOs
         public bool IsActive { get; set; }
         public DateTime CreateAt { get; set; }
     }
+    public class SupplierDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = null!;
+        public string? ContactName { get; set; }
+        public string? ContactPhone { get; set; }
+        public string? Address { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreateAt { get; set; }
+        public IEnumerable<StockTransactionDto>? Transactions { get; set; } 
+    }
+
+    
 }

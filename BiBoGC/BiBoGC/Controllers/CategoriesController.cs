@@ -1,6 +1,9 @@
 ﻿using InventoryManagement.Application.Commands.CreateCategory;
+using InventoryManagement.Application.Commands.DeleteCategory;
+using InventoryManagement.Application.Commands.UpdateCategory;
 using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Queries.GetCategories;
+using InventoryManagement.Application.Queries.GetCategory;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +32,7 @@ namespace BiBoGC.Controllers
         [FromQuery] bool includeInactive = false,
         [FromQuery] Guid? parentCategoryId = null)
         {
+
             var query = new GetCategoriesQuery
             {
                 IncludeInactive = includeInactive,
@@ -86,8 +90,9 @@ namespace BiBoGC.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] UpdateCategoryCommand command)
         {
-            var updateCommand = command with { Id = id };
-            var result = await _mediator.Send(updateCommand);
+            // Manually set the Id property instead of using 'with' expression
+            command.Id = id;
+            var result = await _mediator.Send(command);
 
             if (!result.IsSuccess)
             {

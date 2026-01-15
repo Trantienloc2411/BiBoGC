@@ -54,7 +54,7 @@ public class ProductBatchConfiguration : IEntityTypeConfiguration<ProductBatch>
             .IsRequired()
             .HasDefaultValue(false);
 
-        // Ignore RowVersion for SQLite compatibility - use UpdatedAt instead for concurrency
+        // Ignore RowVersion - not needed for this application
         builder.Ignore(b => b.RowVersion);
 
         // Soft delete filter

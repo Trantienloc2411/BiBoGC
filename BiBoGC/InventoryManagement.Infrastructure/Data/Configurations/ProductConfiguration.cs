@@ -1,4 +1,4 @@
-﻿using InventoryManagement.Domain.Entities;
+using InventoryManagement.Domain.Entities;
 using InventoryManagement.Domain.Enums;
 using InventoryManagement.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -46,7 +46,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasConversion(
                 money => money.Value,
                 value => new Money(value))
-            .HasColumnType("decimal(18,2)")
+            .HasColumnType("numeric(18,2)")
             .IsRequired();
 
         // Enum: ProductStatus
@@ -69,7 +69,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired()
             .HasDefaultValue(false);
 
-        // Ignore RowVersion for SQLite compatibility - use UpdatedAt instead for concurrency
+        // Ignore RowVersion - not needed for this application
         builder.Ignore(p => p.RowVersion);
 
         builder.HasOne(p => p.Category)

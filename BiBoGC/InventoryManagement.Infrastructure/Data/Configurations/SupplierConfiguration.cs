@@ -1,4 +1,4 @@
-﻿using InventoryManagement.Domain.Entities;
+using InventoryManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -34,6 +34,8 @@ namespace InventoryManagement.Infrastructure.Data.Configurations
                    .HasDefaultValue(true);
             builder.HasQueryFilter(s => !s.IsDeleted);
 
+            // Ignore RowVersion - not needed for this application
+            builder.Ignore(s => s.RowVersion);
 
             builder.Ignore(s => s.Transactions);
             builder.Ignore(s => s.DomainEvents);
