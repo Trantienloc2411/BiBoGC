@@ -1,5 +1,6 @@
 ﻿using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Queries.GetProducts;
+using InventoryManagement.Application.Queries.GetSuppliers;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

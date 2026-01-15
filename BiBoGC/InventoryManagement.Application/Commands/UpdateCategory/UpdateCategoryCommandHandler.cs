@@ -10,10 +10,10 @@ namespace InventoryManagement.Application.Commands.UpdateCategory
 {
     public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, Result<CategoryDto>>
     {
-        private readonly ICategoryRepository _categoryRepository;
+        private readonly ICategoryRepository? _categoryRepository;
         public async Task<Result<CategoryDto>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
         {
-            var category = await _categoryRepository.GetByIdAsync(request.Id);
+            var category = await _categoryRepository.GetByIdAsync(request.Id, cancellationToken);
             if (category is null)
             {
                 return Result<CategoryDto>.Failure("Danh mục không tồn tại");

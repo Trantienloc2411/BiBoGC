@@ -14,7 +14,6 @@ public class Program
         
         // Add Aspire service defaults
         builder.AddServiceDefaults();
-        builder.WebHost.UseUrls("https://*:5001", "https://*5000");
         // Register DbContext with Aspire PostgreSQL (connection string injected from AppHost)
         builder.AddNpgsqlDbContext<InventoryDbContext>("InventoryDb", configureDbContextOptions: options =>
         {
