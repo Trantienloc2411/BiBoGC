@@ -2,6 +2,7 @@ using BiBoGC.Middleware;
 using InventoryManagement.Application;
 using InventoryManagement.Infrastructure;
 using InventoryManagement.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 namespace BiBoGC;
@@ -14,15 +15,51 @@ public class Program
         
         // Add Aspire service defaults
         builder.AddServiceDefaults();
-        // Register DbContext with Aspire PostgreSQL (connection string injected from AppHost)
-        builder.AddNpgsqlDbContext<InventoryDbContext>("InventoryDb", configureDbContextOptions: options =>
+        
+        // Check if connection string is available (from AppHost in dev, or from config in prod)
+        var connectionString = builder.Configuration.GetConnectionString("InventoryDb");
+        
+        if (builder.Environment.IsDevelopment() && string.IsNullOrEmpty(connectionString))
         {
-            options.EnableDetailedErrors();
-            options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
-        });
-
-        // Register repositories (DbContext already registered by Aspire above)
-        builder.Services.AddInventoryInfrastructureWithAspire();
+            // Development with AppHost - use Aspire's AddNpgsqlDbContext
+            // Connection string will be injected by AppHost
+            builder.AddNpgsqlDbContext<InventoryDbContext>("InventoryDb", configureDbContextOptions: options =>
+            {
+                options.EnableDetailedErrors();
+                options.EnableSensitiveDataLogging(true);
+            });
+            
+            // Register repositories (DbContext already registered by Aspire above)
+            builder.Services.AddInventoryInfrastructureWithAspire();
+        }
+        else
+        {
+            // Production/Staging or Development without AppHost - use direct connection string
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "Connection string 'InventoryDb' is required. " +
+                    "Please provide it in 'ConnectionStrings:InventoryDb' configuration section.");
+            }
+            
+            // Register DbContext with direct connection string
+            builder.Services.AddDbContextPool<InventoryDbContext>(options =>
+            {
+                options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsAssembly(typeof(InventoryDbContext).Assembly.FullName);
+                    npgsqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorCodesToAdd: null);
+                });
+                options.EnableDetailedErrors();
+                options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
+            });
+            
+            // Register repositories
+            builder.Services.AddInventoryInfrastructureWithAspire();
+        }
 
         // Register Application layer (MediatR, Validators)
         builder.Services.AddInventoryApplication();
