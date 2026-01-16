@@ -35,6 +35,7 @@ public static class DependencyInjection
 
         // Register repositories
         services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IProductBatchRepository, ProductBatchRepository>();
         services.AddScoped<IStockTransactionRepository, StockTransactionRepository>();
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
@@ -96,6 +97,7 @@ public static class DependencyInjection
     {
         // Register all repositories - DbContext is registered by Aspire
         services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IProductBatchRepository, ProductBatchRepository>();
         services.AddScoped<IStockTransactionRepository, StockTransactionRepository>();
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();

@@ -1,4 +1,4 @@
-﻿using InventoryManagement.Application.Interfaces;
+using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Domain.Entities;
 using InventoryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -74,11 +74,32 @@ namespace InventoryManagement.Infrastructure.Repositories
 
         public async Task<Supplier?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            return await _context.Suppliers
-                .Include(s => s.Transactions.OrderByDescending(t => t.CreatedAt).Take(5))
-                .ThenInclude(s => s.ProductBatch)
-                .ThenInclude(pb => pb.Product)
-                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+            // Load supplier without transactions first
+            var supplier = await _context.Suppliers
+                .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted, cancellationToken);
+            
+            if (supplier is null)
+                return null;
+
+            // Load recent transactions separately
+            var recentTransactions = await _context.StockTransactions
+                .Where(t => t.SupplierId == id && !t.IsDeleted)
+                .OrderByDescending(t => t.CreatedAt)
+                .Take(5)
+                .Include(t => t.Product)
+                .Include(t => t.ProductBatch)
+                .ToListAsync(cancellationToken);
+
+            // Use reflection to set the private backing field
+            var transactionsField = typeof(Supplier).GetField("_transactions", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (transactionsField != null)
+            {
+                var list = (List<StockTransaction>)transactionsField.GetValue(supplier)!;
+                list.AddRange(recentTransactions);
+            }
+
+            return supplier;
         }
 
         public async Task<bool> NameExistsAsync(string name, Guid? excludeSupplierId = null, CancellationToken cancellationToken = default)
