@@ -1,8 +1,12 @@
 using InventoryManagement.Application.Commands.AddBatch;
 using InventoryManagement.Application.Commands.CreateProduct;
+using InventoryManagement.Application.Commands.DeleteBatch;
 using InventoryManagement.Application.Commands.DeleteProduct;
+using InventoryManagement.Application.Commands.UpdateBatch;
 using InventoryManagement.Application.Commands.UpdateProduct;
 using InventoryManagement.Application.DTOs;
+using InventoryManagement.Application.Queries.GetBatch;
+using InventoryManagement.Application.Queries.GetBatches;
 using InventoryManagement.Application.Queries.GetProduct;
 using InventoryManagement.Application.Queries.GetProducts;
 using MediatR;
@@ -393,4 +397,205 @@ public class ProductsController : ControllerBase
 
         return CreatedAtAction(nameof(GetProduct), new { id = productId }, result.Value);
     }
+
+    /// <summary>
+    /// Get all batches for a product
+    /// </summary>
+    /// <remarks>
+    /// Retrieves a paginated list of batches for a specific product.
+    /// 
+    /// **Filtering:**
+    /// - includeExpired: Include expired batches (default: false)
+    /// 
+    /// **Sorting:**
+    /// - sortBy: ExpirationDate, ManufacturingDate, Quantity, BatchNumber, CreatedAt
+    /// - Default: ExpirationDate (FEFO - First Expiry, First Out)
+    /// </remarks>
+    /// <param name="productId">Product ID</param>
+    /// <param name="pageNumber">Page number (1-based, default: 1)</param>
+    /// <param name="pageSize">Items per page (1-100, default: 10)</param>
+    /// <param name="includeExpired">Include expired batches (default: false)</param>
+    /// <param name="sortBy">Sort field (default: ExpirationDate)</param>
+    /// <param name="sortDescending">Sort descending (default: false)</param>
+    /// <returns>Paginated list of batches</returns>
+    [HttpGet("{productId:guid}/batches")]
+    [ProducesResponseType(typeof(PaginatedResult<ProductBatchDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetBatches(
+        Guid productId,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] bool includeExpired = false,
+        [FromQuery] string? sortBy = "ExpirationDate",
+        [FromQuery] bool sortDescending = false)
+    {
+        var query = new GetBatchesQuery
+        {
+            ProductId = productId,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            IncludeExpired = includeExpired,
+            SortBy = sortBy,
+            SortDescending = sortDescending
+        };
+
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Get a specific batch by ID
+    /// </summary>
+    /// <param name="productId">Product ID</param>
+    /// <param name="batchId">Batch ID</param>
+    /// <returns>Batch details</returns>
+    [HttpGet("{productId:guid}/batches/{batchId:guid}")]
+    [ProducesResponseType(typeof(ProductBatchDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetBatch(Guid productId, Guid batchId)
+    {
+        var query = new GetBatchQuery { Id = batchId };
+        var result = await _mediator.Send(query);
+
+        if (!result.IsSuccess)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Không tìm thấy lô hàng",
+                Detail = result.Errors.FirstOrDefault(),
+                Status = StatusCodes.Status404NotFound
+            });
+        }
+
+        // Verify batch belongs to product
+        if (result.Value!.ProductId != productId)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Không tìm thấy lô hàng",
+                Detail = "Lô hàng không thuộc sản phẩm này.",
+                Status = StatusCodes.Status404NotFound
+            });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Update a batch
+    /// </summary>
+    /// <remarks>
+    /// Updates batch information. Only quantity can be updated.
+    /// 
+    /// **Updatable fields:**
+    /// - quantity: New quantity (>= 0)
+    /// 
+    /// **Example request body:**
+    /// ```json
+    /// {
+    ///   "quantity": 50
+    /// }
+    /// ```
+    /// </remarks>
+    /// <param name="productId">Product ID</param>
+    /// <param name="batchId">Batch ID</param>
+    /// <param name="request">Update data</param>
+    /// <returns>Updated batch</returns>
+    [HttpPut("{productId:guid}/batches/{batchId:guid}")]
+    [ProducesResponseType(typeof(ProductBatchDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateBatch(
+        Guid productId,
+        Guid batchId,
+        [FromBody] UpdateBatchRequest request)
+    {
+        var command = new UpdateBatchCommand
+        {
+            Id = batchId,
+            ProductId = productId,
+            Quantity = request.Quantity,
+            ManufacturingDate = request.ManufacturingDate,
+            ExpirationDate = request.ExpirationDate,
+            CostPrice = request.CostPrice
+        };
+
+        var result = await _mediator.Send(command);
+
+        if (!result.IsSuccess)
+        {
+            var errorMessage = result.Errors.FirstOrDefault() ?? string.Empty;
+            if (errorMessage.Contains("Không tìm thấy", StringComparison.OrdinalIgnoreCase))
+            {
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Không tìm thấy dữ liệu",
+                    Detail = errorMessage,
+                    Status = StatusCodes.Status404NotFound
+                });
+            }
+
+            return BadRequest(new ValidationProblemDetails
+            {
+                Title = "Lỗi cập nhật lô hàng",
+                Detail = errorMessage,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Delete a batch (soft delete)
+    /// </summary>
+    /// <remarks>
+    /// Performs a soft delete on the batch.
+    /// The batch will be marked as deleted but data is preserved.
+    /// 
+    /// **Warning:** Deleting a batch with remaining quantity will remove that stock.
+    /// </remarks>
+    /// <param name="productId">Product ID</param>
+    /// <param name="batchId">Batch ID</param>
+    /// <returns>No content on success</returns>
+    [HttpDelete("{productId:guid}/batches/{batchId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteBatch(Guid productId, Guid batchId)
+    {
+        var command = new DeleteBatchCommand
+        {
+            Id = batchId,
+            ProductId = productId
+        };
+
+        var result = await _mediator.Send(command);
+
+        if (!result.IsSuccess)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Title = "Không tìm thấy lô hàng",
+                Detail = result.Errors.FirstOrDefault(),
+                Status = StatusCodes.Status404NotFound
+            });
+        }
+
+        return NoContent();
+    }
 }
+
+#region Request DTOs for ProductsController
+
+/// <summary>
+/// Request model for updating a batch
+/// </summary>
+public record UpdateBatchRequest
+{
+    public int? Quantity { get; init; }
+    public DateTime? ManufacturingDate { get; init; }
+    public DateTime? ExpirationDate { get; init; }
+    public decimal? CostPrice { get; init; }
+}
+
+#endregion
