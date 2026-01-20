@@ -66,6 +66,7 @@ namespace InventoryManagement.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
         }
 
+        
         public async Task<IEnumerable<Category>> GetSubCategoriesAsync(Guid parentId, CancellationToken cancellationToken = default)
         {
             return await _context.Categories
