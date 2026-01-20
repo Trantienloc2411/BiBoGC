@@ -86,4 +86,11 @@ public interface IProductRepository
     /// <param name="daysUntilExpiry">Days until expiry threshold</param>
     /// <param name="cancellationToken">Cancellation token</param>
     Task<IEnumerable<Product>> GetProductsWithExpiringSoonBatchesAsync(int daysUntilExpiry = 30, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Save change to the database
+    /// 
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

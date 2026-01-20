@@ -134,4 +134,9 @@ public class ProductRepository : IProductRepository
                 b.ExpirationDate > DateTime.UtcNow))
             .ToListAsync(cancellationToken);
     }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

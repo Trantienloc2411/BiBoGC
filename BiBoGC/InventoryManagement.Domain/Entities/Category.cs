@@ -100,6 +100,11 @@ namespace InventoryManagement.Domain.Entities
             _subCategories.Remove(subCategory);
             UpdatedAt = DateTime.UtcNow;
         }
+
+        public override string ToString()
+        {
+            return $"{Name}";
+        }
         
     }
 }
