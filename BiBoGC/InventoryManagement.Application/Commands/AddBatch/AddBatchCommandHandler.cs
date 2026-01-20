@@ -1,7 +1,9 @@
 using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Interfaces;
+using InventoryManagement.Domain.Entities;
 using MediatR;
 using Shared.Application.Common;
+using Shared.Application.Interfaces;
 
 namespace InventoryManagement.Application.Commands.AddBatch;
 
@@ -11,10 +13,13 @@ namespace InventoryManagement.Application.Commands.AddBatch;
 public class AddBatchCommandHandler : IRequestHandler<AddBatchCommand, Result<ProductBatchDto>>
 {
     private readonly IProductRepository _productRepository;
+    private readonly IProductBatchRepository _productBatchesRepository; 
 
-    public AddBatchCommandHandler(IProductRepository productRepository)
+
+    public AddBatchCommandHandler(IProductRepository productRepository, IProductBatchRepository productBatchRepository)
     {
         _productRepository = productRepository;
+        _productBatchesRepository = productBatchRepository;
     }
 
     public async Task<Result<ProductBatchDto>> Handle(AddBatchCommand request, CancellationToken cancellationToken)
@@ -29,19 +34,29 @@ public class AddBatchCommandHandler : IRequestHandler<AddBatchCommand, Result<Pr
         try
         {
             // Add new batch using domain logic
-            var batch = product.AddNewBatch(
+            //var batch = product.AddNewBatch(
+            //    batchNumber: request.BatchNumber,
+            //    quantity: request.Quantity,
+            //    manufacturingDate: DateTime.SpecifyKind(request.ManufacturingDate,DateTimeKind.Utc),
+            //    expiryDate: DateTime.SpecifyKind(request.ExpirationDate, DateTimeKind.Utc),
+            //    costPrice: request.CostPrice
+            //);
+
+            var productBatch = new ProductBatch(
+                productId: request.ProductId,
                 batchNumber: request.BatchNumber,
                 quantity: request.Quantity,
-                manufacturingDate: request.ManufacturingDate,
-                expiryDate: request.ExpirationDate,
+                manufacturingDate: DateTime.SpecifyKind(request.ManufacturingDate, DateTimeKind.Utc),
+                expirationDate: DateTime.SpecifyKind(request.ExpirationDate, DateTimeKind.Utc),
                 costPrice: request.CostPrice
-            );
+                );
 
             // Save changes
-            await _productRepository.UpdateAsync(product, cancellationToken);
+
+            var result =  await _productBatchesRepository.AddAsync( productBatch, cancellationToken );
 
             // Return DTO
-            var dto = ProductBatchDto.FromEntity(batch);
+            var dto = ProductBatchDto.FromEntity(result);
             return Result<ProductBatchDto>.Success(dto);
         }
         catch (InvalidOperationException ex)
