@@ -20,14 +20,7 @@ public interface IProductRepository
     /// Get product by ID without batches (for quick lookups)
     /// </summary>
     Task<Product?> GetByIdWithoutBatchesAsync(Guid id, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Get product by SKU
-    /// </summary>
-    /// <param name="sku">Product SKU</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Product or null if not found</returns>
-    Task<Product?> GetBySkuAsync(string sku, CancellationToken cancellationToken = default);
+    
 
     /// <summary>
     /// Get all products with pagination

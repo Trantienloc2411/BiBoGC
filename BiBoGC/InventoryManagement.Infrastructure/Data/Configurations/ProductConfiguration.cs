@@ -26,7 +26,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.Property(p => p.Description)
             .HasMaxLength(1000);
-
+/*
         // Value Object: SKU - stored as string
         builder.Property(p => p.Sku)
             .HasConversion(
@@ -38,9 +38,9 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         // Unique constraint on SKU
         builder.HasIndex(p => p.Sku)
             .IsUnique();
-
+*/
         builder.Property(p => p.CategoryId);
-
+/*
         // Value Object: Money (Price) - stored as decimal
         builder.Property(p => p.Price)
             .HasConversion(
@@ -48,7 +48,25 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
                 value => new Money(value))
             .HasColumnType("numeric(18,2)")
             .IsRequired();
+*/
 
+        builder.Property(p => p.TotalStock);
+        builder.Property(p => p.AverageCostPrice)
+            .HasConversion(
+                money => money.Value,
+                value => new Money(value))
+            .HasColumnType("decimal(18,2)");
+        
+        builder.Property(p => p.BasePrice)
+            .HasConversion(
+                money => money.Value,
+                value => new Money(value))
+            .HasColumnType("decimal(18,2)")
+            .IsRequired();
+
+        builder.Property(p => p.LowStockThreshold)
+            .HasDefaultValue(0);
+        
         // Enum: ProductStatus
         builder.Property(p => p.Status)
             .HasConversion<string>()
@@ -88,5 +106,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         // Ignore domain events (not persisted)
         builder.Ignore(p => p.DomainEvents);
+        
+ 
     }
 }

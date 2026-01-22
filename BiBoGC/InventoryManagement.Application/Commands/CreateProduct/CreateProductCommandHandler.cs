@@ -32,11 +32,13 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         // Create domain entity
         var product = new Product(
             name: request.Name,
-            sku: new Sku(request.Sku),
-            price: new Money(request.Price),
+            skuGeneral: new Sku(request.Sku),
+            basePrice: new Money(request.Price),
+            baseUnits: request.BaseUnits,
             description: request.Description,
             status: ProductStatuses.Active,
-            requiresBatchTracking: request.RequiresBatchTracking
+            requiresBatchTracking: request.RequiresBatchTracking,
+            lowStockThreshold: request.LowStockThreshold
         );
 
         // Save to database
@@ -53,8 +55,8 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         {
             Id = product.Id,
             Name = product.Name,
-            Sku = product.Sku.Value,
-            Price = product.Price.Value,
+            Sku = product.SkuGeneral.Value,
+            Price = product.BasePrice.Value,
             Currency = "VND",
             Description = product.Description,
             Status = product.Status.ToString(),
