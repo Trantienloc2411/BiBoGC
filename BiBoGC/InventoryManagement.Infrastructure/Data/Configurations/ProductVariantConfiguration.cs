@@ -23,14 +23,14 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
             .HasMaxLength(100)
             .IsRequired();;
         
-        builder.Property(p => p.Sku)
+        builder.Property(p => p.SkuUnique)
             .HasConversion(
                 sku => sku.Value,
                 value => new Sku(value))
             .IsRequired()
-            .HasMaxLength(20);
+            .HasMaxLength(50);
         
-        builder.HasIndex(p => p.Sku)
+        builder.HasIndex(p => p.SkuUnique)
             .IsUnique();
 
         builder.Property(p => p.Barcode)

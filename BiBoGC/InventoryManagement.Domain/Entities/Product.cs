@@ -10,8 +10,6 @@ namespace InventoryManagement.Domain.Entities;
 public class Product : BaseEntity
 {
     public string Name { get; private set; }
-    // public Sku Sku { get; private set; }
-    // public Money Price { get; private set; }
     public string Description { get; private set; }
     public ProductStatuses Status { get; private set; }
     public bool RequiresBatchTracking { get; private set; }

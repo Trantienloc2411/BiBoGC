@@ -52,7 +52,7 @@ public class ProductRepository : IProductRepository
             var search = searchTerm.Trim().ToLower();
             filteredProducts = filteredProducts.Where(p =>
                 p.Name.ToLower().Contains(search) ||
-                p.Variants.Any(v => v.Sku.Value.ToLower().Contains(search)) ||
+                p.Variants.Any(v => v.SkuUnique.Value.ToLower().Contains(search)) ||
                 p.Description.ToLower().Contains(search));
         }
 
@@ -77,7 +77,7 @@ public class ProductRepository : IProductRepository
         var products = await _context.Products.
             Include(v => v.Variants.Where(v => !v.IsDeleted)).
             ToListAsync(cancellationToken);
-        var query = products.Where(p => p.Variants.Any(v => v.Sku.Value == normalizedSku));
+        var query = products.Where(p => p.Variants.Any(v => v.SkuUnique.Value == normalizedSku));
 
         if (excludeProductId.HasValue)
         {

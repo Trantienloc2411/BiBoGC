@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InventoryManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    [Migration("20260115065809_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260123043821_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -75,6 +75,15 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<decimal?>("AverageCostPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("BasePrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("BaseUnits")
+                        .HasColumnType("integer");
+
                     b.Property<Guid?>("CategoryId")
                         .HasColumnType("uuid");
 
@@ -91,28 +100,33 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
+                    b.Property<int?>("LowStockThreshold")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("numeric(18,2)");
 
                     b.Property<bool>("RequiresBatchTracking")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
-                    b.Property<string>("Sku")
+                    b.Property<string>("SkuGeneral")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
+
+                    b.Property<int>("TotalStock")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -121,8 +135,9 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("Sku")
-                        .IsUnique();
+                    b.HasIndex("SkuGeneral")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Products_SkuGeneral");
 
                     b.ToTable("Products", (string)null);
                 });
@@ -172,6 +187,87 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("ProductBatches", (string)null);
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.ProductVariant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Barcode")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("Barcode");
+
+                    b.Property<decimal?>("CostPrice")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("CostPrice");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DisplayOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("DisplayOrder");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ProductId");
+
+                    b.Property<int>("QuantityBaseUnit")
+                        .HasColumnType("integer")
+                        .HasColumnName("QuantityBaseUnit");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
+
+                    b.Property<decimal>("SalePrice")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("SalePrice");
+
+                    b.Property<string>("SkuUnique")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("Unit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("VariantName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("VariantName");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("SkuUnique")
+                        .IsUnique();
+
+                    b.ToTable("ProductVariant", (string)null);
                 });
 
             modelBuilder.Entity("InventoryManagement.Domain.Entities.StockTransaction", b =>
@@ -303,6 +399,17 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.ProductVariant", b =>
+                {
+                    b.HasOne("InventoryManagement.Domain.Entities.Product", "Product")
+                        .WithMany("Variants")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("InventoryManagement.Domain.Entities.StockTransaction", b =>
                 {
                     b.HasOne("InventoryManagement.Domain.Entities.ProductBatch", "ProductBatch")
@@ -333,6 +440,8 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Product", b =>
                 {
                     b.Navigation("Batches");
+
+                    b.Navigation("Variants");
                 });
 #pragma warning restore 612, 618
         }

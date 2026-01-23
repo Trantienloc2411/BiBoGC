@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace InventoryManagement.Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -60,12 +60,16 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Sku = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    Price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     RequiresBatchTracking = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CategoryId = table.Column<Guid>(type: "uuid", nullable: true),
+                    SkuGeneral = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    BaseUnits = table.Column<int>(type: "integer", nullable: false),
+                    TotalStock = table.Column<int>(type: "integer", nullable: false),
+                    BasePrice = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    AverageCostPrice = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
+                    LowStockThreshold = table.Column<int>(type: "integer", nullable: true, defaultValue: 0),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
@@ -101,6 +105,37 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
                     table.PrimaryKey("PK_ProductBatches", x => x.Id);
                     table.ForeignKey(
                         name: "FK_ProductBatches_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductVariant",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    SkuUnique = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Barcode = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    ProductId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VariantName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Unit = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    QuantityBaseUnit = table.Column<int>(type: "integer", nullable: false),
+                    SalePrice = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    CostPrice = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    DisplayOrder = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductVariant", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductVariant_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
@@ -164,9 +199,20 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Products_Sku",
+                name: "IX_Products_SkuGeneral",
                 table: "Products",
-                column: "Sku",
+                column: "SkuGeneral",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductVariant_ProductId",
+                table: "ProductVariant",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductVariant_SkuUnique",
+                table: "ProductVariant",
+                column: "SkuUnique",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -199,6 +245,9 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ProductVariant");
+
             migrationBuilder.DropTable(
                 name: "StockTransactions");
 

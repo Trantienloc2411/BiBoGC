@@ -22,4 +22,8 @@
       <ProjectReference Include="..\InventoryManagement.Domain\InventoryManagement.Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Data\Migrations\" />
+    </ItemGroup>
+
 </Project>

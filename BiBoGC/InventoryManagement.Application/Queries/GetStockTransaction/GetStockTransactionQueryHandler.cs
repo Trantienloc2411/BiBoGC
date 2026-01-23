@@ -32,7 +32,7 @@ public class GetStockTransactionQueryHandler : IRequestHandler<GetStockTransacti
             BatchNumber = transaction.ProductBatch?.BatchNumber,
             SupplierId = transaction.SupplierId == Guid.Empty ? null : transaction.SupplierId,
             SupplierName = transaction.Supplier?.Name,
-            Sku = transaction.Product?.Sku ?? string.Empty,
+            Sku = transaction.Product?.SkuGeneral ?? string.Empty,
             UnitPrice = transaction.UnitPrice,
             TotalAmount = transaction.TotalPrice,
             TransactionType = transaction.TransactionType.ToString(),

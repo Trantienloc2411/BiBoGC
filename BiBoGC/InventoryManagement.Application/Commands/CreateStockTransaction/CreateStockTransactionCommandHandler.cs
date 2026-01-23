@@ -92,7 +92,7 @@ public class CreateStockTransactionCommandHandler : IRequestHandler<CreateStockT
             BatchNumber = fullTransaction.ProductBatch?.BatchNumber,
             SupplierId = fullTransaction.SupplierId == Guid.Empty ? null : fullTransaction.SupplierId,
             SupplierName = fullTransaction.Supplier?.Name,
-            Sku = fullTransaction.Product?.Sku ?? string.Empty,
+            Sku = fullTransaction.Product?.SkuGeneral ?? string.Empty,
             UnitPrice = fullTransaction.UnitPrice,
             TotalAmount = fullTransaction.TotalPrice,
             TransactionType = fullTransaction.TransactionType.ToString(),

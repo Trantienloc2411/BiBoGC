@@ -7,7 +7,7 @@ public class Sku : ValueObject
     public Sku(string value)
     {
         if(string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(value));
-        if(value.Length > 20) throw new ArgumentException("Value cannot be longer than 20 characters.", nameof(value));
+        if(value.Length > 50) throw new ArgumentException("Value cannot be longer than 50 characters.", nameof(value));
 
         Value = value.Trim().ToUpper();
     }

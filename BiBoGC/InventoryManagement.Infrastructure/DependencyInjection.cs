@@ -39,6 +39,7 @@ public static class DependencyInjection
         services.AddScoped<IStockTransactionRepository, StockTransactionRepository>();
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
 
         return services;
     }
@@ -101,6 +102,7 @@ public static class DependencyInjection
         services.AddScoped<IStockTransactionRepository, StockTransactionRepository>();
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
         
         return services;
     }
