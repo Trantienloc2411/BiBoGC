@@ -52,7 +52,12 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<Pr
             RecentBatches = product.Batches
                 .OrderByDescending(b => b.CreatedAt)
                 .Take(5)
-                .Select(ProductBatchDto.FromEntity)
+                .Select(ProductBatchDto.FromEntity),
+            Variants = product.Variants
+                .OrderByDescending(b => b.DisplayOrder)
+                .Select(ProductVariantDto.FromEntity)
+                
+            
         };
     }
 }

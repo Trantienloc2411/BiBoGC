@@ -77,6 +77,7 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
             .IsRequired();;
         
         ;builder.HasQueryFilter(p => !p.IsDeleted);
+        builder.Ignore(p => p.RowVersion);
         
         builder.Ignore(p => p.DomainEvents);
         

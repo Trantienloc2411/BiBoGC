@@ -1,4 +1,3 @@
-using System.Reflection.Metadata;
 using InventoryManagement.Domain.Entities;
 using InventoryManagement.Domain.Enums;
 using InventoryManagement.Domain.ValueObjects;
@@ -31,7 +30,8 @@ public static class DataSeeder
             var suppliers = await SeedSuppliersAsync(context, logger);
             var products = await SeedProductsAsync(context, categories, logger);
             var batches = await SeedProductBatchesAsync(context, products, logger);
-            await SeedStockTransactionsAsync(context, products, batches, suppliers, logger);
+            var productVariant = await SeedProductVariantAsync(context, products, logger);
+            await SeedStockTransactionsAsync(context, products, batches, suppliers, productVariant, logger);
 
             logger.LogInformation("Database seeding completed successfully!");
         }
@@ -688,6 +688,7 @@ public static class DataSeeder
         List<Product> products,
         List<ProductBatch> batches,
         List<Supplier> suppliers,
+        List<ProductVariant> productVariants,
         ILogger logger)
     {
         logger.LogInformation("Seeding stock transactions...");

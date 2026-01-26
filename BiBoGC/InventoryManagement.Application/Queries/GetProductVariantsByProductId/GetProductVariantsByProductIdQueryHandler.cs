@@ -38,7 +38,8 @@ public class GetProductVariantsByProductIdQueryHandler (IProductVariantRepositor
             SalePrice = productVariant.SalePrice,
             DisplayOrder = productVariant.DisplayOrder,
             CreatedAt = productVariant.CreatedAt,
-            UpdatedAt = productVariant.UpdatedAt
+            UpdatedAt = productVariant.UpdatedAt,
+            UnitName = productVariant.Unit.ToString()
         };
     }
 }

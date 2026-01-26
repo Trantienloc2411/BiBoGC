@@ -21,6 +21,7 @@ public class ProductRepository : IProductRepository
     {
         return await _context.Products
             .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .Include(p => p.Variants.Where(v => !v.IsDeleted))
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 

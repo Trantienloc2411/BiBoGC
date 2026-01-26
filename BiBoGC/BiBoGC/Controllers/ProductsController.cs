@@ -9,6 +9,7 @@ using InventoryManagement.Application.Queries.GetBatch;
 using InventoryManagement.Application.Queries.GetBatches;
 using InventoryManagement.Application.Queries.GetProduct;
 using InventoryManagement.Application.Queries.GetProducts;
+using InventoryManagement.Application.Queries.GetProductVariantsByProductId;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -582,6 +583,24 @@ public class ProductsController : ControllerBase
         }
 
         return NoContent();
+    }
+    
+    [HttpGet("{guid:guid}/variants", Name = "GetProductVariantByProductId")]
+    [ProducesResponseType(typeof(IEnumerable<ProductVariantDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetProductVariantByProductId(Guid guid)
+    {
+        var query = new GetProductVariantsByProductIdQuery { ProductId = guid };
+        var result = await _mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return BadRequest(new ProblemDetails
+            {
+                Title = result.Errors.FirstOrDefault() ?? string.Empty,
+                Detail = result.Errors.FirstOrDefault() ?? string.Empty,
+                Status = StatusCodes.Status400BadRequest
+            });
+        return Ok(result.Value);
     }
 }
 

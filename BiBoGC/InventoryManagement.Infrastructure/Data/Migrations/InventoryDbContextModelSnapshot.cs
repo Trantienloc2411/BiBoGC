@@ -227,12 +227,6 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("QuantityBaseUnit");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
-
                     b.Property<decimal>("SalePrice")
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("SalePrice");

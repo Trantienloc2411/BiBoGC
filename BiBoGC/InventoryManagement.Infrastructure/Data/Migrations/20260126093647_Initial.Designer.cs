@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InventoryManagement.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    [Migration("20260123043821_Initial")]
+    [Migration("20260126093647_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -229,12 +229,6 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
                     b.Property<int>("QuantityBaseUnit")
                         .HasColumnType("integer")
                         .HasColumnName("QuantityBaseUnit");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
 
                     b.Property<decimal>("SalePrice")
                         .HasColumnType("numeric(18,2)")

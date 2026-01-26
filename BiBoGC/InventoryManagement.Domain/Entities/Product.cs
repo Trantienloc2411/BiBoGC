@@ -20,6 +20,10 @@ public class Product : BaseEntity
     public Units BaseUnits { get; private set; }
     
     public int TotalStock { get; private set; }
+    /// <summary>
+    /// Base price of the product. (Giá nêm yết/ giá gốc bán ra)
+    /// - Dùng để: So sánh với giá bán 
+    /// </summary>
     
     public Money BasePrice { get; private set; }
     

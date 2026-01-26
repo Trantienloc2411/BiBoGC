@@ -2,7 +2,6 @@
 using Shared.Domain.Common;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace Sale.Domain.Domain

@@ -1,4 +1,5 @@
-﻿using InventoryManagement.Domain.Enums;
+﻿using InventoryManagement.Domain.Entities;
+using InventoryManagement.Domain.Enums;
 using InventoryManagement.Domain.ValueObjects;
 
 namespace InventoryManagement.Application.DTOs;
@@ -18,6 +19,7 @@ public class ProductVariantDto
     public string? VariantName { get; set; }
     
     public Units Unit { get; set; }
+    public string UnitName { get; set; }
     
     public int QuantityBaseUnit { get; set; }
     
@@ -30,6 +32,24 @@ public class ProductVariantDto
     public DateTime CreatedAt { get; set; }
     
     public DateTime? UpdatedAt { get; set; }
-    
+
+    public static ProductVariantDto FromEntity(ProductVariant productVariant)
+    {
+        return new ProductVariantDto
+        {
+            Id = productVariant.Id,
+            SkuUnique = productVariant.SkuUnique,
+            Barcode = productVariant.Barcode,
+            ProductId = productVariant.ProductId,
+            VariantName = productVariant.VariantName,
+            Unit = productVariant.Unit,
+            UnitName = productVariant.Unit.ToString(),
+            QuantityBaseUnit = productVariant.QuantityBaseUnit,
+            SalePrice = productVariant.SalePrice,
+            CostPrice = productVariant.CostPrice,
+            DisplayOrder = productVariant.DisplayOrder,
+            CreatedAt = productVariant.CreatedAt,
+        };
+    }
 }
 

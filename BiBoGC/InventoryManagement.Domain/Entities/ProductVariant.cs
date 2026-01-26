@@ -6,7 +6,7 @@ namespace InventoryManagement.Domain.Entities;
 
 public class ProductVariant : BaseEntity    
 {
-    //Will auto generate base on format: [SkuGeneral]-[QuantityBaseUnit]
+    //Will auto generate base on format: [SkuGeneral]-[QuantityBaseUnit]-[Unit]
     //e.g COCA-LON-24
     public Sku SkuUnique { get; private set; }
     public string? Barcode { get; private set; }    
@@ -14,7 +14,13 @@ public class ProductVariant : BaseEntity
     public string VariantName { get; private set; }
     public Units  Unit { get; private set; }
     public int QuantityBaseUnit { get; private set; }
+    /// <summary>
+    /// Giá bán thực tế
+    /// </summary>
     public Money SalePrice { get; private set; }    
+    /// <summary>
+    /// Giá vốn
+    /// </summary>
     public Money? CostPrice { get; private set; }
     
      public bool IsActive { get; private set; } = true;

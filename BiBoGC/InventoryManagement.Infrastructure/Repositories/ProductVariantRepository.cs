@@ -1,5 +1,6 @@
 ﻿using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Domain.Entities;
+using InventoryManagement.Domain.Enums;
 using InventoryManagement.Domain.ValueObjects;
 using InventoryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -35,13 +36,14 @@ public class ProductVariantRepository : IProductVariantRepository
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             var search = searchTerm.Trim().ToLower();
-            productVariants = await query.Where(p => p.Product != null && (p.SkuUnique.Value.ToLower().Contains(search) ||
-                                                                     p.VariantName.Contains(search,
-                                                                         StringComparison.CurrentCultureIgnoreCase) ||
-                                                                     p.Product.Name.Contains(search,
-                                                                         StringComparison.CurrentCultureIgnoreCase) ||
-                                                                     p.Barcode.Contains(search,
-                                                                         StringComparison.CurrentCultureIgnoreCase))
+            productVariants = await query.Where(p => p.Product != null && (
+                p.SkuUnique.Value.ToLower().Contains(search) ||
+                p.VariantName.Contains(search,
+                    StringComparison.CurrentCultureIgnoreCase) ||
+                p.Product.Name.Contains(search,
+                    StringComparison.CurrentCultureIgnoreCase) ||
+                p.Barcode.Contains(search,
+                    StringComparison.CurrentCultureIgnoreCase))
             ).ToListAsync(cancellationToken);
         }
 
@@ -59,7 +61,9 @@ public class ProductVariantRepository : IProductVariantRepository
     public async Task<IEnumerable<ProductVariant>> GetProductVariantsByProductIdAsync(Guid productId,
         CancellationToken cancellationToken = default)
     {
-        var productVariants = await _context.ProductVariants.Where(p => p.ProductId == productId).ToListAsync(cancellationToken);
+        var productVariants = await _context.ProductVariants.Where(p => p.ProductId == productId)
+            .Include(p => p.Product)
+            .ToListAsync(cancellationToken);
         return productVariants;
     }
 
@@ -96,5 +100,15 @@ public class ProductVariantRepository : IProductVariantRepository
     {
         var existingVariant = await _context.ProductVariants.FirstOrDefaultAsync(p => p.ProductId == productId && p.SkuUnique == sku, cancellationToken);
         return existingVariant != null && existingVariant.Id != excludeVariantId;
+    }
+
+    public async Task<bool> DoesVariantExistAsync(Guid productId, int quantityBaseOnUnit, Units unit,
+        CancellationToken cancellationToken = default)
+    {
+        var productVariant = await _context.ProductVariants.AnyAsync(
+            c => c.ProductId == productId && c.QuantityBaseUnit == quantityBaseOnUnit && c.Unit == unit,
+            cancellationToken
+        );
+        return productVariant;
     }
 }

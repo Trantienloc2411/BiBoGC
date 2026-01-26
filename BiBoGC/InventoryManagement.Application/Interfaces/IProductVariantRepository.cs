@@ -1,4 +1,5 @@
 ﻿using InventoryManagement.Domain.Entities;
+using InventoryManagement.Domain.Enums;
 using InventoryManagement.Domain.ValueObjects;
 
 namespace InventoryManagement.Application.Interfaces;
@@ -19,7 +20,7 @@ public interface IProductVariantRepository
     Task UpdateAsync(ProductVariant productVariant, CancellationToken cancellationToken = default);
     Task DeleteAsync(ProductVariant productVariant, CancellationToken cancellationToken = default);
     Task<bool> SkuExistsAsync(Guid productId, Sku sku, Guid? excludeVariantId = null, CancellationToken cancellationToken = default);
-    
+    Task<bool> DoesVariantExistAsync(Guid productId, int quantityBaseOnUnit, Units unit, CancellationToken cancellationToken = default);
     
     
 }
