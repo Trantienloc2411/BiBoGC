@@ -11,8 +11,12 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
 
     public async Task<Result<CategoryDto>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
-        var category = await _categoryRepository.GetByIdAsync(request.Id, cancellationToken);
-        if (category is null)
+        private readonly ICategoryRepository? _categoryRepository;
+        public UpdateCategoryCommandHandler (ICategoryRepository categoryRepository)
+        {
+            _categoryRepository = categoryRepository;
+        }
+        public async Task<Result<CategoryDto>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
         {
             return Result<CategoryDto>.Failure("Danh mục không tồn tại");
         }

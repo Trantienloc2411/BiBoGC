@@ -120,10 +120,22 @@ public class CategoriesController : ControllerBase
         if (!result.IsSuccess)
             return NotFound(new ProblemDetails
             {
-                Title = "Không tìm thấy danh mục",
-                Detail = result.Errors.FirstOrDefault(),
-                Status = StatusCodes.Status404NotFound
-            });
+                if(result.Errors.FirstOrDefault().Contains("Danh mục này có danh mục con, hãy xóa danh mục con trước"))
+                {
+                    return BadRequest(new ProblemDetails
+                    {
+                        Title = "Yêu cầu không hợp lệ",
+                        Detail = result.Errors.FirstOrDefault(),
+                        Status = StatusCodes.Status400BadRequest
+                    });
+                }
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Không tìm thấy danh mục",
+                    Detail = result.Errors.FirstOrDefault(),
+                    Status = StatusCodes.Status404NotFound
+                });
+            }
 
         return NoContent();
     }

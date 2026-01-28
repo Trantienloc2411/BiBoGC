@@ -77,10 +77,21 @@ public class Category : BaseEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void RemoveSubCategory(Category subCategory)
-    {
-        if (subCategory == null) throw new ArgumentNullException(nameof(subCategory), "Subcategory cannot be null.");
-        _subCategories.Remove(subCategory);
-        UpdatedAt = DateTime.UtcNow;
+        }
+        public void RemoveSubCategory(Category subCategory)
+        {
+            if (subCategory == null)
+            {
+                throw new ArgumentNullException(nameof(subCategory), "Subcategory cannot be null.");
+            }
+            _subCategories.Remove(subCategory);
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public override string ToString()
+        {
+            return $"{Name}";
+        }
+        
     }
 }
