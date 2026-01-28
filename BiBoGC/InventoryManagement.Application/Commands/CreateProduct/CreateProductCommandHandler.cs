@@ -25,18 +25,18 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
     {
         // Check if SKU already exists
         if (await _productRepository.SkuExistsAsync(request.Sku, cancellationToken: cancellationToken))
-        {
             return Result<ProductDto>.Failure($"SKU '{request.Sku}' đã tồn tại trong hệ thống.");
-        }
 
         // Create domain entity
         var product = new Product(
-            name: request.Name,
-            sku: new Sku(request.Sku),
-            price: new Money(request.Price),
+            request.Name,
+            skuGeneral: new Sku(request.Sku),
+            basePrice: new Money(request.Price),
+            baseUnits: request.BaseUnits,
             description: request.Description,
             status: ProductStatuses.Active,
-            requiresBatchTracking: request.RequiresBatchTracking
+            requiresBatchTracking: request.RequiresBatchTracking,
+            lowStockThreshold: request.LowStockThreshold
         );
 
         // Save to database
@@ -53,13 +53,13 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         {
             Id = product.Id,
             Name = product.Name,
-            Sku = product.Sku.Value,
-            Price = product.Price.Value,
+            Sku = product.SkuGeneral.Value,
+            Price = product.BasePrice.Value,
             Currency = "VND",
             Description = product.Description,
             Status = product.Status.ToString(),
             RequiresBatchTracking = product.RequiresBatchTracking,
-            TotalStock = product.GetTotalStock(),
+            TotalStock = product.TotalStock,
             AvailableStock = product.GetAvailableStock(),
             ExpiredStock = product.GetExpiredBatches().Sum(b => b.Quantity),
             ExpiringSoonStock = product.GetExpiringSoonBatches().Sum(b => b.Quantity),

@@ -29,22 +29,28 @@ public class ApiResponse<T>
     /// <summary>
     /// Create a successful response
     /// </summary>
-    public static ApiResponse<T> Ok(T data, string? message = null) => new()
+    public static ApiResponse<T> Ok(T data, string? message = null)
     {
-        Success = true,
-        Data = data,
-        Message = message
-    };
+        return new ApiResponse<T>
+        {
+            Success = true,
+            Data = data,
+            Message = message
+        };
+    }
 
     /// <summary>
     /// Create an error response
     /// </summary>
-    public static ApiResponse<T> Error(string message, IEnumerable<string>? errors = null) => new()
+    public static ApiResponse<T> Error(string message, IEnumerable<string>? errors = null)
     {
-        Success = false,
-        Message = message,
-        Errors = errors
-    };
+        return new ApiResponse<T>
+        {
+            Success = false,
+            Message = message,
+            Errors = errors
+        };
+    }
 }
 
 /// <summary>
@@ -70,19 +76,25 @@ public class ApiResponse
     /// <summary>
     /// Create a successful response
     /// </summary>
-    public static ApiResponse Ok(string? message = null) => new()
+    public static ApiResponse Ok(string? message = null)
     {
-        Success = true,
-        Message = message
-    };
+        return new ApiResponse
+        {
+            Success = true,
+            Message = message
+        };
+    }
 
     /// <summary>
     /// Create an error response
     /// </summary>
-    public static ApiResponse Error(string message, IEnumerable<string>? errors = null) => new()
+    public static ApiResponse Error(string message, IEnumerable<string>? errors = null)
     {
-        Success = false,
-        Message = message,
-        Errors = errors
-    };
+        return new ApiResponse
+        {
+            Success = false,
+            Message = message,
+            Errors = errors
+        };
+    }
 }

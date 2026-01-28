@@ -21,11 +21,8 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<Pr
     public async Task<Result<ProductDto>> Handle(GetProductQuery request, CancellationToken cancellationToken)
     {
         var product = await _productRepository.GetByIdAsync(request.Id, cancellationToken);
-        
-        if (product == null)
-        {
-            return Result<ProductDto>.Failure($"Không tìm thấy sản phẩm với ID '{request.Id}'.");
-        }
+
+        if (product == null) return Result<ProductDto>.Failure($"Không tìm thấy sản phẩm với ID '{request.Id}'.");
 
         var dto = MapToDto(product);
         return Result<ProductDto>.Success(dto);
@@ -37,13 +34,13 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<Pr
         {
             Id = product.Id,
             Name = product.Name,
-            Sku = product.Sku.Value,
-            Price = product.Price.Value,
+            Sku = product.SkuGeneral.Value,
+            Price = product.BasePrice.Value,
             Currency = "VND",
             Description = product.Description,
             Status = product.Status.ToString(),
             RequiresBatchTracking = product.RequiresBatchTracking,
-            TotalStock = product.GetTotalStock(),
+            TotalStock = product.TotalStock,
             AvailableStock = product.GetAvailableStock(),
             ExpiredStock = product.GetExpiredBatches().Sum(b => b.Quantity),
             ExpiringSoonStock = product.GetExpiringSoonBatches().Sum(b => b.Quantity),
@@ -52,7 +49,10 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<Pr
             RecentBatches = product.Batches
                 .OrderByDescending(b => b.CreatedAt)
                 .Take(5)
-                .Select(ProductBatchDto.FromEntity)
+                .Select(ProductBatchDto.FromEntity),
+            Variants = product.Variants
+                .OrderByDescending(b => b.DisplayOrder)
+                .Select(ProductVariantDto.FromEntity)
         };
     }
 }

@@ -119,14 +119,12 @@ public class StockTransactionsController : ControllerBase
         var result = await _mediator.Send(query);
 
         if (!result.IsSuccess)
-        {
             return NotFound(new ProblemDetails
             {
                 Title = "Không tìm thấy giao dịch",
                 Detail = result.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status404NotFound
             });
-        }
 
         return Ok(result.Value);
     }
@@ -201,14 +199,12 @@ public class StockTransactionsController : ControllerBase
         {
             var errorMessage = result.Errors.FirstOrDefault() ?? string.Empty;
             if (errorMessage.Contains("Không tìm thấy", StringComparison.OrdinalIgnoreCase))
-            {
                 return NotFound(new ProblemDetails
                 {
                     Title = "Không tìm thấy dữ liệu",
                     Detail = errorMessage,
                     Status = StatusCodes.Status404NotFound
                 });
-            }
 
             return BadRequest(new ValidationProblemDetails
             {
@@ -247,14 +243,12 @@ public class StockTransactionsController : ControllerBase
         var result = await _mediator.Send(command);
 
         if (!result.IsSuccess)
-        {
             return BadRequest(new ValidationProblemDetails
             {
                 Title = "Lỗi nhập hàng",
                 Detail = result.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status400BadRequest
             });
-        }
 
         return CreatedAtAction(nameof(GetStockTransaction), new { id = result.Value!.Id }, result.Value);
     }
@@ -284,14 +278,12 @@ public class StockTransactionsController : ControllerBase
         var result = await _mediator.Send(command);
 
         if (!result.IsSuccess)
-        {
             return BadRequest(new ValidationProblemDetails
             {
                 Title = "Lỗi bán hàng",
                 Detail = result.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status400BadRequest
             });
-        }
 
         return CreatedAtAction(nameof(GetStockTransaction), new { id = result.Value!.Id }, result.Value);
     }
@@ -324,14 +316,12 @@ public class StockTransactionsController : ControllerBase
         var result = await _mediator.Send(command);
 
         if (!result.IsSuccess)
-        {
             return BadRequest(new ValidationProblemDetails
             {
                 Title = "Lỗi điều chỉnh tồn kho",
                 Detail = result.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status400BadRequest
             });
-        }
 
         return CreatedAtAction(nameof(GetStockTransaction), new { id = result.Value!.Id }, result.Value);
     }

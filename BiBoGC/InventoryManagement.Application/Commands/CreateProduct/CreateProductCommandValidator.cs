@@ -16,7 +16,8 @@ public class CreateProductCommandValidator : AbstractValidator<CreateProductComm
         RuleFor(x => x.Sku)
             .NotEmpty().WithMessage("Mã SKU không được để trống.")
             .MaximumLength(20).WithMessage("Mã SKU không được quá 20 ký tự.")
-            .Matches(@"^[A-Za-z0-9\-_]+$").WithMessage("Mã SKU chỉ được chứa chữ cái, số, dấu gạch ngang và gạch dưới.");
+            .Matches(@"^[A-Za-z0-9\-_]+$")
+            .WithMessage("Mã SKU chỉ được chứa chữ cái, số, dấu gạch ngang và gạch dưới.");
 
         RuleFor(x => x.Price)
             .GreaterThanOrEqualTo(0).WithMessage("Giá sản phẩm phải lớn hơn hoặc bằng 0.");

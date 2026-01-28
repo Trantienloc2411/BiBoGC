@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Sale.Domain.Enum;
 
-namespace Sale.Domain.Enum
+public enum PaymentMethod
 {
-    public enum PaymentMethod
-    {
-
-        Cash = 1,
-        QRPayment = 2,
-    }
+    Cash = 1,
+    QRPayment = 2
 }

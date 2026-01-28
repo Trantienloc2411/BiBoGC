@@ -20,10 +20,10 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Paginat
     public async Task<PaginatedResult<ProductDto>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
     {
         var (products, totalCount) = await _productRepository.GetAllAsync(
-            pageNumber: request.PageNumber,
-            pageSize: request.PageSize,
-            searchTerm: request.SearchTerm,
-            cancellationToken: cancellationToken
+            request.PageNumber,
+            request.PageSize,
+            request.SearchTerm,
+            cancellationToken
         );
 
         var dtos = products.Select(MapToDto);
@@ -43,13 +43,13 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Paginat
         {
             Id = product.Id,
             Name = product.Name,
-            Sku = product.Sku.Value,
-            Price = product.Price.Value,
+            Sku = product.SkuGeneral.Value,
+            Price = product.BasePrice.Value,
             Currency = "VND",
             Description = product.Description,
             Status = product.Status.ToString(),
             RequiresBatchTracking = product.RequiresBatchTracking,
-            TotalStock = product.GetTotalStock(),
+            TotalStock = product.TotalStock,
             AvailableStock = product.GetAvailableStock(),
             ExpiredStock = product.GetExpiredBatches().Sum(b => b.Quantity),
             ExpiringSoonStock = product.GetExpiringSoonBatches().Sum(b => b.Quantity),

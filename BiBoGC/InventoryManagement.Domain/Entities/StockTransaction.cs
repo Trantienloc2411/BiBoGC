@@ -5,22 +5,9 @@ namespace InventoryManagement.Domain.Entities;
 
 public class StockTransaction : BaseEntity
 {
-    public Guid ProductId { get; private set; }
-    public Guid ProductBatchId { get; private set; }
-    public Guid SupplierId { get; private set; }
-    public StockTransactionType TransactionType { get; private set; }
-    public int Quantity { get; private set; }
-    public decimal UnitPrice { get; private set; }
-    public decimal TotalPrice => Quantity * UnitPrice;
-    public DateTime TransactionDate { get; private set; }
-    public string? Notes { get; private set; }
-
-    // Navigation properties
-    public Product Product { get; private set; } = null!;
-    public ProductBatch? ProductBatch { get; private set;  } = null!;
-    public Supplier? Supplier { get; private set; } = null!;
-
-    private StockTransaction() { } // For EF Core
+    private StockTransaction()
+    {
+    } // For EF Core
 
     public StockTransaction(
         Guid productId,
@@ -46,17 +33,36 @@ public class StockTransaction : BaseEntity
         Notes = notes?.Trim();
     }
 
-    public bool IsInboundTransaction() => 
-        TransactionType is 
-            StockTransactionType.Purchase or 
-            StockTransactionType.AdjustmentIn or 
-            StockTransactionType.Return;
-    public bool IsOutboundTransaction() => 
-        TransactionType is 
-            StockTransactionType.Sale or 
-            StockTransactionType.AdjustmentOut or 
-            StockTransactionType.Damage or 
-            StockTransactionType.Expiry or 
-            StockTransactionType.SupplierReturn;
+    public Guid ProductId { get; private set; }
+    public Guid ProductBatchId { get; private set; }
+    public Guid SupplierId { get; private set; }
+    public StockTransactionType TransactionType { get; private set; }
+    public int Quantity { get; private set; }
+    public decimal UnitPrice { get; private set; }
+    public decimal TotalPrice => Quantity * UnitPrice;
+    public DateTime TransactionDate { get; private set; }
+    public string? Notes { get; private set; }
 
+    // Navigation properties
+    public Product Product { get; private set; } = null!;
+    public ProductBatch? ProductBatch { get; private set; } = null!;
+    public Supplier? Supplier { get; private set; } = null!;
+
+    public bool IsInboundTransaction()
+    {
+        return TransactionType is
+            StockTransactionType.Purchase or
+            StockTransactionType.AdjustmentIn or
+            StockTransactionType.Return;
+    }
+
+    public bool IsOutboundTransaction()
+    {
+        return TransactionType is
+            StockTransactionType.Sale or
+            StockTransactionType.AdjustmentOut or
+            StockTransactionType.Damage or
+            StockTransactionType.Expiry or
+            StockTransactionType.SupplierReturn;
+    }
 }
