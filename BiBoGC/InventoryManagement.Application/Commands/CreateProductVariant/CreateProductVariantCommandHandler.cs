@@ -19,7 +19,8 @@ public class CreateProductVariantCommandHandler(
             CancellationToken cancellationToken)
     {
         var doesVariantExist =
-            await productVariantRepository.DoesVariantExistAsync(request.ProductId,Guid.Empty, request.QuantityBaseUnit,
+            await productVariantRepository.DoesVariantExistAsync(request.ProductId, Guid.Empty,
+                request.QuantityBaseUnit,
                 request.Unit, cancellationToken);
         if (doesVariantExist)
             return Result<ProductVariantDto>.Failure(
@@ -40,6 +41,7 @@ public class CreateProductVariantCommandHandler(
             costPrice: new Money(request.CostPrice),
             displayOrder: request.DisplayOrder
         );
+
 
         await productVariantRepository.AddAsync(productVariant, cancellationToken);
 

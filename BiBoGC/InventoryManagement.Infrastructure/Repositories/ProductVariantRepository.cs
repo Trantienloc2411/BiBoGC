@@ -71,8 +71,10 @@ public class ProductVariantRepository : IProductVariantRepository
         CancellationToken cancellationToken = default)
     {
         var productVariant =
-            await _context.ProductVariants.FirstOrDefaultAsync(
-                p => p.Id == productVariantId && p.ProductId == productId, cancellationToken);
+            await _context.ProductVariants
+                .Include(p => p.Product)
+                .FirstOrDefaultAsync(
+                    p => p.Id == productVariantId && p.ProductId == productId, cancellationToken);
         return productVariant;
     }
 

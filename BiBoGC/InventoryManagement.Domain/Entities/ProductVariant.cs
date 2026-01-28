@@ -95,7 +95,7 @@ public class ProductVariant : BaseEntity
         if (!string.IsNullOrEmpty(Barcode) && string.IsNullOrEmpty(barcode))
             throw new ArgumentException(
                 "Sản phẩm này đã có barcode, vui lòng sử dụng 1 barcode khác và không được để trống!");
-            
+
         Barcode = barcode;
         UpdatedAt = DateTime.UtcNow;
     }

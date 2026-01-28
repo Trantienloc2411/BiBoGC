@@ -18,17 +18,19 @@ public class UpdateProductVariantCommandHandler(IProductVariantRepository produc
 
         if (productVariant is null)
             return Result<ProductVariantDto>.Failure("Biến thể của sản phẩm không tồn tại, hoặc đã xoá!");
-        
-        var doesVariantExisted = await productVariantRepository.DoesVariantExistAsync(request.ProductId,  request.ProductVariantId,request.QuantityBaseUnit, request.Unit, cancellationToken);
+
+        var doesVariantExisted = await productVariantRepository.DoesVariantExistAsync(request.ProductId,
+            request.ProductVariantId, request.QuantityBaseUnit, request.Unit, cancellationToken);
         if (doesVariantExisted)
             return Result<ProductVariantDto>.Failure("Biến thể đã tồn tại trong hệ thống, không thể đè cập nhật mới!");
-        
-        var newSkuUnique = AutoGenerateSkuUnique.GenerateSkuUnique(productVariant.Product.SkuGeneral, request.QuantityBaseUnit, request.Unit);
-        
+
+        var newSkuUnique = AutoGenerateSkuUnique.GenerateSkuUnique(productVariant.Product.SkuGeneral,
+            request.QuantityBaseUnit, request.Unit);
+
         productVariant.UpdateBarcode(request.Barcode);
         productVariant.UpdatePrice(new Money(request.SalePrice), new Money(request.CostPrice));
         productVariant.UpdateVariantInfo(request.VariantName, request.Unit, request.QuantityBaseUnit, newSkuUnique);
-        productVariant.SetDisplayOrder(request.DisplayOrder);   
+        productVariant.SetDisplayOrder(request.DisplayOrder);
         await productVariantRepository.UpdateAsync(productVariant, cancellationToken);
 
         var dtos = MapToDto(productVariant);
@@ -48,6 +50,7 @@ public class UpdateProductVariantCommandHandler(IProductVariantRepository produc
             CostPrice = productVariant.CostPrice,
             Barcode = productVariant.Barcode,
             DisplayOrder = productVariant.DisplayOrder,
+            CreatedAt = productVariant.CreatedAt,
             UpdatedAt = DateTime.UtcNow
         };
     }
