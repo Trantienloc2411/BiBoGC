@@ -1,4 +1,5 @@
 ﻿using InventoryManagement.Application.DTOs;
+using InventoryManagement.Domain.Enums;
 using MediatR;
 using Shared.Application.Common;
 
@@ -46,4 +47,7 @@ public record CreateProductCommand : IRequest<Result<ProductDto>>
     /// </summary>
     /// <example>true</example>
     public bool RequiresBatchTracking { get; init; } = false;
+
+    public Units BaseUnits { get; init; }
+    public int LowStockThreshold { get; init; }
 }

@@ -96,14 +96,12 @@ public class SuppliersController : ControllerBase
         var result = await _mediator.Send(query);
 
         if (!result.IsSuccess)
-        {
             return NotFound(new ProblemDetails
             {
                 Title = "Không tìm thấy nhà cung cấp",
                 Detail = result.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status404NotFound
             });
-        }
 
         return Ok(result.Value);
     }
@@ -142,14 +140,12 @@ public class SuppliersController : ControllerBase
         var result = await _mediator.Send(command);
 
         if (!result.IsSuccess)
-        {
             return BadRequest(new ValidationProblemDetails
             {
                 Title = "Lỗi tạo nhà cung cấp",
                 Detail = result.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status400BadRequest
             });
-        }
 
         return CreatedAtAction(nameof(GetSupplier), new { id = result.Value!.Id }, result.Value);
     }
@@ -189,14 +185,12 @@ public class SuppliersController : ControllerBase
     {
         // Ensure ID matches
         if (id != command.Id && command.Id != Guid.Empty)
-        {
             return BadRequest(new ValidationProblemDetails
             {
                 Title = "ID không khớp",
                 Detail = "ID trong URL và body phải giống nhau.",
                 Status = StatusCodes.Status400BadRequest
             });
-        }
 
         var updateCommand = new UpdateSupplierCommand
         {
@@ -214,14 +208,12 @@ public class SuppliersController : ControllerBase
         {
             var errorMessage = result.Errors.FirstOrDefault() ?? string.Empty;
             if (errorMessage.Contains("không tìm thấy", StringComparison.OrdinalIgnoreCase))
-            {
                 return NotFound(new ProblemDetails
                 {
                     Title = "Không tìm thấy nhà cung cấp",
                     Detail = errorMessage,
                     Status = StatusCodes.Status404NotFound
                 });
-            }
 
             return BadRequest(new ValidationProblemDetails
             {
@@ -253,14 +245,12 @@ public class SuppliersController : ControllerBase
         var result = await _mediator.Send(command);
 
         if (!result.IsSuccess)
-        {
             return NotFound(new ProblemDetails
             {
                 Title = "Không tìm thấy nhà cung cấp",
                 Detail = result.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status404NotFound
             });
-        }
 
         return NoContent();
     }
@@ -280,14 +270,12 @@ public class SuppliersController : ControllerBase
         var getResult = await _mediator.Send(getQuery);
 
         if (!getResult.IsSuccess)
-        {
             return NotFound(new ProblemDetails
             {
                 Title = "Không tìm thấy nhà cung cấp",
                 Detail = getResult.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status404NotFound
             });
-        }
 
         var supplier = getResult.Value!;
         var updateCommand = new UpdateSupplierCommand
@@ -319,14 +307,12 @@ public class SuppliersController : ControllerBase
         var getResult = await _mediator.Send(getQuery);
 
         if (!getResult.IsSuccess)
-        {
             return NotFound(new ProblemDetails
             {
                 Title = "Không tìm thấy nhà cung cấp",
                 Detail = getResult.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status404NotFound
             });
-        }
 
         var supplier = getResult.Value!;
         var updateCommand = new UpdateSupplierCommand

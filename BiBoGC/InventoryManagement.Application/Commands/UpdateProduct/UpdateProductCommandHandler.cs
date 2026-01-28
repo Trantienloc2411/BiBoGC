@@ -22,16 +22,10 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
     {
         // Get existing product
         var product = await _productRepository.GetByIdAsync(request.Id, cancellationToken);
-        if (product == null)
-        {
-            return Result<ProductDto>.Failure($"Không tìm thấy sản phẩm với ID '{request.Id}'.");
-        }
+        if (product == null) return Result<ProductDto>.Failure($"Không tìm thấy sản phẩm với ID '{request.Id}'.");
 
         // Update price if provided
-        if (request.Price.HasValue)
-        {
-            product.UpdatePrice(new Money(request.Price.Value));
-        }
+        if (request.Price.HasValue) product.UpdatePrice(new Money(request.Price.Value));
 
         // Note: Name and Description updates would need domain methods
         // For now, we'll save changes through repository
@@ -42,19 +36,19 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         return Result<ProductDto>.Success(dto);
     }
 
-    private static ProductDto MapToDto(InventoryManagement.Domain.Entities.Product product)
+    private static ProductDto MapToDto(Domain.Entities.Product product)
     {
         return new ProductDto
         {
             Id = product.Id,
             Name = product.Name,
-            Sku = product.Sku.Value,
-            Price = product.Price.Value,
+            Sku = product.SkuGeneral.Value,
+            Price = product.BasePrice.Value,
             Currency = "VND",
             Description = product.Description,
             Status = product.Status.ToString(),
             RequiresBatchTracking = product.RequiresBatchTracking,
-            TotalStock = product.GetTotalStock(),
+            TotalStock = product.TotalStock,
             AvailableStock = product.GetAvailableStock(),
             ExpiredStock = product.GetExpiredBatches().Sum(b => b.Quantity),
             ExpiringSoonStock = product.GetExpiringSoonBatches().Sum(b => b.Quantity),

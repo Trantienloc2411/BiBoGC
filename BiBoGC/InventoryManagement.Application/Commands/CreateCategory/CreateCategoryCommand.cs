@@ -1,18 +1,13 @@
 ﻿using InventoryManagement.Application.DTOs;
 using MediatR;
 using Shared.Application.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace InventoryManagement.Application.Commands.CreateCategory
+namespace InventoryManagement.Application.Commands.CreateCategory;
+
+public class CreateCategoryCommand : IRequest<Result<CategoryDto>>
 {
-    public class CreateCategoryCommand : IRequest<Result<CategoryDto>>
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int DisplayOrder { get; set; }
-        public Guid? ParentCategoryId { get; set; }
-
-    }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public int DisplayOrder { get; set; }
+    public Guid? ParentCategoryId { get; set; }
 }

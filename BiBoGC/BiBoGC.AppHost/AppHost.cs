@@ -1,5 +1,3 @@
-using Aspire.Hosting;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 // PostgreSQL container with pgAdmin UI
@@ -12,7 +10,7 @@ var inventoryDb = postgres.AddDatabase("InventoryDb");
 
 // Add BiBoGC API project with database reference
 builder.AddProject<Projects.BiBoGC>("bibogc")
-    .WithReference(inventoryDb)    // Injects ConnectionStrings:InventoryDb
-    .WaitFor(inventoryDb);         // Wait for DB to be ready
+    .WithReference(inventoryDb) // Injects ConnectionStrings:InventoryDb
+    .WaitFor(inventoryDb); // Wait for DB to be ready
 
 builder.Build().Run();

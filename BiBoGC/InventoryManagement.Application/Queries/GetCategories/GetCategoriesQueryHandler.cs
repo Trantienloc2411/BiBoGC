@@ -3,38 +3,31 @@ using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Domain.Entities;
 using MediatR;
 using Shared.Application.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace InventoryManagement.Application.Queries.GetCategories
+namespace InventoryManagement.Application.Queries.GetCategories;
+
+public class GetCategoriesQueryHandler : IRequestHandler<GetCategoriesQuery, PagedResult<CategoryDto>>
 {
-    public class GetCategoriesQueryHandler : IRequestHandler<GetCategoriesQuery, PagedResult<CategoryDto>>
+    private readonly ICategoryRepository _categoryRepository;
+
+    public GetCategoriesQueryHandler(ICategoryRepository categoryRepository)
     {
-        private readonly ICategoryRepository _categoryRepository;
-        public GetCategoriesQueryHandler(ICategoryRepository categoryRepository)
-        {
-            _categoryRepository = categoryRepository;
-        }
-        public async Task<PagedResult<CategoryDto>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
-        {
-            IEnumerable<Category> categories; 
+        _categoryRepository = categoryRepository;
+    }
 
-            if(request.ParentCategoryId.HasValue)
-            {
-                categories = await _categoryRepository.GetSubCategoriesAsync(request.ParentCategoryId.Value, cancellationToken);
-            }
-            else
-            {
-                categories = await _categoryRepository.GetRootCategoriesAsync(cancellationToken);
-            }
+    public async Task<PagedResult<CategoryDto>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
+    {
+        IEnumerable<Category> categories;
 
-            if (!request.IncludeInactive)
-            {
-                categories = categories.Where(c => c.IsActive);
-            }
+        if (request.ParentCategoryId.HasValue)
+            categories =
+                await _categoryRepository.GetSubCategoriesAsync(request.ParentCategoryId.Value, cancellationToken);
+        else
+            categories = await _categoryRepository.GetRootCategoriesAsync(cancellationToken);
 
-            var categoryDtos = categories.Select(c => new CategoryDto
+        if (!request.IncludeInactive) categories = categories.Where(c => c.IsActive);
+
+        var categoryDtos = categories.Select(c => new CategoryDto
             {
                 Id = c.Id,
                 Name = c.Name,
@@ -46,17 +39,16 @@ namespace InventoryManagement.Application.Queries.GetCategories
                 ProductCount = c.Items.Count,
                 SubCategories = null // For simplicity, not including sub-categories in this example
             })
-                .OrderBy(c => c.DisplayOrder)
-                .ThenBy(c => c.Name)
-                .ToList();
+            .OrderBy(c => c.DisplayOrder)
+            .ThenBy(c => c.Name)
+            .ToList();
 
-            return new PagedResult<CategoryDto>
-            {
-                Items = categoryDtos,
-                TotalCount = categoryDtos.Count,
-                PageSize = categoryDtos.Count,
-                Page = 1
-            };
-        }
+        return new PagedResult<CategoryDto>
+        {
+            Items = categoryDtos,
+            TotalCount = categoryDtos.Count,
+            PageSize = categoryDtos.Count,
+            Page = 1
+        };
     }
 }

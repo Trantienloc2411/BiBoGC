@@ -21,6 +21,7 @@ public class ProductRepository : IProductRepository
     {
         return await _context.Products
             .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .Include(p => p.Variants.Where(v => !v.IsDeleted))
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
@@ -30,16 +31,6 @@ public class ProductRepository : IProductRepository
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
-    public async Task<Product?> GetBySkuAsync(string sku, CancellationToken cancellationToken = default)
-    {
-        var normalizedSku = sku.Trim().ToUpper();
-        // Note: EF Core will translate this using the configured ValueConverter
-        var products = await _context.Products
-            .Include(p => p.Batches.Where(b => !b.IsDeleted))
-            .ToListAsync(cancellationToken);
-
-        return products.FirstOrDefault(p => p.Sku.Value == normalizedSku);
-    }
 
     public async Task<(IEnumerable<Product> Products, int TotalCount)> GetAllAsync(
         int pageNumber = 1,
@@ -50,6 +41,7 @@ public class ProductRepository : IProductRepository
         // Load all products with batches
         var allProducts = await _context.Products
             .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .Include(p => p.Variants.Where(v => !v.IsDeleted))
             .ToListAsync(cancellationToken);
 
         IEnumerable<Product> filteredProducts = allProducts;
@@ -60,7 +52,7 @@ public class ProductRepository : IProductRepository
             var search = searchTerm.Trim().ToLower();
             filteredProducts = filteredProducts.Where(p =>
                 p.Name.ToLower().Contains(search) ||
-                p.Sku.Value.ToLower().Contains(search) ||
+                p.Variants.Any(v => v.SkuUnique.Value.ToLower().Contains(search)) ||
                 p.Description.ToLower().Contains(search));
         }
 
@@ -77,18 +69,17 @@ public class ProductRepository : IProductRepository
         return (products, totalCount);
     }
 
-    public async Task<bool> SkuExistsAsync(string sku, Guid? excludeProductId = null, CancellationToken cancellationToken = default)
+    public async Task<bool> SkuExistsAsync(string sku, Guid? excludeProductId = null,
+        CancellationToken cancellationToken = default)
     {
         var normalizedSku = sku.Trim().ToUpper();
 
         // Load products and check in memory because of Value Object conversion
-        var products = await _context.Products.ToListAsync(cancellationToken);
-        var query = products.Where(p => p.Sku.Value == normalizedSku);
+        var products = await _context.Products.Include(v => v.Variants.Where(v => !v.IsDeleted))
+            .ToListAsync(cancellationToken);
+        var query = products.Where(p => p.Variants.Any(v => v.SkuUnique.Value == normalizedSku));
 
-        if (excludeProductId.HasValue)
-        {
-            query = query.Where(p => p.Id != excludeProductId.Value);
-        }
+        if (excludeProductId.HasValue) query = query.Where(p => p.Id != excludeProductId.Value);
 
         return query.Any();
     }
@@ -112,7 +103,8 @@ public class ProductRepository : IProductRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Product>> GetLowStockProductsAsync(int threshold, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Product>> GetLowStockProductsAsync(int threshold,
+        CancellationToken cancellationToken = default)
     {
         var products = await _context.Products
             .Include(p => p.Batches.Where(b => !b.IsDeleted))
@@ -122,7 +114,8 @@ public class ProductRepository : IProductRepository
         return products.Where(p => p.GetAvailableStock() < threshold);
     }
 
-    public async Task<IEnumerable<Product>> GetProductsWithExpiringSoonBatchesAsync(int daysUntilExpiry = 30, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Product>> GetProductsWithExpiringSoonBatchesAsync(int daysUntilExpiry = 30,
+        CancellationToken cancellationToken = default)
     {
         var expiryThreshold = DateTime.UtcNow.AddDays(daysUntilExpiry);
 

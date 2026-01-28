@@ -12,13 +12,13 @@ public class Program
     public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        
+
         // Add Aspire service defaults
         builder.AddServiceDefaults();
-        
+
         // Check if connection string is available (from AppHost in dev, or from config in prod)
         var connectionString = builder.Configuration.GetConnectionString("InventoryDb");
-        
+
         if (builder.Environment.IsDevelopment() && string.IsNullOrEmpty(connectionString))
         {
             // Development with AppHost - use Aspire's AddNpgsqlDbContext
@@ -28,7 +28,7 @@ public class Program
                 options.EnableDetailedErrors();
                 options.EnableSensitiveDataLogging(true);
             });
-            
+
             // Register repositories (DbContext already registered by Aspire above)
             builder.Services.AddInventoryInfrastructureWithAspire();
         }
@@ -36,12 +36,10 @@ public class Program
         {
             // Production/Staging or Development without AppHost - use direct connection string
             if (string.IsNullOrEmpty(connectionString))
-            {
                 throw new InvalidOperationException(
                     "Connection string 'InventoryDb' is required. " +
                     "Please provide it in 'ConnectionStrings:InventoryDb' configuration section.");
-            }
-            
+
             // Register DbContext with direct connection string
             builder.Services.AddDbContextPool<InventoryDbContext>(options =>
             {
@@ -49,14 +47,14 @@ public class Program
                 {
                     npgsqlOptions.MigrationsAssembly(typeof(InventoryDbContext).Assembly.FullName);
                     npgsqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(30),
-                        errorCodesToAdd: null);
+                        5,
+                        TimeSpan.FromSeconds(30),
+                        null);
                 });
                 options.EnableDetailedErrors();
                 options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
             });
-            
+
             // Register repositories
             builder.Services.AddInventoryInfrastructureWithAspire();
         }
@@ -80,8 +78,8 @@ public class Program
             options.AddPolicy("AllowAll", policy =>
             {
                 policy.AllowAnyOrigin()
-                      .AllowAnyMethod()
-                      .AllowAnyHeader();
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
             });
         });
 

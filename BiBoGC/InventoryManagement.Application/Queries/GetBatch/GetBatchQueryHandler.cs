@@ -18,10 +18,7 @@ public class GetBatchQueryHandler : IRequestHandler<GetBatchQuery, Result<Produc
     {
         var batch = await _productBatchRepository.GetByIdAsync(request.Id, cancellationToken);
 
-        if (batch is null)
-        {
-            return Result<ProductBatchDto>.Failure($"Không tìm thấy lô hàng với ID '{request.Id}'.");
-        }
+        if (batch is null) return Result<ProductBatchDto>.Failure($"Không tìm thấy lô hàng với ID '{request.Id}'.");
 
         var dto = ProductBatchDto.FromEntity(batch);
 

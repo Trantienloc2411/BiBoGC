@@ -6,10 +6,11 @@ using Shared.Application.Common;
 
 namespace InventoryManagement.Application.Commands.CreateStockTransaction;
 
-public class CreateStockTransactionCommandHandler : IRequestHandler<CreateStockTransactionCommand, Result<StockTransactionDto>>
+public class
+    CreateStockTransactionCommandHandler : IRequestHandler<CreateStockTransactionCommand, Result<StockTransactionDto>>
 {
-    private readonly IStockTransactionRepository _stockTransactionRepository;
     private readonly IProductRepository _productRepository;
+    private readonly IStockTransactionRepository _stockTransactionRepository;
     private readonly ISupplierRepository _supplierRepository;
 
     public CreateStockTransactionCommandHandler(
@@ -22,23 +23,21 @@ public class CreateStockTransactionCommandHandler : IRequestHandler<CreateStockT
         _supplierRepository = supplierRepository;
     }
 
-    public async Task<Result<StockTransactionDto>> Handle(CreateStockTransactionCommand request, CancellationToken cancellationToken)
+    public async Task<Result<StockTransactionDto>> Handle(CreateStockTransactionCommand request,
+        CancellationToken cancellationToken)
     {
         // Validate Product exists
         var product = await _productRepository.GetByIdAsync(request.ProductId, cancellationToken);
         if (product is null)
-        {
             return Result<StockTransactionDto>.Failure($"Không tìm thấy sản phẩm với ID '{request.ProductId}'.");
-        }
 
         // Validate Supplier if provided
         if (request.SupplierId.HasValue)
         {
             var supplier = await _supplierRepository.GetByIdAsync(request.SupplierId.Value, cancellationToken);
             if (supplier is null)
-            {
-                return Result<StockTransactionDto>.Failure($"Không tìm thấy nhà cung cấp với ID '{request.SupplierId}'.");
-            }
+                return Result<StockTransactionDto>.Failure(
+                    $"Không tìm thấy nhà cung cấp với ID '{request.SupplierId}'.");
         }
 
         // Validate ProductBatch if provided
@@ -47,33 +46,27 @@ public class CreateStockTransactionCommandHandler : IRequestHandler<CreateStockT
         {
             batch = product.Batches.FirstOrDefault(b => b.Id == request.ProductBatchId.Value);
             if (batch is null)
-            {
-                return Result<StockTransactionDto>.Failure($"Không tìm thấy lô hàng với ID '{request.ProductBatchId}' cho sản phẩm này.");
-            }
+                return Result<StockTransactionDto>.Failure(
+                    $"Không tìm thấy lô hàng với ID '{request.ProductBatchId}' cho sản phẩm này.");
         }
 
         var transaction = new StockTransaction(
-            productId: request.ProductId,
-            productBatchId: request.ProductBatchId ?? Guid.Empty,
-            supplierId: request.SupplierId ?? Guid.Empty,
-            transactionType: request.TransactionType,
-            quantity: request.Quantity,
-            unitPrice: request.UnitPrice,
-            transactionDate: DateTime.UtcNow,
-            notes: request.Notes
+            request.ProductId,
+            request.ProductBatchId ?? Guid.Empty,
+            request.SupplierId ?? Guid.Empty,
+            request.TransactionType,
+            request.Quantity,
+            request.UnitPrice,
+            DateTime.UtcNow,
+            request.Notes
         );
 
         // Update batch quantity if batch is specified
         if (batch is not null)
         {
             if (transaction.IsInboundTransaction())
-            {
                 batch.IncreaseQuantity(request.Quantity);
-            }
-            else if (transaction.IsOutboundTransaction())
-            {
-                batch.DecreaseQuantity(request.Quantity);
-            }
+            else if (transaction.IsOutboundTransaction()) batch.DecreaseQuantity(request.Quantity);
 
             await _productRepository.UpdateAsync(product, cancellationToken);
         }
@@ -92,7 +85,7 @@ public class CreateStockTransactionCommandHandler : IRequestHandler<CreateStockT
             BatchNumber = fullTransaction.ProductBatch?.BatchNumber,
             SupplierId = fullTransaction.SupplierId == Guid.Empty ? null : fullTransaction.SupplierId,
             SupplierName = fullTransaction.Supplier?.Name,
-            Sku = fullTransaction.Product?.Sku ?? string.Empty,
+            Sku = fullTransaction.Product?.SkuGeneral ?? string.Empty,
             UnitPrice = fullTransaction.UnitPrice,
             TotalAmount = fullTransaction.TotalPrice,
             TransactionType = fullTransaction.TransactionType.ToString(),

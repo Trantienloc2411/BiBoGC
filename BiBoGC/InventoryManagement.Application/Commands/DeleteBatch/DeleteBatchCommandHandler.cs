@@ -21,17 +21,11 @@ public class DeleteBatchCommandHandler : IRequestHandler<DeleteBatchCommand, Res
     {
         // Verify product exists
         var product = await _productRepository.GetByIdAsync(request.ProductId, cancellationToken);
-        if (product is null)
-        {
-            return Result.Failure($"Không tìm thấy sản phẩm với ID '{request.ProductId}'.");
-        }
+        if (product is null) return Result.Failure($"Không tìm thấy sản phẩm với ID '{request.ProductId}'.");
 
         // Verify batch belongs to product
         var batch = product.Batches.FirstOrDefault(b => b.Id == request.Id);
-        if (batch is null)
-        {
-            return Result.Failure($"Không tìm thấy lô hàng với ID '{request.Id}' cho sản phẩm này.");
-        }
+        if (batch is null) return Result.Failure($"Không tìm thấy lô hàng với ID '{request.Id}' cho sản phẩm này.");
 
         // Check if batch has quantity - warn if deleting batch with stock
         if (batch.Quantity > 0)
