@@ -27,9 +27,7 @@ public class AddBatchCommandHandler : IRequestHandler<AddBatchCommand, Result<Pr
         // Get product with batches
         var product = await _productRepository.GetByIdAsync(request.ProductId, cancellationToken);
         if (product == null)
-        {
             return Result<ProductBatchDto>.Failure($"Không tìm thấy sản phẩm với ID '{request.ProductId}'.");
-        }
 
         try
         {

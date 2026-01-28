@@ -4,7 +4,8 @@ using MediatR;
 
 namespace InventoryManagement.Application.Queries.GetStockTransactions;
 
-public class GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransactionsQuery, PaginatedResult<StockTransactionDto>>
+public class
+    GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransactionsQuery, PaginatedResult<StockTransactionDto>>
 {
     private readonly IStockTransactionRepository _stockTransactionRepository;
 
@@ -13,13 +14,14 @@ public class GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransact
         _stockTransactionRepository = stockTransactionRepository;
     }
 
-    public async Task<PaginatedResult<StockTransactionDto>> Handle(GetStockTransactionsQuery request, CancellationToken cancellationToken)
+    public async Task<PaginatedResult<StockTransactionDto>> Handle(GetStockTransactionsQuery request,
+        CancellationToken cancellationToken)
     {
         var (transactions, totalCount) = await _stockTransactionRepository.GetAllAsync(
-            pageNumber: request.PageNumber,
-            pageSize: request.PageSize,
-            keyword: request.SearchTerm,
-            cancellationToken: cancellationToken
+            request.PageNumber,
+            request.PageSize,
+            request.SearchTerm,
+            cancellationToken
         );
 
         var dtos = transactions.Select(t => new StockTransactionDto
@@ -31,7 +33,7 @@ public class GetStockTransactionsQueryHandler : IRequestHandler<GetStockTransact
             BatchNumber = t.ProductBatch?.BatchNumber,
             SupplierId = t.SupplierId == Guid.Empty ? null : t.SupplierId,
             SupplierName = t.Supplier?.Name,
-            Sku = t.Product?.Sku ?? string.Empty,
+            Sku = t.Product?.SkuGeneral ?? string.Empty,
             UnitPrice = t.UnitPrice,
             TotalAmount = t.TotalPrice,
             TransactionType = t.TransactionType.ToString(),

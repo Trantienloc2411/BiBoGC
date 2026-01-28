@@ -39,10 +39,7 @@ public class ProductBatchRepository : IProductBatchRepository
         var query = _context.ProductBatches
             .Where(b => b.ProductId == productId && !b.IsDeleted);
 
-        if (!includeExpired)
-        {
-            query = query.Where(b => b.ExpirationDate > DateTime.UtcNow);
-        }
+        if (!includeExpired) query = query.Where(b => b.ExpirationDate > DateTime.UtcNow);
 
         var totalCount = await query.CountAsync(cancellationToken);
 
@@ -117,10 +114,7 @@ public class ProductBatchRepository : IProductBatchRepository
                         b.BatchNumber == normalizedBatchNumber &&
                         !b.IsDeleted);
 
-        if (excludeBatchId.HasValue)
-        {
-            query = query.Where(b => b.Id != excludeBatchId.Value);
-        }
+        if (excludeBatchId.HasValue) query = query.Where(b => b.Id != excludeBatchId.Value);
 
         return await query.AnyAsync(cancellationToken);
     }

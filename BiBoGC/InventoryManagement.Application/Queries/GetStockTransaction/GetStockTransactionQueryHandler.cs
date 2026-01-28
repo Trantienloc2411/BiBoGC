@@ -14,14 +14,13 @@ public class GetStockTransactionQueryHandler : IRequestHandler<GetStockTransacti
         _stockTransactionRepository = stockTransactionRepository;
     }
 
-    public async Task<Result<StockTransactionDto>> Handle(GetStockTransactionQuery request, CancellationToken cancellationToken)
+    public async Task<Result<StockTransactionDto>> Handle(GetStockTransactionQuery request,
+        CancellationToken cancellationToken)
     {
         var transaction = await _stockTransactionRepository.GetByIdAsync(request.Id, cancellationToken);
 
         if (transaction is null)
-        {
             return Result<StockTransactionDto>.Failure($"Không tìm thấy giao dịch kho với ID '{request.Id}'.");
-        }
 
         var dto = new StockTransactionDto
         {
@@ -32,7 +31,7 @@ public class GetStockTransactionQueryHandler : IRequestHandler<GetStockTransacti
             BatchNumber = transaction.ProductBatch?.BatchNumber,
             SupplierId = transaction.SupplierId == Guid.Empty ? null : transaction.SupplierId,
             SupplierName = transaction.Supplier?.Name,
-            Sku = transaction.Product?.Sku ?? string.Empty,
+            Sku = transaction.Product?.SkuGeneral ?? string.Empty,
             UnitPrice = transaction.UnitPrice,
             TotalAmount = transaction.TotalPrice,
             TransactionType = transaction.TransactionType.ToString(),

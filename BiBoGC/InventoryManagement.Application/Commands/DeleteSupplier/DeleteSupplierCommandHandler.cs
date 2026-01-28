@@ -17,10 +17,7 @@ public class DeleteSupplierCommandHandler : IRequestHandler<DeleteSupplierComman
     {
         var supplier = await _supplierRepository.GetByIdAsync(request.Id, cancellationToken);
 
-        if (supplier is null)
-        {
-            return Result.Failure($"Không tìm thấy nhà cung cấp với ID '{request.Id}'.");
-        }
+        if (supplier is null) return Result.Failure($"Không tìm thấy nhà cung cấp với ID '{request.Id}'.");
 
         await _supplierRepository.DeleteAsync(supplier, cancellationToken);
 

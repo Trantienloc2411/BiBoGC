@@ -31,4 +31,3 @@ public record GetProductsQuery : IRequest<PaginatedResult<ProductDto>>
     /// <example>coca</example>
     public string? SearchTerm { get; init; }
 }
-

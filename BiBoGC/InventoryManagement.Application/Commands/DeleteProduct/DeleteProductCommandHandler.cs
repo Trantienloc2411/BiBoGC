@@ -19,10 +19,7 @@ public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand,
     public async Task<Result> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
     {
         var product = await _productRepository.GetByIdWithoutBatchesAsync(request.Id, cancellationToken);
-        if (product == null)
-        {
-            return Result.Failure($"Không tìm thấy sản phẩm với ID '{request.Id}'.");
-        }
+        if (product == null) return Result.Failure($"Không tìm thấy sản phẩm với ID '{request.Id}'.");
 
         await _productRepository.DeleteAsync(product, cancellationToken);
 

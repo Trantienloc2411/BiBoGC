@@ -16,6 +16,7 @@ public class ProductDto
     public int ExpiringSoonStock { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    
+
     public IEnumerable<ProductBatchDto> RecentBatches { get; set; } = new List<ProductBatchDto>();
+    public IEnumerable<ProductVariantDto>? Variants { get; set; } = new List<ProductVariantDto>();
 }
