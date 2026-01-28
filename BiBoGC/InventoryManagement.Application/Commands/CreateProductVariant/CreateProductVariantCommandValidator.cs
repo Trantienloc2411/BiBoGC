@@ -14,10 +14,11 @@ public class CreateProductVariantCommandValidator : AbstractValidator<CreateProd
             .GreaterThan(0).WithErrorCode("NONNEGATIVE")
             .WithMessage("Số lượng đơn vị không được là số âm")
             ;
-        RuleFor(x => x.CostPrice.Value)
+        RuleFor(x => x.CostPrice)
             .GreaterThan(0).WithErrorCode("NONNEGATIVE")
-            .WithMessage("Giá bán không được âm!")
-            .GreaterThanOrEqualTo(x => x.SalePrice.Value)
+            .WithMessage("Giá bán không được âm!");
+        RuleFor(x => x.SalePrice)
+            .GreaterThanOrEqualTo(x => x.CostPrice)
             .WithErrorCode("NONLOWERTHANCOSTPRICE")
             .WithMessage("Giá bán phải lớn hơn hoặc bằng giá vốn! Vui lòng chỉnh sửa giá vốn trước!");
 

@@ -13,7 +13,7 @@ public class CreateProductVariantCommand : IRequest<Result<ProductVariantDto>>
     public string? Barcode { get; init; }
     public int DisplayOrder { get; init; }
     public Units Unit { get; init; }
-    public Money SalePrice { get; init; }
-    public Money CostPrice { get; init; }
+    public decimal SalePrice { get; init; }
+    public decimal CostPrice { get; init; }
     public int QuantityBaseUnit { get; init; }
 }

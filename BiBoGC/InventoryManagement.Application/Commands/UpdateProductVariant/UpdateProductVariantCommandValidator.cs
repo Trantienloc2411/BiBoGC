@@ -8,11 +8,11 @@ public class UpdateProductVariantCommandValidator : AbstractValidator<UpdateProd
     {
         RuleFor(x => x.QuantityBaseUnit)
             .GreaterThanOrEqualTo(1).WithMessage("Đơn vị của biến thể không thể nhỏ hơn 1.");
-        RuleFor(x => x.CostPrice.Value)
+        RuleFor(x => x.CostPrice)
             .GreaterThan(0)
             .WithMessage("Giá vốn không thể âm");
-        RuleFor(x => x.SalePrice.Value)
-            .GreaterThanOrEqualTo(x => x.CostPrice.Value)
+        RuleFor(x => x.SalePrice)
+            .GreaterThanOrEqualTo(x => x.CostPrice)
             .WithMessage("Giá bán không thể bé hơn hoặc bằng giá gốc");
         RuleFor(x => x.VariantName)
             .NotEmpty()

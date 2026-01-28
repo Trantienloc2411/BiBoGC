@@ -107,11 +107,15 @@ public class ProductVariantRepository : IProductVariantRepository
         return existingVariant != null && existingVariant.Id != excludeVariantId;
     }
 
-    public async Task<bool> DoesVariantExistAsync(Guid productId, int quantityBaseOnUnit, Units unit,
-        CancellationToken cancellationToken = default)
+    public async Task<bool> DoesVariantExistAsync(Guid productId, Guid? excludedVariantId, int quantityBaseOnUnit,
+        Units unit,
+        CancellationToken cancellationToken)
     {
         var productVariant = await _context.ProductVariants.AnyAsync(
-            c => c.ProductId == productId && c.QuantityBaseUnit == quantityBaseOnUnit && c.Unit == unit,
+            c => c.ProductId == productId
+                 && c.Id != excludedVariantId
+                 && c.QuantityBaseUnit == quantityBaseOnUnit
+                 && c.Unit == unit,
             cancellationToken
         );
         return productVariant;

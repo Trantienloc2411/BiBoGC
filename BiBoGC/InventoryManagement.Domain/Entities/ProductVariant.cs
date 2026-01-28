@@ -43,6 +43,8 @@ public class ProductVariant : BaseEntity
         DisplayOrder = displayOrder;
         IsActive = true;
         Barcode = string.IsNullOrEmpty(barcode) ? null : barcode.Trim();
+        CreatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     //Will auto generate base on format: [SkuGeneral]-[QuantityBaseUnit]-[Unit]
@@ -89,11 +91,16 @@ public class ProductVariant : BaseEntity
 
     public void UpdateBarcode(string barcode)
     {
-        Barcode = barcode.Trim();
+        barcode = barcode.Trim();
+        if (!string.IsNullOrEmpty(Barcode) && string.IsNullOrEmpty(barcode))
+            throw new ArgumentException(
+                "Sản phẩm này đã có barcode, vui lòng sử dụng 1 barcode khác và không được để trống!");
+            
+        Barcode = barcode;
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void UpdateVariantInfo(string variantName, Units unit, int quantityBaseUnit)
+    public void UpdateVariantInfo(string variantName, Units unit, int quantityBaseUnit, string newSkuUnique)
     {
         if (string.IsNullOrWhiteSpace(variantName))
             throw new ArgumentException("Tên biến thể không được để trống", nameof(variantName));
@@ -103,6 +110,8 @@ public class ProductVariant : BaseEntity
         VariantName = variantName.Trim();
         Unit = unit;
         QuantityBaseUnit = quantityBaseUnit;
+        SkuUnique = newSkuUnique;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void SetDisplayOrder(int displayOrder)

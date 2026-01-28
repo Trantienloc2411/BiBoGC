@@ -29,6 +29,6 @@ public interface IProductVariantRepository
     Task<bool> SkuExistsAsync(Guid productId, Sku sku, Guid? excludeVariantId = null,
         CancellationToken cancellationToken = default);
 
-    Task<bool> DoesVariantExistAsync(Guid productId, int quantityBaseOnUnit, Units unit,
+    Task<bool> DoesVariantExistAsync(Guid productId, Guid? excludedVariantId,  int quantityBaseOnUnit, Units unit,
         CancellationToken cancellationToken = default);
 }

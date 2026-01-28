@@ -15,8 +15,8 @@ public record UpdateProductVariantCommand : IRequest<Result<ProductVariantDto>>
     public string VariantName { get; init; } = string.Empty;
     public int DisplayOrder { get; init; }
     public int QuantityBaseUnit { get; init; }
-    public Money CostPrice { get; init; }
-    public Money SalePrice { get; init; }
+    public decimal CostPrice { get; init; }
+    public decimal SalePrice { get; init; }
     public string? Barcode { get; init; } = string.Empty;
     public Units Unit { get; init; }
 }

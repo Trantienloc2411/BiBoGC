@@ -13,6 +13,10 @@
     {
       "url": "http://localhost:5020",
       "description": "Development Server"
+    },
+    {
+      "url": "https://https://bibo-s-gcs-test.onrender.com",
+      "description": "Deploy for test server"
     }
   ],
   "tags": [
@@ -35,6 +39,10 @@
     {
       "name": "Stock Transactions",
       "description": "Giao dịch kho (nhập/xuất/điều chỉnh)"
+    },
+    {
+      "name" : "Product Variants",
+      "description": "Biến thể của một sản phẩm"
     }
   ],
   "paths": {

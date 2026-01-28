@@ -3,6 +3,7 @@ using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Helper;
 using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Domain.Entities;
+using InventoryManagement.Domain.ValueObjects;
 using MediatR;
 using Shared.Application.Common;
 
@@ -18,7 +19,7 @@ public class CreateProductVariantCommandHandler(
             CancellationToken cancellationToken)
     {
         var doesVariantExist =
-            await productVariantRepository.DoesVariantExistAsync(request.ProductId, request.QuantityBaseUnit,
+            await productVariantRepository.DoesVariantExistAsync(request.ProductId,Guid.Empty, request.QuantityBaseUnit,
                 request.Unit, cancellationToken);
         if (doesVariantExist)
             return Result<ProductVariantDto>.Failure(
@@ -33,10 +34,10 @@ public class CreateProductVariantCommandHandler(
             AutoGenerateSkuUnique.GenerateSkuUnique(product.SkuGeneral, request.QuantityBaseUnit, request.Unit),
             request.VariantName,
             quantityBaseUnit: request.QuantityBaseUnit,
-            salePrice: request.SalePrice,
+            salePrice: new Money(request.SalePrice),
             unit: request.Unit,
             barcode: request.Barcode,
-            costPrice: request.CostPrice,
+            costPrice: new Money(request.CostPrice),
             displayOrder: request.DisplayOrder
         );
 
