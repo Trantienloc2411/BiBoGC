@@ -18,21 +18,17 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
         var category = await _categoryRepository.GetByIdAsync(request.Id);
         if (category is null) return Result<Guid>.Failure($"Danh mục có mã {request.Id} không tồn tại");
 
-            // adding logic for cascading delete
+        // adding logic for cascading delete
 
-            var subCategories = await _categoryRepository.GetSubCategoriesAsync(request.Id);
+        var subCategories = await _categoryRepository.GetSubCategoriesAsync(request.Id);
 
-            if(subCategories.Count() > 0)
-            {
-                return Result<Guid>.Failure($"Danh mục này có danh mục con, hãy xóa danh mục con trước.");
-            }
+        if (subCategories.Count() > 0)
+            return Result<Guid>.Failure($"Danh mục này có danh mục con, hãy xóa danh mục con trước.");
 
 
-            await _categoryRepository.DeleteAsync(category, cancellationToken);
+        await _categoryRepository.DeleteAsync(category, cancellationToken);
 
 
-            
-            return Result<Guid>.Success(request.Id);
-        }
+        return Result<Guid>.Success(request.Id);
     }
 }
