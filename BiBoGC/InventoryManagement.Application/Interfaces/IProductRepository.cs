@@ -20,7 +20,7 @@ public interface IProductRepository
     /// Get product by ID without batches (for quick lookups)
     /// </summary>
     Task<Product?> GetByIdWithoutBatchesAsync(Guid id, CancellationToken cancellationToken = default);
-    
+
 
     /// <summary>
     /// Get all products with pagination
@@ -78,5 +78,6 @@ public interface IProductRepository
     /// </summary>
     /// <param name="daysUntilExpiry">Days until expiry threshold</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    Task<IEnumerable<Product>> GetProductsWithExpiringSoonBatchesAsync(int daysUntilExpiry = 30, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Product>> GetProductsWithExpiringSoonBatchesAsync(int daysUntilExpiry = 30,
+        CancellationToken cancellationToken = default);
 }

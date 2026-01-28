@@ -2,7 +2,6 @@
 using InventoryManagement.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Shared.Domain.Common;
 
 namespace InventoryManagement.Infrastructure.Data.Configurations;
 
@@ -11,25 +10,26 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
     public void Configure(EntityTypeBuilder<ProductVariant> builder)
     {
         builder.ToTable("ProductVariant");
-        
+
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id);
 
         builder.Property(p => p.ProductId)
             .HasColumnName("ProductId");
-        
+
         builder.Property(p => p.VariantName)
             .HasColumnName("VariantName")
             .HasMaxLength(100)
-            .IsRequired();;
-        
+            .IsRequired();
+        ;
+
         builder.Property(p => p.SkuUnique)
             .HasConversion(
                 sku => sku.Value,
                 value => new Sku(value))
             .IsRequired()
             .HasMaxLength(50);
-        
+
         builder.HasIndex(p => p.SkuUnique)
             .IsUnique();
 
@@ -45,18 +45,20 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
         builder.Property(p => p.QuantityBaseUnit)
             .HasColumnName("QuantityBaseUnit")
             .HasConversion<int>()
-            .IsRequired();; 
-        
+            .IsRequired();
+        ;
+
         builder.Property(p => p.SalePrice)
             .HasColumnName("SalePrice")
             .HasConversion(
                 money => money.Value,
                 money => new Money(money)
-                )
+            )
             .HasColumnType("numeric(18,2)")
-            .IsRequired();;
-        
-        
+            .IsRequired();
+        ;
+
+
         builder.Property(p => p.CostPrice)
             .HasColumnName("CostPrice")
             .HasConversion(
@@ -64,8 +66,8 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
                 money => new Money(money)
             )
             .HasColumnType("numeric(18,2)");
-        
-        
+
+
         builder.Property(p => p.IsActive)
             .HasColumnName("IsActive")
             .IsRequired()
@@ -74,21 +76,19 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
             .HasColumnName("DisplayOrder")
             .HasColumnType("int")
             .HasDefaultValue(0)
-            .IsRequired();;
-        
-        ;builder.HasQueryFilter(p => !p.IsDeleted);
+            .IsRequired();
+        ;
+
+        ;
+        builder.HasQueryFilter(p => !p.IsDeleted);
         builder.Ignore(p => p.RowVersion);
-        
+
         builder.Ignore(p => p.DomainEvents);
-        
-        
+
+
         builder.HasOne(p => p.Product)
             .WithMany(p => p.Variants)
             .HasForeignKey(p => p.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
-        
-        
-        
-        
     }
 }

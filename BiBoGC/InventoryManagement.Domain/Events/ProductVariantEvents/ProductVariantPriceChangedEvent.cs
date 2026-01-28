@@ -1,19 +1,18 @@
-using System;
 using Shared.Domain.Common;
 
 namespace InventoryManagement.Domain.Events.ProductVariantEvents;
 
 public class ProductVariantPriceChangedEvent : DomainEvent
 {
-    public Guid ProductVariantId {get;}
-    public decimal OldPrice {get;}
-    public decimal NewPrice {get;}
-
     public ProductVariantPriceChangedEvent
-    (Guid productVariantId, decimal oldPrice, decimal newPrice)
+        (Guid productVariantId, decimal oldPrice, decimal newPrice)
     {
         ProductVariantId = productVariantId;
         OldPrice = oldPrice;
         NewPrice = newPrice;
     }
+
+    public Guid ProductVariantId { get; }
+    public decimal OldPrice { get; }
+    public decimal NewPrice { get; }
 }

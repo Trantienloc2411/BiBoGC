@@ -1,5 +1,4 @@
 using InventoryManagement.Domain.Entities;
-using InventoryManagement.Domain.Enums;
 using InventoryManagement.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -30,7 +29,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasConversion(
                 sku => sku.Value,
                 value => new Sku(value)
-                )
+            )
             .IsRequired()
             .HasMaxLength(50);
 
@@ -46,7 +45,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
                 money => money.Value,
                 value => new Money(value))
             .HasColumnType("decimal(18,2)");
-        
+
         builder.Property(p => p.BasePrice)
             .HasConversion(
                 money => money.Value,
@@ -56,7 +55,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.Property(p => p.LowStockThreshold)
             .HasDefaultValue(0);
-        
+
         // Enum: ProductStatus
         builder.Property(p => p.Status)
             .HasConversion<string>()
@@ -96,7 +95,5 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         // Ignore domain events (not persisted)
         builder.Ignore(p => p.DomainEvents);
-        
- 
     }
 }

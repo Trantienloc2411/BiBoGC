@@ -3,7 +3,7 @@
 public enum Units
 {
     Pcs = 1, // Cái
-    Hop = 2, 
+    Hop = 2,
     Chai = 3,
     Lon = 4,
     Goi = 5,
@@ -18,12 +18,11 @@ public enum Units
     Bo = 14, // Bộ
     Doi = 15, //Đôi
     Can = 16,
-    
-    Kg  = 21, 
+
+    Kg = 21,
     Lang = 22,
-    
+
     Lit = 31,
     Qua = 40,
     Trai = 41
-    
 }

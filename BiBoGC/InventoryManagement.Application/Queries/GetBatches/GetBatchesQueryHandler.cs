@@ -13,16 +13,17 @@ public class GetBatchesQueryHandler : IRequestHandler<GetBatchesQuery, Paginated
         _productBatchRepository = productBatchRepository;
     }
 
-    public async Task<PaginatedResult<ProductBatchDto>> Handle(GetBatchesQuery request, CancellationToken cancellationToken)
+    public async Task<PaginatedResult<ProductBatchDto>> Handle(GetBatchesQuery request,
+        CancellationToken cancellationToken)
     {
         var (batches, totalCount) = await _productBatchRepository.GetByProductIdAsync(
-            productId: request.ProductId,
-            pageNumber: request.PageNumber,
-            pageSize: request.PageSize,
-            includeExpired: request.IncludeExpired,
-            sortBy: request.SortBy,
-            sortDescending: request.SortDescending,
-            cancellationToken: cancellationToken
+            request.ProductId,
+            request.PageNumber,
+            request.PageSize,
+            request.IncludeExpired,
+            request.SortBy,
+            request.SortDescending,
+            cancellationToken
         );
 
         var dtos = batches.Select(ProductBatchDto.FromEntity);

@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using InventoryManagement.Application.Commands.AddProductVariant;
-using InventoryManagement.Application.Commands.CreateProduct;
 
 namespace InventoryManagement.Application.Commands.CreateProductVariant;
 
@@ -25,6 +24,5 @@ public class CreateProductVariantCommandValidator : AbstractValidator<CreateProd
         RuleFor(x => x.VariantName)
             .NotEmpty().WithErrorCode("NULLVALUE")
             .WithMessage("Trường tên biến thể không được trống.");
-        
     }
 }

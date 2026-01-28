@@ -1,8 +1,9 @@
-﻿using InventoryManagement.Application.Commands.CreateProduct;
+﻿using InventoryManagement.Application.Commands.AddProductVariant;
+using InventoryManagement.Application.Commands.CreateProduct;
+using InventoryManagement.Application.Commands.DeleteProductVariant;
+using InventoryManagement.Application.Commands.UpdateProductVariant;
 using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Queries.GetProductVariants;
-using InventoryManagement.Application.Queries.GetProductVariantsByProductId;
-using InventoryManagement.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +12,9 @@ namespace BiBoGC.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class ProductVariantsController(ILogger<ProductVariantsController> logger, IMediator mediator)
+public class ProductVariantsController(IMediator mediator)
     : ControllerBase
 {
-    
     /// <summary>
     /// Get a paginated list of product variants
     /// </summary>
@@ -48,7 +48,6 @@ public class ProductVariantsController(ILogger<ProductVariantsController> logger
     /// <returns>Paginated list of products</returns>
     /// <response code="200">Returns paginated product list</response>
     /// <response code="400">Invalid pagination parameters</response>
-
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<ProductVariantDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -56,7 +55,7 @@ public class ProductVariantsController(ILogger<ProductVariantsController> logger
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] string? searchTerm = null
-        )
+    )
     {
         var query = new GetProductVariantsQuery
         {
@@ -64,40 +63,8 @@ public class ProductVariantsController(ILogger<ProductVariantsController> logger
             PageSize = pageSize,
             SearchString = searchTerm
         };
-        
+
         var result = await mediator.Send(query);
         return Ok(result);
     }
-
-    [HttpPost]
-    [ProducesResponseType(typeof(ProductVariantDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateProductVariant([FromBody] CreateProductCommand command)
-    {
-        var result = await mediator.Send(command);
-
-        if (!result.IsSuccess)
-        {
-            return BadRequest(new ValidationProblemDetails
-            {
-                Title = "Đã xảy ra lỗi khi tạo biến thể mới.",
-                Detail = result.Errors.FirstOrDefault(),
-                Status = StatusCodes.Status400BadRequest
-            });
-        }
-        return CreatedAtAction(nameof(GetProductVariants), new {id = result.Value!.Id}, result.Value);
-    }
-    
-    //TO-DO: Update Product Variant Controller
-    [HttpPut("{id:guid}")]
-    [ProducesResponseType(typeof(ProductVariantDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task UpdateProductVariant()
-    {
-        
-    }
-    
-    
-    
-    
 }

@@ -1,9 +1,12 @@
 using InventoryManagement.Application.Commands.AddBatch;
+using InventoryManagement.Application.Commands.AddProductVariant;
 using InventoryManagement.Application.Commands.CreateProduct;
 using InventoryManagement.Application.Commands.DeleteBatch;
 using InventoryManagement.Application.Commands.DeleteProduct;
+using InventoryManagement.Application.Commands.DeleteProductVariant;
 using InventoryManagement.Application.Commands.UpdateBatch;
 using InventoryManagement.Application.Commands.UpdateProduct;
+using InventoryManagement.Application.Commands.UpdateProductVariant;
 using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Queries.GetBatch;
 using InventoryManagement.Application.Queries.GetBatches;
@@ -136,14 +139,12 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(query);
 
         if (!result.IsSuccess)
-        {
             return NotFound(new ProblemDetails
             {
                 Title = "Không tìm thấy sản phẩm",
                 Detail = result.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status404NotFound
             });
-        }
 
         return Ok(result.Value);
     }
@@ -191,14 +192,12 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(command);
 
         if (!result.IsSuccess)
-        {
             return BadRequest(new ValidationProblemDetails
             {
                 Title = "Lỗi tạo sản phẩm",
                 Detail = result.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status400BadRequest
             });
-        }
 
         return CreatedAtAction(nameof(GetProduct), new { id = result.Value!.Id }, result.Value);
     }
@@ -237,14 +236,12 @@ public class ProductsController : ControllerBase
     {
         // Ensure ID matches
         if (id != command.Id && command.Id != Guid.Empty)
-        {
             return BadRequest(new ValidationProblemDetails
             {
                 Title = "ID không khớp",
                 Detail = "ID trong URL và body phải giống nhau.",
                 Status = StatusCodes.Status400BadRequest
             });
-        }
 
         var updateCommand = command with { Id = id };
         var result = await _mediator.Send(updateCommand);
@@ -253,14 +250,12 @@ public class ProductsController : ControllerBase
         {
             var errorMessage = result.Errors.FirstOrDefault() ?? string.Empty;
             if (errorMessage.Contains("Không tìm thấy"))
-            {
                 return NotFound(new ProblemDetails
                 {
                     Title = "Không tìm thấy sản phẩm",
                     Detail = errorMessage,
                     Status = StatusCodes.Status404NotFound
                 });
-            }
 
             return BadRequest(new ValidationProblemDetails
             {
@@ -299,14 +294,12 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(command);
 
         if (!result.IsSuccess)
-        {
             return NotFound(new ProblemDetails
             {
                 Title = "Không tìm thấy sản phẩm",
                 Detail = result.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status404NotFound
             });
-        }
 
         return NoContent();
     }
@@ -363,14 +356,12 @@ public class ProductsController : ControllerBase
     {
         // Ensure ProductId matches
         if (productId != command.ProductId && command.ProductId != Guid.Empty)
-        {
             return BadRequest(new ValidationProblemDetails
             {
                 Title = "ID không khớp",
                 Detail = "ID sản phẩm trong URL và body phải giống nhau.",
                 Status = StatusCodes.Status400BadRequest
             });
-        }
 
         var addCommand = command with { ProductId = productId };
         var result = await _mediator.Send(addCommand);
@@ -379,14 +370,12 @@ public class ProductsController : ControllerBase
         {
             var errorMessage = result.Errors.FirstOrDefault() ?? string.Empty;
             if (errorMessage.Contains("Không tìm thấy"))
-            {
                 return NotFound(new ProblemDetails
                 {
                     Title = "Không tìm thấy sản phẩm",
                     Detail = errorMessage,
                     Status = StatusCodes.Status404NotFound
                 });
-            }
 
             return BadRequest(new ValidationProblemDetails
             {
@@ -459,25 +448,21 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(query);
 
         if (!result.IsSuccess)
-        {
             return NotFound(new ProblemDetails
             {
                 Title = "Không tìm thấy lô hàng",
                 Detail = result.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status404NotFound
             });
-        }
 
         // Verify batch belongs to product
         if (result.Value!.ProductId != productId)
-        {
             return NotFound(new ProblemDetails
             {
                 Title = "Không tìm thấy lô hàng",
                 Detail = "Lô hàng không thuộc sản phẩm này.",
                 Status = StatusCodes.Status404NotFound
             });
-        }
 
         return Ok(result.Value);
     }
@@ -527,14 +512,12 @@ public class ProductsController : ControllerBase
         {
             var errorMessage = result.Errors.FirstOrDefault() ?? string.Empty;
             if (errorMessage.Contains("Không tìm thấy", StringComparison.OrdinalIgnoreCase))
-            {
                 return NotFound(new ProblemDetails
                 {
                     Title = "Không tìm thấy dữ liệu",
                     Detail = errorMessage,
                     Status = StatusCodes.Status404NotFound
                 });
-            }
 
             return BadRequest(new ValidationProblemDetails
             {
@@ -573,18 +556,17 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(command);
 
         if (!result.IsSuccess)
-        {
             return NotFound(new ProblemDetails
             {
                 Title = "Không tìm thấy lô hàng",
                 Detail = result.Errors.FirstOrDefault(),
                 Status = StatusCodes.Status404NotFound
             });
-        }
 
         return NoContent();
     }
-    
+
+
     [HttpGet("{guid:guid}/variants", Name = "GetProductVariantByProductId")]
     [ProducesResponseType(typeof(IEnumerable<ProductVariantDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -594,13 +576,93 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(query);
 
         if (!result.IsSuccess)
-            return BadRequest(new ProblemDetails
+            return NotFound(new ProblemDetails
             {
                 Title = result.Errors.FirstOrDefault() ?? string.Empty,
                 Detail = result.Errors.FirstOrDefault() ?? string.Empty,
-                Status = StatusCodes.Status400BadRequest
+                Status = StatusCodes.Status404NotFound
             });
         return Ok(result.Value);
+    }
+
+    [HttpPost("{productId:guid}/variants", Name = "CreateProductVariant")]
+    [ProducesResponseType(typeof(ProductVariantDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CreateProductVariant(Guid productId,
+        [FromBody] CreateProductVariantCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(new ValidationProblemDetails
+            {
+                Title = "Đã xảy ra lỗi khi tạo biến thể mới.",
+                Detail = result.Errors.FirstOrDefault(),
+                Status = StatusCodes.Status400BadRequest
+            });
+        return CreatedAtAction(nameof(GetProductVariantByProductId), new { guid = result.Value!.ProductId },
+            result.Value);
+    }
+
+
+    [HttpPut("{productId:guid}/variants/{variantId:guid}", Name = "UpdateProductVariant")]
+    [ProducesResponseType(typeof(ProductVariantDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateProductVariant(Guid productId, Guid variantId,
+        [FromBody] UpdateProductVariantCommand command)
+    {
+        if (productId != command.ProductId && productId != Guid.Empty ||
+            variantId != command.ProductVariantId && variantId != Guid.Empty
+           )
+        {
+            return BadRequest(new ValidationProblemDetails
+            {
+                Title = "Id không khớp giữa URL query với body",
+                Detail =
+                    "Hãy chắc chắn rằng Id trên URL Query và Id trong body phải khớp với nhau và không được bỏ trống 1 trong 2!",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        var updatedCommand = command with { ProductVariantId = variantId, ProductId = productId };
+        var result = await _mediator.Send(updatedCommand);
+
+        if (result.IsSuccess) return Ok(result.Value);
+        if (result.Errors.Any(c => c.Contains("không tồn tại")))
+            return NotFound(new ValidationProblemDetails
+            {
+                Title = "Đã xảy ra sai sót khi cập nhật.",
+                Detail = result.Errors.FirstOrDefault(),
+                Status = StatusCodes.Status404NotFound
+            });
+
+        return BadRequest(new ValidationProblemDetails
+        {
+            Title = "Đã xảy ra lỗi từ hệ thống! Hãy thử lại chốc lát!",
+            Detail = result.Errors.FirstOrDefault(),
+            Status = StatusCodes.Status400BadRequest
+        });
+    }
+
+    [HttpDelete("{productId:guid}/variants/{variantId:guid}", Name = "DeleteProductVariant")]
+    [ProducesResponseType(typeof(ProductVariantDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteProductVariant(Guid productId, Guid variantId)
+    {
+        var command = new DeleteProductVariantCommand { ProductId = productId, Id = variantId };
+        var result = await _mediator.Send(command);
+
+        if (!result.IsSuccess)
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Hành động không thể thực thi!",
+                Detail = result.Errors.FirstOrDefault(),
+                Status = StatusCodes.Status400BadRequest
+            });
+        return NoContent();
     }
 }
 

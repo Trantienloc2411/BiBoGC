@@ -3,7 +3,8 @@ using Shared.Application.Common;
 
 namespace InventoryManagement.Application.Commands.DeleteProductVariant;
 
-public class DeleteProductVariantCommand : IRequest<Result<bool>>
+public record DeleteProductVariantCommand : IRequest<Result<bool>>
 {
-    public Guid Id { get; init; }   
+    public Guid Id { get; init; }
+    public Guid ProductId { get; init; }
 }

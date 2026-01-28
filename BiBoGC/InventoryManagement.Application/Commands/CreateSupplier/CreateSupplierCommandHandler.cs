@@ -19,15 +19,13 @@ public class CreateSupplierCommandHandler : IRequestHandler<CreateSupplierComman
     {
         // Check if supplier name already exists
         if (await _supplierRepository.NameExistsAsync(request.Name, null, cancellationToken))
-        {
             return Result<SupplierDto>.Failure($"Nhà cung cấp với tên '{request.Name}' đã tồn tại.");
-        }
 
         var supplier = new Supplier(
-            name: request.Name,
-            contactPerson: request.ContactPerson,
-            phoneNumber: request.PhoneNumber,
-            address: request.Address
+            request.Name,
+            request.ContactPerson,
+            request.PhoneNumber,
+            request.Address
         );
 
         var createdSupplier = await _supplierRepository.AddAsync(supplier, cancellationToken);

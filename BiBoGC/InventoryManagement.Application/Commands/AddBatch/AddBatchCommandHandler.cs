@@ -22,19 +22,17 @@ public class AddBatchCommandHandler : IRequestHandler<AddBatchCommand, Result<Pr
         // Get product with batches
         var product = await _productRepository.GetByIdAsync(request.ProductId, cancellationToken);
         if (product == null)
-        {
             return Result<ProductBatchDto>.Failure($"Không tìm thấy sản phẩm với ID '{request.ProductId}'.");
-        }
 
         try
         {
             // Add new batch using domain logic
             var batch = product.AddNewBatch(
-                batchNumber: request.BatchNumber,
-                quantity: request.Quantity,
-                manufacturingDate: request.ManufacturingDate,
-                expiryDate: request.ExpirationDate,
-                costPrice: request.CostPrice
+                request.BatchNumber,
+                request.Quantity,
+                request.ManufacturingDate,
+                request.ExpirationDate,
+                request.CostPrice
             );
 
             // Save changes

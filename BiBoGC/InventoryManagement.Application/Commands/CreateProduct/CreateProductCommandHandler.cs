@@ -25,13 +25,11 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
     {
         // Check if SKU already exists
         if (await _productRepository.SkuExistsAsync(request.Sku, cancellationToken: cancellationToken))
-        {
             return Result<ProductDto>.Failure($"SKU '{request.Sku}' đã tồn tại trong hệ thống.");
-        }
 
         // Create domain entity
         var product = new Product(
-            name: request.Name,
+            request.Name,
             skuGeneral: new Sku(request.Sku),
             basePrice: new Money(request.Price),
             baseUnits: request.BaseUnits,

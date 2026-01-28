@@ -32,7 +32,6 @@ public class ProductRepository : IProductRepository
     }
 
 
-
     public async Task<(IEnumerable<Product> Products, int TotalCount)> GetAllAsync(
         int pageNumber = 1,
         int pageSize = 10,
@@ -70,20 +69,17 @@ public class ProductRepository : IProductRepository
         return (products, totalCount);
     }
 
-    public async Task<bool> SkuExistsAsync(string sku, Guid? excludeProductId = null, CancellationToken cancellationToken = default)
+    public async Task<bool> SkuExistsAsync(string sku, Guid? excludeProductId = null,
+        CancellationToken cancellationToken = default)
     {
         var normalizedSku = sku.Trim().ToUpper();
 
         // Load products and check in memory because of Value Object conversion
-        var products = await _context.Products.
-            Include(v => v.Variants.Where(v => !v.IsDeleted)).
-            ToListAsync(cancellationToken);
+        var products = await _context.Products.Include(v => v.Variants.Where(v => !v.IsDeleted))
+            .ToListAsync(cancellationToken);
         var query = products.Where(p => p.Variants.Any(v => v.SkuUnique.Value == normalizedSku));
 
-        if (excludeProductId.HasValue)
-        {
-            query = query.Where(p => p.Id != excludeProductId.Value);
-        }
+        if (excludeProductId.HasValue) query = query.Where(p => p.Id != excludeProductId.Value);
 
         return query.Any();
     }
@@ -107,7 +103,8 @@ public class ProductRepository : IProductRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Product>> GetLowStockProductsAsync(int threshold, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Product>> GetLowStockProductsAsync(int threshold,
+        CancellationToken cancellationToken = default)
     {
         var products = await _context.Products
             .Include(p => p.Batches.Where(b => !b.IsDeleted))
@@ -117,7 +114,8 @@ public class ProductRepository : IProductRepository
         return products.Where(p => p.GetAvailableStock() < threshold);
     }
 
-    public async Task<IEnumerable<Product>> GetProductsWithExpiringSoonBatchesAsync(int daysUntilExpiry = 30, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Product>> GetProductsWithExpiringSoonBatchesAsync(int daysUntilExpiry = 30,
+        CancellationToken cancellationToken = default)
     {
         var expiryThreshold = DateTime.UtcNow.AddDays(daysUntilExpiry);
 

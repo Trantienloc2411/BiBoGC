@@ -67,9 +67,12 @@ public class ProductVariantRepository : IProductVariantRepository
         return productVariants;
     }
 
-    public async Task<ProductVariant?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ProductVariant?> GetByIdAsync(Guid productId, Guid productVariantId,
+        CancellationToken cancellationToken = default)
     {
-        var productVariant = await _context.ProductVariants.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        var productVariant =
+            await _context.ProductVariants.FirstOrDefaultAsync(
+                p => p.Id == productVariantId && p.ProductId == productId, cancellationToken);
         return productVariant;
     }
 
@@ -98,7 +101,9 @@ public class ProductVariantRepository : IProductVariantRepository
     public async Task<bool> SkuExistsAsync(Guid productId, Sku sku, Guid? excludeVariantId = null,
         CancellationToken cancellationToken = default)
     {
-        var existingVariant = await _context.ProductVariants.FirstOrDefaultAsync(p => p.ProductId == productId && p.SkuUnique == sku, cancellationToken);
+        var existingVariant =
+            await _context.ProductVariants.FirstOrDefaultAsync(p => p.ProductId == productId && p.SkuUnique == sku,
+                cancellationToken);
         return existingVariant != null && existingVariant.Id != excludeVariantId;
     }
 

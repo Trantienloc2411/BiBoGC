@@ -3,34 +3,35 @@ using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Helper;
 using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Domain.Entities;
-using InventoryManagement.Domain.Enums;
 using MediatR;
 using Shared.Application.Common;
 
 namespace InventoryManagement.Application.Commands.CreateProductVariant;
 
-public class CreateProductVariantCommandHandler (IProductVariantRepository productVariantRepository
-, IProductRepository productRepository) : 
+public class CreateProductVariantCommandHandler(
+    IProductVariantRepository productVariantRepository,
+    IProductRepository productRepository) :
     IRequestHandler<CreateProductVariantCommand, Result<ProductVariantDto>>
 {
-    public async Task<Result<ProductVariantDto>> 
-        Handle(CreateProductVariantCommand request, 
+    public async Task<Result<ProductVariantDto>>
+        Handle(CreateProductVariantCommand request,
             CancellationToken cancellationToken)
     {
         var doesVariantExist =
             await productVariantRepository.DoesVariantExistAsync(request.ProductId, request.QuantityBaseUnit,
                 request.Unit, cancellationToken);
         if (doesVariantExist)
-            return Result<ProductVariantDto>.Failure("Biến thể này đã tồn tại. Hãy thay đổi đơn vị/số lượng trên đơn vị");
+            return Result<ProductVariantDto>.Failure(
+                "Biến thể này đã tồn tại. Hãy thay đổi đơn vị/số lượng trên đơn vị");
         var product = await productRepository.GetByIdAsync(request.ProductId, cancellationToken);
 
         if (product is null)
             return Result<ProductVariantDto>.Failure("Sản phẩm này không tồn tại. Hãy thêm sản phẩm trước!");
 
         var productVariant = new ProductVariant(
-            productId: request.ProductId,
-            sku: AutoGenerateSkuUnique.GenerateSkuUnique(product.SkuGeneral, request.QuantityBaseUnit, request.Unit),
-            variantName: request.VariantName,
+            request.ProductId,
+            AutoGenerateSkuUnique.GenerateSkuUnique(product.SkuGeneral, request.QuantityBaseUnit, request.Unit),
+            request.VariantName,
             quantityBaseUnit: request.QuantityBaseUnit,
             salePrice: request.SalePrice,
             unit: request.Unit,
@@ -38,14 +39,14 @@ public class CreateProductVariantCommandHandler (IProductVariantRepository produ
             costPrice: request.CostPrice,
             displayOrder: request.DisplayOrder
         );
-        
+
         await productVariantRepository.AddAsync(productVariant, cancellationToken);
-        
+
         var dto = MapToDto(productVariant);
         dto.ProductName = product.Name;
         return Result<ProductVariantDto>.Success(dto);
     }
-    
+
     private static ProductVariantDto MapToDto(ProductVariant productVariant)
     {
         return new ProductVariantDto
@@ -63,8 +64,4 @@ public class CreateProductVariantCommandHandler (IProductVariantRepository produ
             ProductName = productVariant.Product?.Name ?? string.Empty
         };
     }
-    
-    
-    
-    
 }

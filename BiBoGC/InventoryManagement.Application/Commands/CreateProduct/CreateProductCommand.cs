@@ -48,6 +48,6 @@ public record CreateProductCommand : IRequest<Result<ProductDto>>
     /// <example>true</example>
     public bool RequiresBatchTracking { get; init; } = false;
 
-    public Units BaseUnits {  get; init; }
+    public Units BaseUnits { get; init; }
     public int LowStockThreshold { get; init; }
 }

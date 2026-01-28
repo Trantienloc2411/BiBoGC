@@ -21,11 +21,8 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<Pr
     public async Task<Result<ProductDto>> Handle(GetProductQuery request, CancellationToken cancellationToken)
     {
         var product = await _productRepository.GetByIdAsync(request.Id, cancellationToken);
-        
-        if (product == null)
-        {
-            return Result<ProductDto>.Failure($"Không tìm thấy sản phẩm với ID '{request.Id}'.");
-        }
+
+        if (product == null) return Result<ProductDto>.Failure($"Không tìm thấy sản phẩm với ID '{request.Id}'.");
 
         var dto = MapToDto(product);
         return Result<ProductDto>.Success(dto);
@@ -56,8 +53,6 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<Pr
             Variants = product.Variants
                 .OrderByDescending(b => b.DisplayOrder)
                 .Select(ProductVariantDto.FromEntity)
-                
-            
         };
     }
 }

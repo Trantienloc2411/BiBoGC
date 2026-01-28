@@ -1,20 +1,17 @@
 ﻿using Shared.Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace InventoryManagement.Domain.Events
+namespace InventoryManagement.Domain.Events;
+
+public class CategoryCreatedEvent : DomainEvent
 {
-    public class CategoryCreatedEvent : DomainEvent
+    public CategoryCreatedEvent(
+        Guid categoryId,
+        string categoryName)
     {
-        public Guid CategoryId { get; }
-        public string CategoryName { get; } = string.Empty;
-        public CategoryCreatedEvent(
-            Guid categoryId,
-            string categoryName)
-        {
-            CategoryId = categoryId;
-            CategoryName = categoryName;
-        }
+        CategoryId = categoryId;
+        CategoryName = categoryName;
     }
+
+    public Guid CategoryId { get; }
+    public string CategoryName { get; } = string.Empty;
 }

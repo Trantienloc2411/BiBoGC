@@ -5,12 +5,14 @@ using Shared.Application.Common;
 
 namespace InventoryManagement.Application.Commands.UpdateProductVariant;
 
-public class UpdateProductVariantCommandHandler (IProductVariantRepository productVariantRepository) : 
+public class UpdateProductVariantCommandHandler(IProductVariantRepository productVariantRepository) :
     IRequestHandler<UpdateProductVariantCommand, Result<ProductVariantDto>>
 {
-    public async Task<Result<ProductVariantDto>> Handle(UpdateProductVariantCommand request, CancellationToken cancellationToken)
+    public async Task<Result<ProductVariantDto>> Handle(UpdateProductVariantCommand request,
+        CancellationToken cancellationToken)
     {
-        var productVariant = await productVariantRepository.GetByIdAsync(request.ProductVariantId, cancellationToken);
+        var productVariant =
+            await productVariantRepository.GetByIdAsync(request.ProductId, request.ProductVariantId, cancellationToken);
 
         if (productVariant is null)
             return Result<ProductVariantDto>.Failure("Biến thể của sản phẩm không tồn tại, hoặc đã xoá!");
@@ -20,7 +22,7 @@ public class UpdateProductVariantCommandHandler (IProductVariantRepository produ
         productVariant.UpdateVariantInfo(request.VariantName, request.Unit, request.QuantityBaseUnit);
 
         await productVariantRepository.UpdateAsync(productVariant, cancellationToken);
-        
+
         var dtos = MapToDto(productVariant);
         return Result<ProductVariantDto>.Success(dtos);
     }

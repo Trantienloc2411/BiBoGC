@@ -18,7 +18,8 @@ public static class DependencyInjection
     /// </summary>
     /// <param name="services">Service collection</param>
     /// <param name="connectionString">PostgreSQL connection string</param>
-    public static IServiceCollection AddInventoryInfrastructure(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddInventoryInfrastructure(this IServiceCollection services,
+        string connectionString)
     {
         // Register DbContext with PostgreSQL
         services.AddDbContext<InventoryDbContext>(options =>
@@ -27,9 +28,9 @@ public static class DependencyInjection
             {
                 npgsqlOptions.MigrationsAssembly(typeof(InventoryDbContext).Assembly.FullName);
                 npgsqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 5,
-                    maxRetryDelay: TimeSpan.FromSeconds(30),
-                    errorCodesToAdd: null);
+                    5,
+                    TimeSpan.FromSeconds(30),
+                    null);
             });
         });
 
@@ -53,7 +54,7 @@ public static class DependencyInjection
         // Use IServiceScopeFactory for proper scope handling with Aspire
         var scopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
         using var scope = scopeFactory.CreateScope();
-        
+
         var context = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
         var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger<InventoryDbContext>();
@@ -61,14 +62,14 @@ public static class DependencyInjection
         try
         {
             logger.LogInformation("Starting database initialization...");
-            
+
             // Apply pending migrations
             var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
 
             if (pendingMigrations.Any())
             {
-                logger.LogInformation("Applying {Count} pending migrations: {Migrations}", 
-                    pendingMigrations.Count(), 
+                logger.LogInformation("Applying {Count} pending migrations: {Migrations}",
+                    pendingMigrations.Count(),
                     string.Join(", ", pendingMigrations));
                 await context.Database.MigrateAsync();
                 logger.LogInformation("Database migrations applied successfully.");
@@ -79,10 +80,7 @@ public static class DependencyInjection
             }
 
             // Seed data if enabled
-            if (seedData)
-            {
-                await DataSeeder.SeedAsync(context, logger);
-            }
+            if (seedData) await DataSeeder.SeedAsync(context, logger);
         }
         catch (Exception ex)
         {
@@ -103,7 +101,7 @@ public static class DependencyInjection
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
-        
+
         return services;
     }
 }

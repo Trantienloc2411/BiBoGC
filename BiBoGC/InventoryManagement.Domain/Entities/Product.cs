@@ -9,39 +9,17 @@ namespace InventoryManagement.Domain.Entities;
 
 public class Product : BaseEntity
 {
-    public string Name { get; private set; }
-    public string Description { get; private set; }
-    public ProductStatuses Status { get; private set; }
-    public bool RequiresBatchTracking { get; private set; }
-    public Guid? CategoryId { get; private set; }
-
-    public Sku SkuGeneral {get;private set;}
-    
-    public Units BaseUnits { get; private set; }
-    
-    public int TotalStock { get; private set; }
-    /// <summary>
-    /// Base price of the product. (Giá nêm yết/ giá gốc bán ra)
-    /// - Dùng để: So sánh với giá bán 
-    /// </summary>
-    
-    public Money BasePrice { get; private set; }
-    
-    public Money? AverageCostPrice { get; private set; }
-    
-    public int? LowStockThreshold { get; private set; } 
-    
     private readonly List<ProductBatch> _batches = new();
     private readonly List<ProductVariant> _variants = new();
-    
-    public Category? Category { get; private set; }
-    public IReadOnlyCollection<ProductBatch> Batches => _batches.AsReadOnly();
-    public  IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();
-    private Product() { }
+
+    private Product()
+    {
+    }
+
     public Product(
         string name,
-        string description, 
-        ProductStatuses status, 
+        string description,
+        ProductStatuses status,
         Sku skuGeneral,
         bool requiresBatchTracking,
         Units baseUnits,
@@ -56,12 +34,39 @@ public class Product : BaseEntity
         Status = ProductStatuses.Active;
         RequiresBatchTracking = requiresBatchTracking;
         LowStockThreshold = lowStockThreshold;
-        
-        
+
+
         RaiseDomainEvent(new ProductCreatedEvent(Id, name));
     }
-    
-    
+
+    public string Name { get; private set; }
+    public string Description { get; private set; }
+    public ProductStatuses Status { get; private set; }
+    public bool RequiresBatchTracking { get; private set; }
+    public Guid? CategoryId { get; private set; }
+
+    public Sku SkuGeneral { get; private set; }
+
+    public Units BaseUnits { get; private set; }
+
+    public int TotalStock { get; private set; }
+
+    /// <summary>
+    /// Base price of the product. (Giá nêm yết/ giá gốc bán ra)
+    /// - Dùng để: So sánh với giá bán 
+    /// </summary>
+
+    public Money BasePrice { get; private set; }
+
+    public Money? AverageCostPrice { get; private set; }
+
+    public int? LowStockThreshold { get; private set; }
+
+    public Category? Category { get; private set; }
+    public IReadOnlyCollection<ProductBatch> Batches => _batches.AsReadOnly();
+    public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();
+
+
     // ==== Stock management ==== //
 
 
@@ -72,7 +77,7 @@ public class Product : BaseEntity
     /// <returns></returns>
     public int GetStockFromBatches(DateTime? asOfDate = null)
     {
-        var checkDate = asOfDate ?? DateTime.UtcNow;    
+        var checkDate = asOfDate ?? DateTime.UtcNow;
         return _batches.Where(b => !b.IsExpired(checkDate))
             .Sum(b => b.Quantity);
     }
@@ -80,33 +85,32 @@ public class Product : BaseEntity
 
     public void IncreaseStock(int quantityBaseUnit)
     {
-        if(quantityBaseUnit <= 0) 
-            throw new ArgumentOutOfRangeException("Số lượng phải lớn hơn 0",nameof(quantityBaseUnit));
-        
+        if (quantityBaseUnit <= 0)
+            throw new ArgumentOutOfRangeException("Số lượng phải lớn hơn 0", nameof(quantityBaseUnit));
+
         TotalStock += quantityBaseUnit;
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void DecreaseStock(int quantityBaseUnit)
     {
-        if(quantityBaseUnit <= 0)
-            throw new  ArgumentOutOfRangeException("Số lượng phải lớn hơn 0",nameof(quantityBaseUnit));
+        if (quantityBaseUnit <= 0)
+            throw new ArgumentOutOfRangeException("Số lượng phải lớn hơn 0", nameof(quantityBaseUnit));
 
         if (TotalStock < quantityBaseUnit)
             throw new InvalidOperationException($"Không đủ số lượng hàng trong kho. Tồn kho hiện tại: {TotalStock}.");
-        
+
         TotalStock -= quantityBaseUnit;
         UpdatedAt = DateTime.UtcNow;
-        
     }
 
 
     public bool IsLowStock()
     {
-        if(!LowStockThreshold.HasValue) return false;
+        if (!LowStockThreshold.HasValue) return false;
         return TotalStock < LowStockThreshold.Value;
     }
-    
+
 
     public int GetAvailableStock(DateTime? asOfDate = null)
     {
@@ -141,34 +145,33 @@ public class Product : BaseEntity
     )
     {
         if (_batches.Any(b => b.BatchNumber.Equals(batchNumber.Trim(), StringComparison.OrdinalIgnoreCase)))
-        {
             throw new InvalidOperationException($"Lô hàng '{batchNumber} đã tồn tại cho sản phẩm.");
-        }
         var newBatch = new ProductBatch(Id, batchNumber, quantity, manufacturingDate, expiryDate, costPrice);
         _batches.Add(newBatch);
         UpdatedAt = DateTime.UtcNow;
-        
-        RaiseDomainEvent(new BatchAddedEvent(Id,  newBatch.Id, quantity));
-        
+
+        RaiseDomainEvent(new BatchAddedEvent(Id, newBatch.Id, quantity));
+
         return newBatch;
     }
 
     public ProductVariant AddProductVariant(
         string sku,
         Guid productId,
-        string variantName, 
+        string variantName,
         Units units,
         int quantityBaseUnit,
         Money salePrice,
         int displayOrder,
-        string? barcode, 
+        string? barcode,
         Money? costPrice
     )
     {
-        if(_variants.Any(v => v.SkuUnique.Value.Equals(sku.Trim(), StringComparison.OrdinalIgnoreCase))) 
+        if (_variants.Any(v => v.SkuUnique.Value.Equals(sku.Trim(), StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException($"Mã SKU '{sku} đã tồn tại trong hệ thống.");
-        
-        var newVariant = new ProductVariant(productId, sku, variantName, units, quantityBaseUnit, salePrice, barcode, costPrice,  displayOrder);
+
+        var newVariant = new ProductVariant(productId, sku, variantName, units, quantityBaseUnit, salePrice, barcode,
+            costPrice, displayOrder);
         _variants.Add(newVariant);
         UpdatedAt = DateTime.UtcNow;
 
@@ -178,21 +181,22 @@ public class Product : BaseEntity
 
     public void UpdatePrice(Money newPrice)
     {
-        if(newPrice.Value < 0) throw new ArgumentException("Giá không thể âm. ", nameof(newPrice));
+        if (newPrice.Value < 0) throw new ArgumentException("Giá không thể âm. ", nameof(newPrice));
         var oldPrice = BasePrice;
         BasePrice = newPrice;
         UpdatedAt = DateTime.UtcNow;
-        
+
         RaiseDomainEvent(new ProductPriceChangedEvent(Id, oldPrice.Value, newPrice.Value));
     }
 
     public void Discontinue()
     {
-        if(Status == ProductStatuses.Discontinued) throw new InvalidOperationException("Product is already discontinued.");
+        if (Status == ProductStatuses.Discontinued)
+            throw new InvalidOperationException("Product is already discontinued.");
 
         Status = ProductStatuses.Discontinued;
         UpdatedAt = DateTime.UtcNow;
-        
+
         RaiseDomainEvent(new ProductDiscontinuedEvent(Id, Name));
     }
 
@@ -210,13 +214,11 @@ public class Product : BaseEntity
         foreach (var batch in availableBatches)
         {
             if (remainingQuantity <= 0) break;
-            
+
             result.Add(batch);
             remainingQuantity -= batch.Quantity;
         }
 
         return result;
     }
-
-
 }

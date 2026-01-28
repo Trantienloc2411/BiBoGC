@@ -1,19 +1,10 @@
-using System;
-using System.Net.NetworkInformation;
-using System.Security.Cryptography.X509Certificates;
-using InventoryManagement.Domain.Entities;
 using Shared.Domain.Common;
 
 namespace InventoryManagement.Domain.Events.ProductVariantEvents;
 
 public class ProductVariantCreatedEvent : DomainEvent
 {
-    public Guid ProductId {get;}
-    public Guid ProductVariantId {get;}
-
-    public string VariantName {get;}
-    
-    public ProductVariantCreatedEvent 
+    public ProductVariantCreatedEvent
     (
         Guid productId,
         Guid productVariantId,
@@ -23,7 +14,10 @@ public class ProductVariantCreatedEvent : DomainEvent
         ProductId = productId;
         ProductVariantId = productVariantId;
         VariantName = variantName;
-
     }
-    
+
+    public Guid ProductId { get; }
+    public Guid ProductVariantId { get; }
+
+    public string VariantName { get; }
 }

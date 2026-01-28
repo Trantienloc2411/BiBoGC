@@ -9,5 +9,4 @@ public class PagedResult<T>
     public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
     public bool HasPreviousPage => Page > 1;
     public bool HasNextPage => Page < TotalPages;
-    
 }

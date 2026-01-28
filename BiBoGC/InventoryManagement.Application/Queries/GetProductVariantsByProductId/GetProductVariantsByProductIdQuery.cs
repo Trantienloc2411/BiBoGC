@@ -6,6 +6,5 @@ namespace InventoryManagement.Application.Queries.GetProductVariantsByProductId;
 
 public class GetProductVariantsByProductIdQuery : IRequest<Result<IEnumerable<ProductVariantDto>>>
 {
-    public Guid ProductId { get; init; }   
-    
+    public Guid ProductId { get; init; }
 }
