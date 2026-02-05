@@ -1,14 +1,24 @@
-﻿using AuthorizationModule.Application.DTOs;
+﻿using AuthorizationModule.Application.Command.Login;
+using AuthorizationModule.Application.Command.RefreshToken;
+using AuthorizationModule.Application.Command.RevokeToken;
+using AuthorizationModule.Application.DTOs;
 using AuthorizationModule.Application.Interfaces;
 using MediatR;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-///TO-DO:  Update Auth Controller using mediator instead of authService.
+
 namespace BiBoGC.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class AuthController (IMediator mediator): ControllerBase
+public class AuthController : ControllerBase
 {
+    private readonly IMediator _mediator;
+
+    public AuthController(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
     [HttpPost("login")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status400BadRequest)]
@@ -16,7 +26,9 @@ public class AuthController (IMediator mediator): ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var result = await authService.LoginAsync(loginRequestDto.UserName, loginRequestDto.Password, ipAddress);
+        var request = new LoginCommand(loginRequestDto.UserName, loginRequestDto.Password, ipAddress);
+        var result = await _mediator.Send(request);
+        
         if (!result.IsSuccess)
             return BadRequest(new ProblemDetails
             {
@@ -33,8 +45,9 @@ public class AuthController (IMediator mediator): ControllerBase
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto request)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var result = await authService.RefreshTokenAsync(request.RefreshToken, ipAddress);
-
+        
+        var command = new RefreshTokenCommand(request.RefreshToken, ipAddress);
+        var result = await _mediator.Send(command);
         if (!result.IsSuccess)
             return BadRequest(new ProblemDetails
             {
@@ -50,8 +63,9 @@ public class AuthController (IMediator mediator): ControllerBase
     public async Task<IActionResult> Revoke([FromBody] RefreshTokenRequestDto request)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var result = await authService.RevokeRefreshTokenAsync(request.RefreshToken, ipAddress);
-
+        var command = new RevokeCommand(request.RefreshToken, ipAddress);
+        var result = await _mediator.Send(command);
+        
         if (!result.IsSuccess)
             return BadRequest(new ProblemDetails
             {

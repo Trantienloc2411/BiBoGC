@@ -1,4 +1,5 @@
 using System.Text;
+using AuthorizationModule.Application;
 using AuthorizationModule.Infrastructure;
 using AuthorizationModule.Infrastructure.Data;
 using BiBoGC.Middleware;
@@ -86,6 +87,7 @@ public class Program
 
         // Register Application layer (MediatR, Validators)
         builder.Services.AddInventoryApplication();
+        builder.Services.AddAuthorizationModuleApplication();
         builder.Services.AddAuthorizationModule();
         
         var jwtSection = builder.Configuration.GetSection("Jwt");
@@ -110,6 +112,26 @@ public class Program
                     ValidIssuer = builder.Configuration["Jwt:Issuer"],
                     ValidAudience = builder.Configuration["Jwt:Audience"],
                     ClockSkew = TimeSpan.Zero
+                };
+                
+                options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices
+                            .GetRequiredService<ILoggerFactory>()
+                            .CreateLogger("JwtBearer");
+                        logger.LogError(context.Exception, "JWT Authentication failed");
+                        return Task.CompletedTask;
+                    },
+                    OnChallenge = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices
+                            .GetRequiredService<ILoggerFactory>()
+                            .CreateLogger("JwtBearer");
+                        logger.LogWarning("JWT Challenge issued");
+                        return Task.CompletedTask;
+                    }
                 };
             });
 

@@ -88,7 +88,7 @@ public class ProductsController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(PaginatedResult<ProductDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-    [Authorize(Roles = "Seller, Administrator")]
+    [Authorize(Roles = "Seller,Administrator")]
     public async Task<IActionResult> GetProducts(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,

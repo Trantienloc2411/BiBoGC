@@ -9,7 +9,7 @@ public class RefreshTokenCommandHandler(IAuthService authService) : IRequestHand
 {
     public async Task<Result<AuthResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        var result = await authService.RefreshTokenAsync(request.refreshToken, request.ipAddress);
-        return result; 
+        var result = await authService.RefreshTokenAsync(request.refreshToken, request.ipAddress, cancellationToken);
+        return !result.IsSuccess ? Result<AuthResponseDto>.Failure(result.Errors) : result;
     }
 }

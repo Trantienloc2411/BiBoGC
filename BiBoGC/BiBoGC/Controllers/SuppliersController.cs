@@ -5,6 +5,7 @@ using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Queries.GetSupplier;
 using InventoryManagement.Application.Queries.GetSuppliers;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BiBoGC.Controllers;
@@ -16,6 +17,7 @@ namespace BiBoGC.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Produces("application/json")]
+[Authorize]
 public class SuppliersController : ControllerBase
 {
     private readonly IMediator _mediator;

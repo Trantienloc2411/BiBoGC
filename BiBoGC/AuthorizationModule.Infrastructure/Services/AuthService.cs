@@ -12,10 +12,11 @@ public class AuthService(AuthorizationDbContext dbContext, IPasswordHasher passw
     IJwtTokenGenerator jwtTokenGenerator) : IAuthService
 {
 
-    public async Task<Result<AuthResponseDto>> LoginAsync(string username, string password, string ipAddress)
+    public async Task<Result<AuthResponseDto>> LoginAsync(string username, string password, string ipAddress, CancellationToken cancellationToken = default)
     {
-        var user = await dbContext.Users.Include(u => u.RefreshTokens)
-            .SingleOrDefaultAsync(u => u.Username == username && u.IsActive);
+        var user = await dbContext.Users
+            .AsNoTracking()
+            .SingleOrDefaultAsync(u => u.Username == username && u.IsActive,  cancellationToken);
 
         if (user is null || !passwordHasher.VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
             return Result<AuthResponseDto>.Failure("Tài khoản hoặc mật khẩu không chính xác");
@@ -33,8 +34,8 @@ public class AuthService(AuthorizationDbContext dbContext, IPasswordHasher passw
             ExpireAt = DateTime.UtcNow.AddDays(7),
         };
         
-        user.RefreshTokens.Add(refreshToken);
-        await dbContext.SaveChangesAsync();
+        dbContext.RefreshTokens.Add(refreshToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
         return Result<AuthResponseDto>.Success(new AuthResponseDto
         {
             AccessToken = accessToken,
@@ -45,11 +46,11 @@ public class AuthService(AuthorizationDbContext dbContext, IPasswordHasher passw
         });
     }
 
-    public async Task<Result<AuthResponseDto>> RefreshTokenAsync(string refreshToken, string ipAddress)
+    public async Task<Result<AuthResponseDto>> RefreshTokenAsync(string refreshToken, string ipAddress, CancellationToken cancellationToken = default)
     {
         var token = await dbContext.RefreshTokens
             .Include(t => t.User)
-            .SingleOrDefaultAsync(t => t.Token == refreshToken);
+            .SingleOrDefaultAsync(t => t.Token == refreshToken, cancellationToken);
 
         if (token is null || !token.IsActive)
             return Result<AuthResponseDto>.Failure("Refresh token không hợp lệ");
@@ -72,7 +73,7 @@ public class AuthService(AuthorizationDbContext dbContext, IPasswordHasher passw
             ExpireAt = DateTime.UtcNow.AddDays(7),
         };
         dbContext.RefreshTokens.Add(newRefreshToken);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return Result<AuthResponseDto>.Success(new AuthResponseDto
         {
@@ -84,17 +85,17 @@ public class AuthService(AuthorizationDbContext dbContext, IPasswordHasher passw
         });
     }
 
-    public async Task<Result> RevokeRefreshTokenAsync(string refreshToken, string ipAddress)
+    public async Task<Result> RevokeRefreshTokenAsync(string refreshToken, string ipAddress, CancellationToken cancellationToken = default)
     {
         var token = await dbContext.RefreshTokens
-            .SingleOrDefaultAsync(r => r.Token == refreshToken);
+            .SingleOrDefaultAsync(r => r.Token == refreshToken, cancellationToken);
 
         if (token is null || !token.IsActive)
             return Result.Failure("Refresh token không thành công, vui lòng sử dụng token mới");
         
         token.RevokedAt = DateTime.UtcNow;
         token.RevokedByIp = ipAddress;
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }
