@@ -1,9 +1,16 @@
+using System.Text;
+using AuthorizationModule.Application;
+using AuthorizationModule.Infrastructure;
+using AuthorizationModule.Infrastructure.Data;
 using BiBoGC.Middleware;
 using InventoryManagement.Application;
 using InventoryManagement.Infrastructure;
 using InventoryManagement.Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+
 
 namespace BiBoGC;
 
@@ -16,6 +23,7 @@ public class Program
         // Add Aspire service defaults
         builder.AddServiceDefaults();
 
+     
         // Check if connection string is available (from AppHost in dev, or from config in prod)
         var connectionString = builder.Configuration.GetConnectionString("InventoryDb");
 
@@ -24,6 +32,11 @@ public class Program
             // Development with AppHost - use Aspire's AddNpgsqlDbContext
             // Connection string will be injected by AppHost
             builder.AddNpgsqlDbContext<InventoryDbContext>("InventoryDb", configureDbContextOptions: options =>
+            {
+                options.EnableDetailedErrors();
+                options.EnableSensitiveDataLogging(true);
+            });
+            builder.AddNpgsqlDbContext<AuthorizationDbContext>("AuthorizationDb", configureDbContextOptions: options =>
             {
                 options.EnableDetailedErrors();
                 options.EnableSensitiveDataLogging(true);
@@ -55,12 +68,84 @@ public class Program
                 options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
             });
 
+            builder.Services.AddDbContextPool<AuthorizationDbContext>(options =>
+            {
+                options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsAssembly(typeof(AuthorizationDbContext).Assembly.FullName);
+                    npgsqlOptions.EnableRetryOnFailure(
+                        5,
+                        TimeSpan.FromSeconds(30),
+                        null);
+
+                });
+            });
+
             // Register repositories
             builder.Services.AddInventoryInfrastructureWithAspire();
         }
 
         // Register Application layer (MediatR, Validators)
         builder.Services.AddInventoryApplication();
+        builder.Services.AddAuthorizationModuleApplication();
+        builder.Services.AddAuthorizationModule();
+        
+        var jwtSection = builder.Configuration.GetSection("Jwt");
+        var key = Encoding.UTF8.GetBytes(jwtSection["Key"]!);
+
+        builder.Services
+            .AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    ClockSkew = TimeSpan.Zero
+                };
+                
+                options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices
+                            .GetRequiredService<ILoggerFactory>()
+                            .CreateLogger("JwtBearer");
+                        logger.LogError(context.Exception, "JWT Authentication failed");
+                        return Task.CompletedTask;
+                    },
+                    OnChallenge = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices
+                            .GetRequiredService<ILoggerFactory>()
+                            .CreateLogger("JwtBearer");
+                        logger.LogWarning("JWT Challenge issued");
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+
+
+        builder.Services.AddAuthorizationBuilder()
+            .AddPolicy("AdminOnly", policy =>
+            {
+                policy.RequireRole("Administrator");
+            })
+            .AddPolicy("SellerOrAdmin", policy =>
+            {
+                policy.RequireRole("Administrator", "Seller");
+            });
+        
 
         // Add Controllers
         builder.Services.AddControllers()
@@ -87,6 +172,7 @@ public class Program
 
         // Initialize database
         await app.Services.InitializeDatabaseAsync();
+        await app.Services.InitializeAuthorizationDatabaseAsync();
 
         // Configure middleware pipeline
         if (app.Environment.IsDevelopment())
@@ -107,6 +193,7 @@ public class Program
 
         app.UseHttpsRedirection();
         app.UseCors("AllowAll");
+        app.UseAuthentication();
         app.UseAuthorization();
 
         // Map Aspire health check endpoints
