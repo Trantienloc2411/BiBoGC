@@ -5,6 +5,7 @@ using InventoryManagement.Application.Commands.UpdateProductVariant;
 using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Queries.GetProductVariants;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BiBoGC.Controllers;
@@ -12,6 +13,7 @@ namespace BiBoGC.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
+[Authorize]
 public class ProductVariantsController(IMediator mediator)
     : ControllerBase
 {

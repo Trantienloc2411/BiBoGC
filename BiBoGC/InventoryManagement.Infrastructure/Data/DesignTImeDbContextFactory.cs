@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace InventoryManagement.Infrastructure.Data;
 
-public class DesignTImeDbContextFactory : IDesignTimeDbContextFactory<InventoryDbContext>
+public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<InventoryDbContext>
 {
     public InventoryDbContext CreateDbContext(string[] args)
     {
