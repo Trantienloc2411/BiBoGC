@@ -27,6 +27,7 @@ public class InventoryDbContext : DbContext
     public DbSet<StockTransaction> StockTransactions { get; set; } = null!;
     public DbSet<Category> Categories { get; set; } = null!;
     public DbSet<ProductVariant> ProductVariants { get; set; }
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
