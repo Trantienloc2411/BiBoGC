@@ -5,6 +5,7 @@ using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Queries.GetCategories;
 using InventoryManagement.Application.Queries.GetCategory;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Application.Common;
 
@@ -13,6 +14,7 @@ namespace BiBoGC.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Produces("application/json")]
+[Authorize]
 public class CategoriesController : ControllerBase
 {
     private readonly ILogger<CategoriesController> _logger;

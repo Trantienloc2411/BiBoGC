@@ -4,6 +4,7 @@ using InventoryManagement.Application.Queries.GetStockTransaction;
 using InventoryManagement.Application.Queries.GetStockTransactions;
 using InventoryManagement.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BiBoGC.Controllers;
@@ -15,6 +16,7 @@ namespace BiBoGC.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Produces("application/json")]
+[Authorize]
 public class StockTransactionsController : ControllerBase
 {
     private readonly IMediator _mediator;
