@@ -595,7 +595,18 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> CreateProductVariant(Guid productId,
         [FromBody] CreateProductVariantCommand command)
     {
-        var result = await _mediator.Send(command);
+        var createCommand = new CreateProductVariantCommand
+        {
+            ProductId = productId,
+            VariantName = command.VariantName,
+            Barcode = command.Barcode,
+            DisplayOrder = command.DisplayOrder,
+            Unit = command.Unit,
+            SalePrice = command.SalePrice,
+            CostPrice = command.CostPrice,
+            QuantityBaseUnit = command.QuantityBaseUnit
+        };
+        var result = await _mediator.Send(createCommand);
 
         if (!result.IsSuccess)
             return BadRequest(new ValidationProblemDetails
@@ -616,9 +627,8 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> UpdateProductVariant(Guid productId, Guid variantId,
         [FromBody] UpdateProductVariantCommand command)
     {
-        if (productId != command.ProductId && productId != Guid.Empty ||
-            variantId != command.ProductVariantId && variantId != Guid.Empty
-           )
+        if (productId != command.ProductId && command.ProductId != Guid.Empty ||
+            variantId != command.ProductVariantId && command.ProductVariantId != Guid.Empty)
         {
             return BadRequest(new ValidationProblemDetails
             {
@@ -650,7 +660,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpDelete("{productId:guid}/variants/{variantId:guid}", Name = "DeleteProductVariant")]
-    [ProducesResponseType(typeof(ProductVariantDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteProductVariant(Guid productId, Guid variantId)
