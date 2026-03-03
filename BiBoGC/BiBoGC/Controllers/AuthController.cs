@@ -2,12 +2,11 @@
 using AuthorizationModule.Application.Command.RefreshToken;
 using AuthorizationModule.Application.Command.RevokeToken;
 using AuthorizationModule.Application.DTOs;
-using AuthorizationModule.Application.Interfaces;
 using MediatR;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BiBoGC.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
@@ -19,16 +18,16 @@ public class AuthController : ControllerBase
     {
         _mediator = mediator;
     }
+
     [HttpPost("login")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var request = new LoginCommand(loginRequestDto.UserName, loginRequestDto.Password, ipAddress);
         var result = await _mediator.Send(request);
-        
+
         if (!result.IsSuccess)
             return BadRequest(new ProblemDetails
             {
@@ -38,14 +37,14 @@ public class AuthController : ControllerBase
             });
         return Ok(result.Value);
     }
-    
+
     [HttpPost("refresh")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto request)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        
+
         var command = new RefreshTokenCommand(request.RefreshToken, ipAddress);
         var result = await _mediator.Send(command);
         if (!result.IsSuccess)
@@ -65,7 +64,7 @@ public class AuthController : ControllerBase
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var command = new RevokeCommand(request.RefreshToken, ipAddress);
         var result = await _mediator.Send(command);
-        
+
         if (!result.IsSuccess)
             return BadRequest(new ProblemDetails
             {
@@ -76,5 +75,4 @@ public class AuthController : ControllerBase
 
         return Ok();
     }
-
 }

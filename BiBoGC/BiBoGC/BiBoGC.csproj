@@ -38,6 +38,8 @@
         <ProjectReference Include="..\BiBoGC.ServiceDefaults\BiBoGC.ServiceDefaults.csproj"/>
         <ProjectReference Include="..\InventoryManagement.Application\InventoryManagement.Application.csproj"/>
         <ProjectReference Include="..\InventoryManagement.Infrastructure\InventoryManagement.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Sale.Application\Sale.Application.csproj"/>
+        <ProjectReference Include="..\Sale.Infrastructure\Sale.Infrastructure.csproj"/>
     </ItemGroup>
 
 </Project>
