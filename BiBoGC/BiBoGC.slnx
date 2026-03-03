@@ -17,6 +17,7 @@
     <Folder Name="/src/Modules/SaleManagement/">
         <Project Path="Sale.Application/Sale.Application.csproj" Id="a1f8be13-85fa-4c7c-90b5-377469cce4f0" />
         <Project Path="Sale.Domain/Sale.Domain.csproj" Id="c9ce60c6-b2e3-4689-afe9-87bfbfa5d459" />
+        <Project Path="Sale.Infrastructure/Sale.Infrastructure.csproj" Id="e2d8a4b1-9f3c-4d5e-8a6b-1c2d3e4f5a6b"/>
     </Folder>
     <Folder Name="/src/Shared/">
         <Project Path="Shared.Application/Shared.Application.csproj" />

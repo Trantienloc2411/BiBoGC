@@ -1,0 +1,99 @@
+using Microsoft.EntityFrameworkCore;
+using Sale.Application.Interfaces;
+using Sale.Domain.Domain;
+using Sale.Domain.Enum;
+using Sale.Infrastructure.Data;
+
+namespace Sale.Infrastructure.Repositories;
+
+public class SalesOrderRepository : ISalesOrderRepository
+{
+    private readonly SaleDbContext _context;
+
+    public SalesOrderRepository(SaleDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<SalesOrder?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        return await _context.SalesOrders
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
+    }
+
+    public async Task<SalesOrder?> GetByIdWithItemsAsync(Guid id, CancellationToken ct = default)
+    {
+        return await _context.SalesOrders
+            .Include(x => x.Items.Where(i => !i.IsDeleted))
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
+    }
+
+    public async Task<SalesOrder?> GetByOrderNumberAsync(string orderNumber, CancellationToken ct = default)
+    {
+        return await _context.SalesOrders
+            .Include(x => x.Items.Where(i => !i.IsDeleted))
+            .FirstOrDefaultAsync(x => x.OrderNumber == orderNumber, ct);
+    }
+
+    public async Task<(IEnumerable<SalesOrder> Items, int TotalCount)> GetAllAsync(
+        int page,
+        int pageSize,
+        OrderStatus? status = null,
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null,
+        string? search = null,
+        CancellationToken ct = default)
+    {
+        var query = _context.SalesOrders
+            .Include(x => x.Items.Where(i => !i.IsDeleted))
+            .AsQueryable();
+
+        if (status.HasValue)
+            query = query.Where(x => x.Status == status.Value);
+
+        if (dateFrom.HasValue)
+            query = query.Where(x => x.OrderDate >= dateFrom.Value);
+
+        if (dateTo.HasValue)
+            query = query.Where(x => x.OrderDate <= dateTo.Value);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchLower = search.ToLower();
+            query = query.Where(x =>
+                x.OrderNumber.ToLower().Contains(searchLower) ||
+                (x.CustomerName != null && x.CustomerName.ToLower().Contains(searchLower)) ||
+                (x.CustomerPhone != null && x.CustomerPhone.Contains(search)));
+        }
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+        return (items, totalCount);
+    }
+
+    public async Task<SalesOrder> AddAsync(SalesOrder order, CancellationToken ct = default)
+    {
+        await _context.SalesOrders.AddAsync(order, ct);
+        await _context.SaveChangesAsync(ct);
+        return order;
+    }
+
+    public async Task UpdateAsync(SalesOrder order, CancellationToken ct = default)
+    {
+        _context.SalesOrders.Update(order);
+        await _context.SaveChangesAsync(ct);
+    }
+
+    public async Task<bool> OrderNumberExistsAsync(string orderNumber, CancellationToken ct = default)
+    {
+        return await _context.SalesOrders
+            .AnyAsync(x => x.OrderNumber == orderNumber, ct);
+    }
+}

@@ -1,8 +1,4 @@
-﻿using InventoryManagement.Application.Commands.AddProductVariant;
-using InventoryManagement.Application.Commands.CreateProduct;
-using InventoryManagement.Application.Commands.DeleteProductVariant;
-using InventoryManagement.Application.Commands.UpdateProductVariant;
-using InventoryManagement.Application.DTOs;
+﻿using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Queries.GetProductVariants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
