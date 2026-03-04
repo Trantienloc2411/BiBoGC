@@ -11,8 +11,8 @@ public class StockTransaction : BaseEntity
 
     public StockTransaction(
         Guid productId,
-        Guid productBatchId,
-        Guid supplierId,
+        Guid? productBatchId,
+        Guid? supplierId,
         StockTransactionType transactionType,
         int quantity,
         decimal unitPrice,
@@ -34,8 +34,8 @@ public class StockTransaction : BaseEntity
     }
 
     public Guid ProductId { get; private set; }
-    public Guid ProductBatchId { get; private set; }
-    public Guid SupplierId { get; private set; }
+    public Guid? ProductBatchId { get; private set; }
+    public Guid? SupplierId { get; private set; }
     public StockTransactionType TransactionType { get; private set; }
     public int Quantity { get; private set; }
     public decimal UnitPrice { get; private set; }

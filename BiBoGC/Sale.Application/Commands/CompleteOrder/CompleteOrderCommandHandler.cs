@@ -5,6 +5,7 @@ using MediatR;
 using Sale.Application.DTOs;
 using Sale.Application.Interfaces;
 using Sale.Application.Mappers;
+using Sale.Domain.Exceptions;
 using Shared.Application.Common;
 
 namespace Sale.Application.Commands.CompleteOrder;
@@ -93,23 +94,15 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
         {
             order.Complete(request.AmountPaid);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOrderStateException ex)
         {
             return Result<SalesOrderDto>.Failure(ex.Message);
         }
 
         // Persist order state change atomically to SaleDb
-        await _unitOfWork.BeginTransactionAsync(cancellationToken);
-        try
-        {
-            await _orderRepository.UpdateAsync(order, cancellationToken);
-            await _unitOfWork.CommitTransactionAsync(cancellationToken);
-        }
-        catch
-        {
-            await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-            throw;
-        }
+        await _unitOfWork.ExecuteInTransactionAsync(
+            async () => await _orderRepository.UpdateAsync(order, cancellationToken),
+            cancellationToken);
 
         // --- Phase 2: Deduct stock in InventoryDb (after SaleDb commit) ---
         // Order is now permanently Completed. If this phase fails, the caller receives a 500
@@ -126,8 +119,8 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
 
             var stockTransaction = new StockTransaction(
                 productId: item.ProductId,
-                productBatchId: item.ProductBatchId ?? Guid.Empty,
-                supplierId: Guid.Empty,
+                item.ProductBatchId,
+                null,
                 transactionType: StockTransactionType.Sale,
                 quantity: quantityInBaseUnits,
                 unitPrice: item.UnitPrice / variant.QuantityBaseUnit,

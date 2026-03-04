@@ -1,5 +1,6 @@
 using BiBoGC.Models;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sale.Application.Commands.AddItemToOrder;
 using Sale.Application.Commands.ApplyDiscount;
@@ -18,6 +19,7 @@ using Shared.Application.Common;
 namespace BiBoGC.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class SalesOrdersController : ControllerBase
 {
@@ -32,6 +34,7 @@ public class SalesOrdersController : ControllerBase
     /// Lấy danh sách đơn hàng
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "Administrator,Seller")]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<SalesOrderDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetOrders(
         [FromQuery] int page = 1,
@@ -56,6 +59,7 @@ public class SalesOrdersController : ControllerBase
     /// Lấy chi tiết đơn hàng
     /// </summary>
     [HttpGet("{id:guid}")]
+    [Authorize(Roles = "Administrator,Seller")]
     [ProducesResponseType(typeof(ApiResponse<SalesOrderDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetOrder(Guid id, CancellationToken ct = default)
@@ -74,6 +78,7 @@ public class SalesOrdersController : ControllerBase
     /// Tạo đơn hàng mới
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Administrator,Seller")]
     [ProducesResponseType(typeof(ApiResponse<SalesOrderDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateOrder(
@@ -103,6 +108,7 @@ public class SalesOrdersController : ControllerBase
     /// Thêm sản phẩm vào đơn hàng (theo ProductVariant)
     /// </summary>
     [HttpPost("{id:guid}/items")]
+    [Authorize(Roles = "Administrator,Seller")]
     [ProducesResponseType(typeof(ApiResponse<SalesOrderDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AddItem(
@@ -131,6 +137,7 @@ public class SalesOrdersController : ControllerBase
     /// Cập nhật số lượng sản phẩm
     /// </summary>
     [HttpPut("{id:guid}/items/{itemId:guid}")]
+    [Authorize(Roles = "Administrator,Seller")]
     [ProducesResponseType(typeof(ApiResponse<SalesOrderDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateItemQuantity(
@@ -153,6 +160,7 @@ public class SalesOrdersController : ControllerBase
     /// Xóa sản phẩm khỏi đơn hàng
     /// </summary>
     [HttpDelete("{id:guid}/items/{itemId:guid}")]
+    [Authorize(Roles = "Administrator,Seller")]
     [ProducesResponseType(typeof(ApiResponse<SalesOrderDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RemoveItem(
@@ -174,6 +182,7 @@ public class SalesOrdersController : ControllerBase
     /// Áp dụng giảm giá (theo số tiền)
     /// </summary>
     [HttpPost("{id:guid}/discount")]
+    [Authorize(Roles = "Administrator,Seller")]
     [ProducesResponseType(typeof(ApiResponse<SalesOrderDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ApplyDiscount(
@@ -195,6 +204,7 @@ public class SalesOrdersController : ControllerBase
     /// Hoàn thành đơn hàng (trừ kho)
     /// </summary>
     [HttpPost("{id:guid}/complete")]
+    [Authorize(Roles = "Administrator,Seller")]
     [ProducesResponseType(typeof(ApiResponse<SalesOrderDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CompleteOrder(
@@ -216,6 +226,7 @@ public class SalesOrdersController : ControllerBase
     /// Hủy đơn hàng
     /// </summary>
     [HttpPost("{id:guid}/cancel")]
+    [Authorize(Roles = "Administrator,Seller")]
     [ProducesResponseType(typeof(ApiResponse<SalesOrderDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CancelOrder(
@@ -237,6 +248,7 @@ public class SalesOrdersController : ControllerBase
     /// Xuất hóa đơn từ đơn hàng
     /// </summary>
     [HttpPost("{id:guid}/invoice")]
+    [Authorize(Roles = "Administrator,Seller")]
     [ProducesResponseType(typeof(ApiResponse<InvoiceDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GenerateInvoice(
