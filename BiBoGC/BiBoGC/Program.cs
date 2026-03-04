@@ -9,6 +9,9 @@ using InventoryManagement.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Sale.Application;
+using Sale.Infrastructure;
+using Sale.Infrastructure.Data;
 using Scalar.AspNetCore;
 
 
@@ -23,7 +26,7 @@ public class Program
         // Add Aspire service defaults
         builder.AddServiceDefaults();
 
-     
+
         // Check if connection string is available (from AppHost in dev, or from config in prod)
         var connectionString = builder.Configuration.GetConnectionString("InventoryDb");
 
@@ -41,9 +44,15 @@ public class Program
                 options.EnableDetailedErrors();
                 options.EnableSensitiveDataLogging(true);
             });
+            builder.AddNpgsqlDbContext<SaleDbContext>("SaleDb", configureDbContextOptions: options =>
+            {
+                options.EnableDetailedErrors();
+                options.EnableSensitiveDataLogging(true);
+            });
 
             // Register repositories (DbContext already registered by Aspire above)
             builder.Services.AddInventoryInfrastructureWithAspire();
+            builder.Services.AddSaleInfrastructureWithAspire();
         }
         else
         {
@@ -77,19 +86,34 @@ public class Program
                         5,
                         TimeSpan.FromSeconds(30),
                         null);
-
                 });
+            });
+
+            builder.Services.AddDbContextPool<SaleDbContext>(options =>
+            {
+                options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsAssembly(typeof(SaleDbContext).Assembly.FullName);
+                    npgsqlOptions.EnableRetryOnFailure(
+                        5,
+                        TimeSpan.FromSeconds(30),
+                        null);
+                });
+                options.EnableDetailedErrors();
+                options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
             });
 
             // Register repositories
             builder.Services.AddInventoryInfrastructureWithAspire();
+            builder.Services.AddSaleInfrastructureWithAspire();
         }
 
         // Register Application layer (MediatR, Validators)
         builder.Services.AddInventoryApplication();
         builder.Services.AddAuthorizationModuleApplication();
         builder.Services.AddAuthorizationModule();
-        
+        builder.Services.AddSaleApplication();
+
         var jwtSection = builder.Configuration.GetSection("Jwt");
         var key = Encoding.UTF8.GetBytes(jwtSection["Key"]!);
 
@@ -113,7 +137,7 @@ public class Program
                     ValidAudience = builder.Configuration["Jwt:Audience"],
                     ClockSkew = TimeSpan.Zero
                 };
-                
+
                 options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
                 {
                     OnAuthenticationFailed = context =>
@@ -137,15 +161,9 @@ public class Program
 
 
         builder.Services.AddAuthorizationBuilder()
-            .AddPolicy("AdminOnly", policy =>
-            {
-                policy.RequireRole("Administrator");
-            })
-            .AddPolicy("SellerOrAdmin", policy =>
-            {
-                policy.RequireRole("Administrator", "Seller");
-            });
-        
+            .AddPolicy("AdminOnly", policy => { policy.RequireRole("Administrator"); })
+            .AddPolicy("SellerOrAdmin", policy => { policy.RequireRole("Administrator", "Seller"); });
+
 
         // Add Controllers
         builder.Services.AddControllers()
@@ -173,6 +191,7 @@ public class Program
         // Initialize database
         await app.Services.InitializeDatabaseAsync();
         await app.Services.InitializeAuthorizationDatabaseAsync();
+        await app.Services.InitializeSaleDatabaseAsync();
 
         // Configure middleware pipeline
         if (app.Environment.IsDevelopment())

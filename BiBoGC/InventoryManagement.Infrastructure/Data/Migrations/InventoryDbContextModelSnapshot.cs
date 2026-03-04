@@ -276,7 +276,7 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("ProductBatchId")
+                    b.Property<Guid?>("ProductBatchId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ProductId")
@@ -285,7 +285,7 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("SupplierId")
+                    b.Property<Guid?>("SupplierId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("TransactionDate")
@@ -406,8 +406,7 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
                     b.HasOne("InventoryManagement.Domain.Entities.ProductBatch", "ProductBatch")
                         .WithMany()
                         .HasForeignKey("ProductBatchId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("InventoryManagement.Domain.Entities.Product", "Product")
                         .WithMany()
@@ -418,8 +417,7 @@ namespace InventoryManagement.Infrastructure.Data.Migrations
                     b.HasOne("InventoryManagement.Domain.Entities.Supplier", "Supplier")
                         .WithMany()
                         .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Product");
 

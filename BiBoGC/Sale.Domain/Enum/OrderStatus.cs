@@ -1,9 +1,8 @@
 ﻿namespace Sale.Domain.Enum;
 
-public enum SaleStatus
+public enum OrderStatus
 {
-    Pending = 1, // Đang xử lý
+    Draft = 1, // Đang soạn
     Completed = 2, // Hoàn thành
     Cancelled = 3, // Đã hủy
-    Refunded = 4 // Đã hoàn tiền
 }
