@@ -1,5 +1,6 @@
 using BiBoGC.Models;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sale.Application.DTOs;
 using Sale.Application.Queries.GetInvoice;
@@ -9,6 +10,7 @@ using Shared.Application.Common;
 namespace BiBoGC.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class InvoicesController : ControllerBase
 {
@@ -23,6 +25,7 @@ public class InvoicesController : ControllerBase
     /// Lấy danh sách hóa đơn
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "Administrator,Seller")]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<InvoiceDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetInvoices(
         [FromQuery] int page = 1,
@@ -45,6 +48,7 @@ public class InvoicesController : ControllerBase
     /// Lấy chi tiết hóa đơn
     /// </summary>
     [HttpGet("{id:guid}")]
+    [Authorize(Roles = "Administrator,Seller")]
     [ProducesResponseType(typeof(ApiResponse<InvoiceDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetInvoice(Guid id, CancellationToken ct = default)
