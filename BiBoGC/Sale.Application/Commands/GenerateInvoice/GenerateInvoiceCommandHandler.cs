@@ -60,22 +60,14 @@ public class GenerateInvoiceCommandHandler : IRequestHandler<GenerateInvoiceComm
         var invoice = Invoice.CreateFromOrder(order, storeInfo, invoiceNumber);
 
         // 7. Atomically save invoice and link it to the order
-        await _unitOfWork.BeginTransactionAsync(cancellationToken);
-        try
+        await _unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             await _invoiceRepository.AddAsync(invoice, cancellationToken);
 
             // 8. Update order with invoice reference
             order.SetInvoiceId(invoice.Id);
             await _orderRepository.UpdateAsync(order, cancellationToken);
-
-            await _unitOfWork.CommitTransactionAsync(cancellationToken);
-        }
-        catch
-        {
-            await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-            throw;
-        }
+        }, cancellationToken);
 
         return Result<InvoiceDto>.Success(InvoiceMapper.MapToDto(invoice));
     }

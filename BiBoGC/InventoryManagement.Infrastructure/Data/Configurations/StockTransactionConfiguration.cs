@@ -35,11 +35,13 @@ public class StockTransactionConfiguration : IEntityTypeConfiguration<StockTrans
         builder.HasOne(st => st.ProductBatch)
             .WithMany()
             .HasForeignKey(st => st.ProductBatchId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(st => st.Supplier)
             .WithMany()
             .HasForeignKey(st => st.SupplierId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(st => st.ProductId);

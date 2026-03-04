@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore;
 using Sale.Application.Interfaces;
 using Sale.Infrastructure.Data;
 
@@ -7,7 +7,6 @@ namespace Sale.Infrastructure.Services;
 public class SaleUnitOfWork : ISaleUnitOfWork
 {
     private readonly SaleDbContext _context;
-    private IDbContextTransaction? _currentTransaction;
 
     public SaleUnitOfWork(SaleDbContext context)
     {
@@ -19,28 +18,22 @@ public class SaleUnitOfWork : ISaleUnitOfWork
         return await _context.SaveChangesAsync(ct);
     }
 
-    public async Task BeginTransactionAsync(CancellationToken ct = default)
+    public async Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken ct = default)
     {
-        _currentTransaction = await _context.Database.BeginTransactionAsync(ct);
-    }
-
-    public async Task CommitTransactionAsync(CancellationToken ct = default)
-    {
-        if (_currentTransaction is null)
-            throw new InvalidOperationException("Chưa có transaction nào được bắt đầu.");
-
-        await _currentTransaction.CommitAsync(ct);
-        await _currentTransaction.DisposeAsync();
-        _currentTransaction = null;
-    }
-
-    public async Task RollbackTransactionAsync(CancellationToken ct = default)
-    {
-        if (_currentTransaction is null)
-            return;
-
-        await _currentTransaction.RollbackAsync(ct);
-        await _currentTransaction.DisposeAsync();
-        _currentTransaction = null;
+        var strategy = _context.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync(ct);
+            try
+            {
+                await action();
+                await transaction.CommitAsync(ct);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(ct);
+                throw;
+            }
+        });
     }
 }

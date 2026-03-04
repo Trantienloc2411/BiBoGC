@@ -53,10 +53,10 @@ public class InvoiceRepository : IInvoiceRepository
             .AsQueryable();
 
         if (dateFrom.HasValue)
-            query = query.Where(x => x.InvoiceDate >= dateFrom.Value);
+            query = query.Where(x => x.InvoiceDate >= DateTime.SpecifyKind(dateFrom.Value, DateTimeKind.Utc));
 
         if (dateTo.HasValue)
-            query = query.Where(x => x.InvoiceDate <= dateTo.Value);
+            query = query.Where(x => x.InvoiceDate <= DateTime.SpecifyKind(dateTo.Value, DateTimeKind.Utc));
 
         var totalCount = await query.CountAsync(ct);
 

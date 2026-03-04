@@ -52,10 +52,10 @@ public class SalesOrderRepository : ISalesOrderRepository
             query = query.Where(x => x.Status == status.Value);
 
         if (dateFrom.HasValue)
-            query = query.Where(x => x.OrderDate >= dateFrom.Value);
+            query = query.Where(x => x.OrderDate >= DateTime.SpecifyKind(dateFrom.Value, DateTimeKind.Utc));
 
         if (dateTo.HasValue)
-            query = query.Where(x => x.OrderDate <= dateTo.Value);
+            query = query.Where(x => x.OrderDate <= DateTime.SpecifyKind(dateTo.Value, DateTimeKind.Utc));
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -87,7 +87,10 @@ public class SalesOrderRepository : ISalesOrderRepository
 
     public async Task UpdateAsync(SalesOrder order, CancellationToken ct = default)
     {
-        _context.SalesOrders.Update(order);
+        foreach (var item in order.Items)
+            if (_context.Entry(item).State == EntityState.Detached)
+                _context.SalesOrderItems.Add(item);
+
         await _context.SaveChangesAsync(ct);
     }
 

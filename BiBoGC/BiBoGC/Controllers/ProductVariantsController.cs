@@ -47,6 +47,7 @@ public class ProductVariantsController(IMediator mediator)
     /// <response code="200">Returns paginated product list</response>
     /// <response code="400">Invalid pagination parameters</response>
     [HttpGet]
+    [Authorize(Roles = "Administrator,Seller")]
     [ProducesResponseType(typeof(IEnumerable<ProductVariantDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetProductVariants(
