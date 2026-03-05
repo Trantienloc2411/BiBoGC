@@ -21,6 +21,7 @@ class InvoicesPage extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
+          leading: BackButton(onPressed: () => Navigator.of(context).pop()),
           title: const Text('Hóa đơn'),
           centerTitle: true,
           actions: [

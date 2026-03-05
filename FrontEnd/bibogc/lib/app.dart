@@ -14,12 +14,30 @@ class BiBoApp extends StatefulWidget {
 }
 
 class _BiBoAppState extends State<BiBoApp> {
-  late final StreamSubscription<void> _logoutSub;
+  late final StreamSubscription<String> _logoutSub;
+  final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
     super.initState();
-    _logoutSub = getIt<DioClient>().forceLogoutStream.listen((_) {
+    _logoutSub = getIt<DioClient>().forceLogoutStream.listen((message) {
+      _scaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.logout, color: Colors.white, size: 20),
+              const SizedBox(width: 12),
+              Expanded(child: Text(message)),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red.shade700,
+          duration: const Duration(seconds: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
       appRouter.go(AppRoutes.welcome);
     });
   }
@@ -38,6 +56,7 @@ class _BiBoAppState extends State<BiBoApp> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
+      scaffoldMessengerKey: _scaffoldMessengerKey,
       routerConfig: appRouter,
     );
   }

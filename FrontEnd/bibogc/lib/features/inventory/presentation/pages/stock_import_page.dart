@@ -118,86 +118,83 @@ class _StockImportViewState extends State<StockImportView> {
     final theme = Theme.of(context);
     final steps = ['Nhà cung cấp', 'Sản phẩm', 'Lô hàng & giá vốn'];
 
+    Widget buildCircle(int index) {
+      final isActive = index == stepIndex;
+      final isCompleted = index < stepIndex;
+      final color = isCompleted || isActive
+          ? theme.colorScheme.primary
+          : theme.colorScheme.outlineVariant;
+
+      return Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: isCompleted || isActive
+              ? theme.colorScheme.primary
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color, width: 2),
+        ),
+        child: isCompleted
+            ? Icon(Icons.check, size: 16, color: theme.colorScheme.onPrimary)
+            : Center(
+                child: Text(
+                  '${index + 1}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: isActive
+                        ? theme.colorScheme.onPrimary
+                        : color,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+      );
+    }
+
+    Widget buildLine(int index) {
+      return Expanded(
+        child: Container(
+          height: 2,
+          color: index < stepIndex
+              ? theme.colorScheme.primary
+              : theme.colorScheme.outlineVariant,
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: List.generate(steps.length, (index) {
-          final isActive = index == stepIndex;
-          final isCompleted = index < stepIndex;
-          final color = isCompleted
-              ? theme.colorScheme.primary
-              : (isActive
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.outlineVariant);
-
-          return Expanded(
-            child: Column(
-              children: [
-                Row(
+      child: Column(
+        children: [
+          Row(
+            children: List.generate(steps.length, (index) {
+              return Expanded(
+                child: Row(
                   children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: isCompleted
-                            ? color
-                            : (isActive
-                                  ? theme.colorScheme.primary
-                                  : Colors.transparent),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: color, width: 2),
-                      ),
-                      child: isCompleted
-                          ? Icon(
-                              Icons.check,
-                              size: 16,
-                              color: theme.colorScheme.onPrimary,
-                            )
-                          : isActive
-                          ? Center(
-                              child: Text(
-                                '${index + 1}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            )
-                          : Center(
-                              child: Text(
-                                '${index + 1}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: color,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                    ),
-                    if (index < steps.length - 1) ...[
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Container(
-                          height: 2,
-                          color: index < stepIndex
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.outlineVariant,
-                        ),
-                      ),
-                    ],
+                    if (index > 0) buildLine(index),
+                    buildCircle(index),
+                    if (index < steps.length - 1) buildLine(index),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
+              );
+            }),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: List.generate(steps.length, (index) {
+              final isActive = index == stepIndex;
+              return Expanded(
+                child: Text(
                   steps[index],
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: isActive ? FontWeight.bold : FontWeight.w400,
                   ),
                 ),
-              ],
-            ),
-          );
-        }),
+              );
+            }),
+          ),
+        ],
       ),
     );
   }

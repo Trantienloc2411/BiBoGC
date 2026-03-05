@@ -22,7 +22,11 @@ class SalesOrdersPage extends StatelessWidget {
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Đơn hàng'), centerTitle: true),
+        appBar: AppBar(
+          leading: BackButton(onPressed: () => Navigator.of(context).pop()),
+          title: const Text('Đơn hàng'),
+          centerTitle: true,
+        ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => _openCreateOrder(context),
           child: const Icon(Icons.add),

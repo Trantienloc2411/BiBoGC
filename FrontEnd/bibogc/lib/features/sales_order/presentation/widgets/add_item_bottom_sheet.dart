@@ -20,7 +20,36 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
   Product? _selectedProduct;
   ProductVariant? _selectedVariant;
   int _quantity = 1;
-  int _step = 0; // 0 = select product, 1 = select variant & quantity
+  int _step = 0;
+  late final TextEditingController _quantityController;
+
+  @override
+  void initState() {
+    super.initState();
+    _quantityController = TextEditingController(text: '1');
+  }
+
+  @override
+  void dispose() {
+    _quantityController.dispose();
+    super.dispose();
+  }
+
+  void _setQuantity(int value) {
+    final maxStock = _getMaxStock();
+    final clamped = value.clamp(1, maxStock > 0 ? maxStock : 1);
+    setState(() => _quantity = clamped);
+    _quantityController.text = '$clamped';
+    _quantityController.selection = TextSelection.fromPosition(
+      TextPosition(offset: _quantityController.text.length),
+    );
+  }
+
+  int _getMaxStock() {
+    if (_selectedProduct == null || _selectedVariant == null) return 0;
+    return (_selectedProduct!.totalStock / _selectedVariant!.quantityBaseUnit)
+        .floor();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +89,8 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
                       onPressed: () => setState(() {
                         _step = 0;
                         _selectedVariant = null;
+                        _quantity = 1;
+                        _quantityController.text = '1';
                       }),
                     ),
                     const SizedBox(width: 4),
@@ -222,24 +253,78 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
                     IconButton.filled(
                       icon: const Icon(Icons.remove),
                       onPressed: _quantity > 1
-                          ? () => setState(() => _quantity--)
+                          ? () => _setQuantity(_quantity - 1)
                           : null,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        '$_quantity',
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 80,
+                      child: TextField(
+                        controller: _quantityController,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
+                        decoration: const InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 8,
+                          ),
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        onChanged: (value) {
+                          final parsed = int.tryParse(value);
+                          if (parsed != null && parsed >= 1) {
+                            final maxStock = _getMaxStock();
+                            final clamped = maxStock > 0
+                                ? parsed.clamp(1, maxStock)
+                                : parsed.clamp(1, parsed);
+                            setState(() => _quantity = clamped);
+                            if (clamped != parsed) {
+                              _quantityController.text = '$clamped';
+                              _quantityController.selection =
+                                  TextSelection.fromPosition(
+                                TextPosition(
+                                  offset: _quantityController.text.length,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        onSubmitted: (value) {
+                          final parsed = int.tryParse(value);
+                          if (parsed == null || parsed < 1) {
+                            _setQuantity(1);
+                          } else {
+                            _setQuantity(parsed);
+                          }
+                        },
                       ),
                     ),
+                    const SizedBox(width: 8),
                     IconButton.filled(
                       icon: const Icon(Icons.add),
-                      onPressed: () => setState(() => _quantity++),
+                      onPressed: () {
+                        final maxStock = _getMaxStock();
+                        if (maxStock <= 0 || _quantity < maxStock) {
+                          _setQuantity(_quantity + 1);
+                        }
+                      },
                     ),
                   ],
                 ),
+                if (_selectedVariant != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Tồn kho: ${_getMaxStock()}',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 AppButton(
                   isLoading: isLoading,

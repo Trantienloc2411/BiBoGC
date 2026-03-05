@@ -84,20 +84,46 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildOrderInfoCard(context, order),
-            const SizedBox(height: 16),
-            _buildItemsSection(context, state, order, isDraft),
-            const SizedBox(height: 16),
-            _buildTotalsSection(context, order),
-            const SizedBox(height: 16),
-            if (isDraft) _buildDraftActions(context, state, order, isLoading),
-            const SizedBox(height: 12),
-            _buildInvoiceButton(context, state, order, isLoading),
-            const SizedBox(height: 32),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 600;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildOrderInfoCard(context, order),
+                const SizedBox(height: 16),
+                if (isWide)
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: _buildItemsSection(
+                            context, state, order, isDraft,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          flex: 2,
+                          child: _buildTotalsSection(context, order),
+                        ),
+                      ],
+                    ),
+                  )
+                else ...[
+                  _buildItemsSection(context, state, order, isDraft),
+                  const SizedBox(height: 16),
+                  _buildTotalsSection(context, order),
+                ],
+                const SizedBox(height: 16),
+                if (isDraft) _buildDraftActions(context, state, order, isLoading),
+                const SizedBox(height: 12),
+                _buildInvoiceButton(context, state, order, isLoading),
+                const SizedBox(height: 32),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -160,6 +186,7 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
   ) {
     final theme = Theme.of(context);
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+    final isLoading = state.actionStatus == SalesOrderStatus.loading;
 
     return Card(
       child: Padding(
@@ -167,11 +194,41 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Sản phẩm (${order.itemCount})',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Sản phẩm (${order.itemCount})',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                if (isDraft)
+                  TextButton.icon(
+                    icon: const Icon(Icons.add_shopping_cart, size: 18),
+                    label: const Text('Thêm'),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    onPressed: isLoading
+                        ? null
+                        : () => showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(24),
+                                ),
+                              ),
+                              builder: (ctx) => BlocProvider.value(
+                                value: context.read<SalesOrderBloc>(),
+                                child: AddItemBottomSheet(orderId: order.id),
+                              ),
+                            ),
+                  ),
+              ],
             ),
             const Divider(height: 20),
             if (order.items.isEmpty)
@@ -392,26 +449,6 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        OutlinedButton.icon(
-          icon: const Icon(Icons.add_shopping_cart),
-          label: const Text('Thêm sản phẩm'),
-          onPressed: isLoading
-              ? null
-              : () => showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(24),
-                    ),
-                  ),
-                  builder: (ctx) => BlocProvider.value(
-                    value: context.read<SalesOrderBloc>(),
-                    child: AddItemBottomSheet(orderId: order.id),
-                  ),
-                ),
-        ),
-        const SizedBox(height: 8),
         OutlinedButton.icon(
           icon: const Icon(Icons.discount_outlined),
           label: const Text('Áp dụng giảm giá'),

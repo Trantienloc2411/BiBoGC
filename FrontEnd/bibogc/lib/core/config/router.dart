@@ -19,98 +19,99 @@ import '../../features/invoice/presentation/bloc/invoice_bloc.dart';
 import '../../features/invoice/presentation/pages/invoices_page.dart';
 import '../../features/invoice/presentation/pages/invoice_detail_page.dart';
 
-final GoRouter appRouter = GoRouter(
-  initialLocation: AppRoutes.welcome,
-  routes: [
-    GoRoute(
-      path: AppRoutes.welcome,
-      builder: (context, state) => const WelcomePage(),
-    ),
-    GoRoute(
-      path: AppRoutes.login,
-      builder: (context, state) => const LoginPage(),
-    ),
-    GoRoute(
-      path: AppRoutes.home,
-      builder: (context, state) => const HomePage(),
-    ),
-    GoRoute(
-      path: AppRoutes.products,
-      builder: (context, state) => BlocProvider(
-        create: (_) => getIt<ProductBloc>()..add(const ProductsStarted()),
-        child: const ProductsView(),
+late final GoRouter appRouter;
+
+GoRouter createAppRouter({String initialLocation = AppRoutes.welcome}) {
+  return GoRouter(
+    initialLocation: initialLocation,
+    routes: [
+      GoRoute(
+        path: AppRoutes.welcome,
+        builder: (context, state) => const WelcomePage(),
       ),
-    ),
-    GoRoute(
-      path: AppRoutes.importStock,
-      builder: (context, state) => StockImportPage(),
-    ),
-    // Suppliers — ShellRoute so list + detail share the same SupplierBloc
-    ShellRoute(
-      builder: (context, state, child) {
-        return BlocProvider(
-          create: (_) => getIt<SupplierBloc>()..add(SuppliersStarted()),
-          child: child,
-        );
-      },
-      routes: [
-        GoRoute(
-          path: AppRoutes.suppliers,
-          builder: (context, state) => const SuppliersPage(),
-          routes: [
-            GoRoute(
-              path: ':id',
-              builder: (context, state) =>
-                  SupplierDetailPage(id: state.pathParameters['id']!),
-            ),
-          ],
+      GoRoute(
+        path: AppRoutes.login,
+        builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.home,
+        builder: (context, state) => const HomePage(),
+      ),
+      GoRoute(
+        path: AppRoutes.products,
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<ProductBloc>()..add(const ProductsStarted()),
+          child: const ProductsView(),
         ),
-      ],
-    ),
-    // Sales Orders — ShellRoute so list + detail share the same SalesOrderBloc
-    ShellRoute(
-      builder: (context, state, child) {
-        return BlocProvider(
-          create: (_) =>
-              getIt<SalesOrderBloc>()..add(const SalesOrdersStarted()),
-          child: child,
-        );
-      },
-      routes: [
-        GoRoute(
-          path: AppRoutes.salesOrders,
-          builder: (context, state) => const SalesOrdersPage(),
-          routes: [
-            GoRoute(
-              path: ':id',
-              builder: (context, state) =>
-                  SalesOrderDetailPage(id: state.pathParameters['id']!),
-            ),
-          ],
-        ),
-      ],
-    ),
-    // Invoices — ShellRoute so list + detail share the same InvoiceBloc
-    ShellRoute(
-      builder: (context, state, child) {
-        return BlocProvider(
-          create: (_) => getIt<InvoiceBloc>()..add(const InvoicesStarted()),
-          child: child,
-        );
-      },
-      routes: [
-        GoRoute(
-          path: AppRoutes.invoices,
-          builder: (context, state) => const InvoicesPage(),
-          routes: [
-            GoRoute(
-              path: ':id',
-              builder: (context, state) =>
-                  InvoiceDetailPage(id: state.pathParameters['id']!),
-            ),
-          ],
-        ),
-      ],
-    ),
-  ],
-);
+      ),
+      GoRoute(
+        path: AppRoutes.importStock,
+        builder: (context, state) => StockImportPage(),
+      ),
+      ShellRoute(
+        builder: (context, state, child) {
+          return BlocProvider(
+            create: (_) => getIt<SupplierBloc>()..add(SuppliersStarted()),
+            child: child,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: AppRoutes.suppliers,
+            builder: (context, state) => const SuppliersPage(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) =>
+                    SupplierDetailPage(id: state.pathParameters['id']!),
+              ),
+            ],
+          ),
+        ],
+      ),
+      ShellRoute(
+        builder: (context, state, child) {
+          return BlocProvider(
+            create: (_) =>
+                getIt<SalesOrderBloc>()..add(const SalesOrdersStarted()),
+            child: child,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: AppRoutes.salesOrders,
+            builder: (context, state) => const SalesOrdersPage(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) =>
+                    SalesOrderDetailPage(id: state.pathParameters['id']!),
+              ),
+            ],
+          ),
+        ],
+      ),
+      ShellRoute(
+        builder: (context, state, child) {
+          return BlocProvider(
+            create: (_) => getIt<InvoiceBloc>()..add(const InvoicesStarted()),
+            child: child,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: AppRoutes.invoices,
+            builder: (context, state) => const InvoicesPage(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) =>
+                    InvoiceDetailPage(id: state.pathParameters['id']!),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  );
+}
