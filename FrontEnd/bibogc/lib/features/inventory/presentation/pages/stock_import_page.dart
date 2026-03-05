@@ -20,9 +20,7 @@ class StockImportPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (_) => getIt<StockImportBloc>(),
-        ),
+        BlocProvider(create: (_) => getIt<StockImportBloc>()),
         BlocProvider(
           create: (_) => getIt<SupplierBloc>()..add(SuppliersStarted()),
         ),
@@ -60,11 +58,11 @@ class _StockImportViewState extends State<StockImportView> {
     super.initState();
     if (widget.initialProduct != null) {
       context.read<StockImportBloc>().add(
-            StockImportProductSelected(
-              productId: widget.initialProduct!.id,
-              productName: widget.initialProduct!.name,
-            ),
-          );
+        StockImportProductSelected(
+          productId: widget.initialProduct!.id,
+          productName: widget.initialProduct!.name,
+        ),
+      );
     }
   }
 
@@ -89,10 +87,7 @@ class _StockImportViewState extends State<StockImportView> {
           );
         } else if (state.status == StockImportStatus.failure &&
             state.errorMessage != null) {
-          DialogUtils.showErrorDialog(
-            context,
-            message: state.errorMessage!,
-          );
+          DialogUtils.showErrorDialog(context, message: state.errorMessage!);
         }
       },
       builder: (context, state) {
@@ -132,8 +127,8 @@ class _StockImportViewState extends State<StockImportView> {
           final color = isCompleted
               ? theme.colorScheme.primary
               : (isActive
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.outlineVariant);
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.outlineVariant);
 
           return Expanded(
             child: Column(
@@ -147,33 +142,36 @@ class _StockImportViewState extends State<StockImportView> {
                         color: isCompleted
                             ? color
                             : (isActive
-                                ? theme.colorScheme.primary
-                                : Colors.transparent),
+                                  ? theme.colorScheme.primary
+                                  : Colors.transparent),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: color, width: 2),
                       ),
                       child: isCompleted
-                          ? Icon(Icons.check,
-                              size: 16, color: theme.colorScheme.onPrimary)
+                          ? Icon(
+                              Icons.check,
+                              size: 16,
+                              color: theme.colorScheme.onPrimary,
+                            )
                           : isActive
-                              ? Center(
-                                  child: Text(
-                                    '${index + 1}',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onPrimary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                )
-                              : Center(
-                                  child: Text(
-                                    '${index + 1}',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: color,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                          ? Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onPrimary,
+                                  fontWeight: FontWeight.bold,
                                 ),
+                              ),
+                            )
+                          : Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: color,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                     ),
                     if (index < steps.length - 1) ...[
                       const SizedBox(width: 8),
@@ -233,8 +231,9 @@ class _StockImportViewState extends State<StockImportView> {
         ),
         const SizedBox(height: 16),
         Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -265,9 +264,9 @@ class _StockImportViewState extends State<StockImportView> {
           onPressed: state.supplierId == null
               ? null
               : () {
-                  context
-                      .read<StockImportBloc>()
-                      .add(const StockImportStepChanged(1));
+                  context.read<StockImportBloc>().add(
+                    const StockImportStepChanged(1),
+                  );
                 },
           child: const Text('Tiếp tục'),
         ),
@@ -293,17 +292,15 @@ class _StockImportViewState extends State<StockImportView> {
         ),
         const SizedBox(height: 16),
         Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Sản phẩm hiện tại',
-                  style: theme.textTheme.labelMedium,
-                ),
+                Text('Sản phẩm hiện tại', style: theme.textTheme.labelMedium),
                 const SizedBox(height: 8),
                 Text(
                   state.productName ?? 'Chưa chọn',
@@ -326,9 +323,9 @@ class _StockImportViewState extends State<StockImportView> {
             Expanded(
               child: AppButton(
                 onPressed: () {
-                  context
-                      .read<StockImportBloc>()
-                      .add(const StockImportStepChanged(0));
+                  context.read<StockImportBloc>().add(
+                    const StockImportStepChanged(0),
+                  );
                 },
                 child: const Text('Quay lại'),
               ),
@@ -339,9 +336,9 @@ class _StockImportViewState extends State<StockImportView> {
                 onPressed: state.productId == null
                     ? null
                     : () {
-                        context
-                            .read<StockImportBloc>()
-                            .add(const StockImportStepChanged(2));
+                        context.read<StockImportBloc>().add(
+                          const StockImportStepChanged(2),
+                        );
                       },
                 child: const Text('Tiếp tục'),
               ),
@@ -397,10 +394,8 @@ class _StockImportViewState extends State<StockImportView> {
                           context,
                           label: 'Ngày sản xuất *',
                           value: _manufacturingDate,
-                          onTap: () => _pickDate(
-                            context,
-                            isManufacturing: true,
-                          ),
+                          onTap: () =>
+                              _pickDate(context, isManufacturing: true),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -409,10 +404,8 @@ class _StockImportViewState extends State<StockImportView> {
                           context,
                           label: 'Hạn sử dụng *',
                           value: _expirationDate,
-                          onTap: () => _pickDate(
-                            context,
-                            isManufacturing: false,
-                          ),
+                          onTap: () =>
+                              _pickDate(context, isManufacturing: false),
                         ),
                       ),
                     ],
@@ -438,8 +431,9 @@ class _StockImportViewState extends State<StockImportView> {
                     decoration: const InputDecoration(
                       labelText: 'Giá vốn / đơn vị *',
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     validator: (value) {
                       final parsed = double.tryParse(
                         (value ?? '').replaceAll(',', '.'),
@@ -456,8 +450,9 @@ class _StockImportViewState extends State<StockImportView> {
                     decoration: const InputDecoration(
                       labelText: 'Đơn giá nhập (unit price) *',
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     validator: (value) {
                       final parsed = double.tryParse(
                         (value ?? '').replaceAll(',', '.'),
@@ -488,9 +483,9 @@ class _StockImportViewState extends State<StockImportView> {
                   onPressed: isLoading
                       ? null
                       : () {
-                          context
-                              .read<StockImportBloc>()
-                              .add(const StockImportStepChanged(1));
+                          context.read<StockImportBloc>().add(
+                            const StockImportStepChanged(1),
+                          );
                         },
                   child: const Text('Quay lại'),
                 ),
@@ -521,9 +516,7 @@ class _StockImportViewState extends State<StockImportView> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-        ),
+        decoration: InputDecoration(labelText: label),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -579,27 +572,32 @@ class _StockImportViewState extends State<StockImportView> {
     if (!_batchFormKey.currentState!.validate()) return;
 
     final quantity = int.parse(_quantityController.text);
-    final costPrice =
-        double.parse(_costPriceController.text.replaceAll(',', '.'));
-    final unitPrice =
-        double.parse(_unitPriceController.text.replaceAll(',', '.'));
+    final costPrice = double.parse(
+      _costPriceController.text.replaceAll(',', '.'),
+    );
+    final unitPrice = double.parse(
+      _unitPriceController.text.replaceAll(',', '.'),
+    );
 
     context.read<StockImportBloc>().add(
-          StockImportSubmitted(
-            batchNumber: _batchNumberController.text,
-            manufacturingDate: _manufacturingDate!,
-            expirationDate: _expirationDate!,
-            quantity: quantity,
-            costPrice: costPrice,
-            unitPrice: unitPrice,
-            notes: _notesController.text.isNotEmpty
-                ? _notesController.text
-                : null,
-          ),
-        );
+      StockImportSubmitted(
+        batchNumber: _batchNumberController.text,
+        manufacturingDate: _manufacturingDate!,
+        expirationDate: _expirationDate!,
+        quantity: quantity,
+        costPrice: costPrice,
+        unitPrice: unitPrice,
+        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+      ),
+    );
   }
 
   Future<void> _openSupplierPicker(BuildContext context) async {
+    // Capture blocs BEFORE opening the sheet — bottom sheets are separate
+    // overlay routes and lose access to ancestor BlocProviders.
+    final supplierBloc = context.read<SupplierBloc>();
+    final stockImportBloc = context.read<StockImportBloc>();
+
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -608,60 +606,66 @@ class _StockImportViewState extends State<StockImportView> {
       ),
       builder: (ctx) {
         final theme = Theme.of(ctx);
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Chọn nhà cung cấp',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: supplierBloc),
+            BlocProvider.value(value: stockImportBloc),
+          ],
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Chọn nhà cung cấp',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 360,
-                  child: BlocBuilder<SupplierBloc, SupplierState>(
-                    builder: (context, state) {
-                      if (state.suppliers.isEmpty &&
-                          state.status == SupplierStatus.loading) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      }
-                      if (state.suppliers.isEmpty) {
-                        return const Center(
-                          child: Text('Chưa có nhà cung cấp nào'),
-                        );
-                      }
-                      return ListView.builder(
-                        itemCount: state.suppliers.length,
-                        itemBuilder: (context, index) {
-                          final supplier = state.suppliers[index];
-                          return ListTile(
-                            title: Text(supplier.name),
-                            subtitle: supplier.contactName != null
-                                ? Text(supplier.contactName!)
-                                : null,
-                            onTap: () {
-                              context.read<StockImportBloc>().add(
-                                    StockImportSupplierSelected(
-                                      supplierId: supplier.id,
-                                      supplierName: supplier.name,
-                                    ),
-                                  );
-                              Navigator.of(ctx).pop();
-                            },
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 360,
+                    child: BlocBuilder<SupplierBloc, SupplierState>(
+                      builder: (context, state) {
+                        if (state.suppliers.isEmpty &&
+                            state.status == SupplierStatus.loading) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
                           );
-                        },
-                      );
-                    },
+                        }
+                        if (state.suppliers.isEmpty) {
+                          return const Center(
+                            child: Text('Chưa có nhà cung cấp nào'),
+                          );
+                        }
+                        return ListView.builder(
+                          itemCount: state.suppliers.length,
+                          itemBuilder: (context, index) {
+                            final supplier = state.suppliers[index];
+                            return ListTile(
+                              title: Text(supplier.name),
+                              subtitle: supplier.contactName != null
+                                  ? Text(supplier.contactName!)
+                                  : null,
+                              onTap: () {
+                                context.read<StockImportBloc>().add(
+                                  StockImportSupplierSelected(
+                                    supplierId: supplier.id,
+                                    supplierName: supplier.name,
+                                  ),
+                                );
+                                Navigator.of(ctx).pop();
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -670,6 +674,10 @@ class _StockImportViewState extends State<StockImportView> {
   }
 
   Future<void> _openProductPicker(BuildContext context) async {
+    // Capture blocs BEFORE opening the sheet.
+    final productBloc = context.read<ProductBloc>();
+    final stockImportBloc = context.read<StockImportBloc>();
+
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -678,57 +686,63 @@ class _StockImportViewState extends State<StockImportView> {
       ),
       builder: (ctx) {
         final theme = Theme.of(ctx);
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Chọn sản phẩm',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: productBloc),
+            BlocProvider.value(value: stockImportBloc),
+          ],
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Chọn sản phẩm',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 360,
-                  child: BlocBuilder<ProductBloc, ProductState>(
-                    builder: (context, state) {
-                      if (state.products.isEmpty &&
-                          state.status == ProductStatus.loading) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      }
-                      if (state.products.isEmpty) {
-                        return const Center(
-                          child: Text('Chưa có sản phẩm nào'),
-                        );
-                      }
-                      return ListView.builder(
-                        itemCount: state.products.length,
-                        itemBuilder: (context, index) {
-                          final product = state.products[index];
-                          return ListTile(
-                            title: Text(product.name),
-                            onTap: () {
-                              context.read<StockImportBloc>().add(
-                                    StockImportProductSelected(
-                                      productId: product.id,
-                                      productName: product.name,
-                                    ),
-                                  );
-                              Navigator.of(ctx).pop();
-                            },
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 360,
+                    child: BlocBuilder<ProductBloc, ProductState>(
+                      builder: (context, state) {
+                        if (state.products.isEmpty &&
+                            state.status == ProductStatus.loading) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
                           );
-                        },
-                      );
-                    },
+                        }
+                        if (state.products.isEmpty) {
+                          return const Center(
+                            child: Text('Chưa có sản phẩm nào'),
+                          );
+                        }
+                        return ListView.builder(
+                          itemCount: state.products.length,
+                          itemBuilder: (context, index) {
+                            final product = state.products[index];
+                            return ListTile(
+                              title: Text(product.name),
+                              onTap: () {
+                                context.read<StockImportBloc>().add(
+                                  StockImportProductSelected(
+                                    productId: product.id,
+                                    productName: product.name,
+                                  ),
+                                );
+                                Navigator.of(ctx).pop();
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -736,4 +750,3 @@ class _StockImportViewState extends State<StockImportView> {
     );
   }
 }
-

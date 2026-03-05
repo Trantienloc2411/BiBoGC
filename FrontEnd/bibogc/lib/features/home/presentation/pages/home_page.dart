@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../presentation/widgets/home_app_bar.dart';
 import 'package:go_router/go_router.dart';
+import '../../presentation/widgets/home_app_bar.dart';
 import '../../presentation/widgets/quick_actions_grid.dart';
 import '../../presentation/widgets/recent_activity_list.dart';
 import '../../presentation/widgets/summary_card.dart';
@@ -64,10 +64,14 @@ class _HomePageState extends State<HomePage>
 
   void _handleFabAction(String action) {
     _toggleFab();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Đã chọn: $action')));
-    // TODO: Navigate to respective screens
+    switch (action) {
+      case 'orders':
+        context.push(AppRoutes.salesOrders);
+        break;
+      case 'import':
+        context.push(AppRoutes.importStock);
+        break;
+    }
   }
 
   @override
@@ -201,15 +205,15 @@ class _HomePageState extends State<HomePage>
       children: [
         if (_isFabExpanded) ...[
           _buildFabOption(
-            icon: Icons.post_add,
-            label: 'Tạo báo cáo',
-            onTap: () => _handleFabAction('Tạo báo cáo'),
+            icon: Icons.move_to_inbox,
+            label: 'Nhập kho',
+            onTap: () => _handleFabAction('import'),
           ),
           const SizedBox(height: 16),
           _buildFabOption(
             icon: Icons.add_shopping_cart,
-            label: 'Tạo đơn hàng mới',
-            onTap: () => _handleFabAction('Tạo đơn hàng mới'),
+            label: 'Tạo đơn hàng',
+            onTap: () => _handleFabAction('orders'),
           ),
           const SizedBox(height: 16),
         ],

@@ -28,3 +28,12 @@ class ProductDetailRequested extends ProductEvent {
   @override
   List<Object?> get props => [id];
 }
+
+class ProductVariantsRequested extends ProductEvent {
+  final String productId;
+
+  const ProductVariantsRequested(this.productId);
+
+  @override
+  List<Object?> get props => [productId];
+}
