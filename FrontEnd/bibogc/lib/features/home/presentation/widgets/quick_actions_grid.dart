@@ -40,25 +40,21 @@ class QuickActionsGrid extends StatelessWidget {
             ),
             _buildActionCard(
               context,
-              icon: Icons.analytics,
-              color: Colors.green.shade100,
-              iconColor: Colors.green.shade800,
-              label: 'Báo cáo',
-              subLabel: 'Xem kết quả',
-              onTap: () {
-                // TODO: Navigate to reports page when implemented
-              },
+              icon: Icons.receipt_long,
+              color: Colors.blue.shade100,
+              iconColor: Colors.blue.shade800,
+              label: 'Đơn hàng',
+              subLabel: 'Bán hàng',
+              onTap: () => context.push(AppRoutes.salesOrders),
             ),
             _buildActionCard(
               context,
-              icon: Icons.settings,
-              color: Colors.grey.shade200,
-              iconColor: Colors.grey.shade800,
-              label: 'Cài đặt',
-              subLabel: 'Cửa hàng',
-              onTap: () {
-                // TODO: Navigate to settings page when implemented
-              },
+              icon: Icons.description,
+              color: Colors.teal.shade100,
+              iconColor: Colors.teal.shade800,
+              label: 'Hóa đơn',
+              subLabel: 'Lịch sử',
+              onTap: () => context.push(AppRoutes.invoices),
             ),
           ],
         ),
@@ -69,9 +65,7 @@ class QuickActionsGrid extends StatelessWidget {
   Widget _buildLargeSaleButton(BuildContext context) {
     final theme = Theme.of(context);
     return InkWell(
-      onTap: () {
-        // TODO: Navigate to POS page when implemented
-      },
+      onTap: () => context.push(AppRoutes.salesOrders),
       borderRadius: BorderRadius.circular(20),
       child: Container(
         height: 100,

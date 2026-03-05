@@ -17,6 +17,7 @@ class ProductModel {
   final String? categoryId;
   final String? categoryName;
   final int? totalStock;
+  final int? availableStock;
   final int? lowStockThreshold;
   final List<ProductVariantModel>? variants;
 
@@ -29,6 +30,7 @@ class ProductModel {
     this.categoryId,
     this.categoryName,
     this.totalStock,
+    this.availableStock,
     this.lowStockThreshold,
     this.variants,
   });
@@ -46,7 +48,7 @@ class ProductModel {
     requiresBatchTracking: requiresBatchTracking,
     categoryId: categoryId,
     categoryName: categoryName,
-    totalStock: totalStock ?? 0,
+    totalStock: availableStock ?? totalStock ?? 0,
     lowStockThreshold: lowStockThreshold,
     variants: variants?.map((v) => v.toEntity()).toList() ?? const [],
   );
@@ -60,13 +62,15 @@ class ProductModel {
     categoryId: product.categoryId,
     categoryName: product.categoryName,
     totalStock: product.totalStock,
+    availableStock: product.totalStock,
     lowStockThreshold: product.lowStockThreshold,
     variants: product.variants.map(ProductVariantModel.fromEntity).toList(),
   );
 }
 
 /// DTO for ProductVariant (child) in API.
-@JsonSerializable()
+/// Manually deserialised because the backend uses nested value objects
+/// (e.g. salePrice: { value: 175000 }, skuUnique: { value: "..." }).
 class ProductVariantModel {
   final String id;
   final String productId;
@@ -98,8 +102,30 @@ class ProductVariantModel {
     this.isActive = true,
   });
 
-  factory ProductVariantModel.fromJson(Map<String, dynamic> json) =>
-      _$ProductVariantModelFromJson(json);
+  factory ProductVariantModel.fromJson(Map<String, dynamic> json) {
+    final skuUnique = json['skuUnique'] as Map<String, dynamic>?;
+    final salePriceObj = json['salePrice'] as Map<String, dynamic>?;
+    final costPriceObj = json['costPrice'] as Map<String, dynamic>?;
+    return ProductVariantModel(
+      id: json['id'] as String,
+      productId: json['productId'] as String,
+      sku: skuUnique?['value'] as String? ?? '',
+      barcode: json['barcode'] as String?,
+      name: json['variantName'] as String? ?? json['name'] as String? ?? '',
+      unit: json['unitName'] as String? ?? json['unit']?.toString() ?? '',
+      quantityBaseUnit: (json['quantityBaseUnit'] as num?)?.toInt() ?? 1,
+      salePrice: (salePriceObj?['value'] as num?)?.toDouble() ??
+          (json['salePrice'] as num?)?.toDouble() ?? 0,
+      costPrice: (costPriceObj?['value'] as num?)?.toDouble() ??
+          (json['costPrice'] as num?)?.toDouble(),
+      stockQuantity: (json['stockQuantity'] as num?)?.toInt(),
+      nearestExpiryDate: json['nearestExpiryDate'] == null
+          ? null
+          : DateTime.tryParse(json['nearestExpiryDate'] as String),
+      batchNumber: json['batchNumber'] as String?,
+      isActive: json['isActive'] as bool? ?? true,
+    );
+  }
 
   Map<String, dynamic> toJson() => _$ProductVariantModelToJson(this);
 

@@ -17,6 +17,8 @@ abstract class ProductRemoteDataSource {
   Future<void> updateProduct(ProductModel product);
 
   Future<void> deleteProduct(String id);
+
+  Future<List<ProductVariantModel>> getVariantsByProductId(String productId);
 }
 
 @LazySingleton(as: ProductRemoteDataSource)
@@ -74,5 +76,17 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
   @override
   Future<void> deleteProduct(String id) async {
     await _dioClient.dio.delete('${ApiConstants.products}/$id');
+  }
+
+  @override
+  Future<List<ProductVariantModel>> getVariantsByProductId(
+    String productId,
+  ) async {
+    final response = await _dioClient.dio.get(
+      '${ApiConstants.products}/$productId${ApiConstants.productVariants}',
+    );
+    return (response.data as List)
+        .map((e) => ProductVariantModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

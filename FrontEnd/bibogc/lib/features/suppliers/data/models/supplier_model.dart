@@ -71,7 +71,7 @@ class SupplierTransactionModel {
   final String? supplierName;
   final String? sku;
   final String transactionType;
-  final int quantity;
+  final int quantity;  // may be absent from API
   final double unitPrice;
   final double totalAmount;
   final DateTime transactionDate;
@@ -88,7 +88,7 @@ class SupplierTransactionModel {
     this.supplierName,
     this.sku,
     required this.transactionType,
-    required this.quantity,
+    this.quantity = 0,
     required this.unitPrice,
     required this.totalAmount,
     required this.transactionDate,

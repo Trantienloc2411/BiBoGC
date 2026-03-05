@@ -12,6 +12,12 @@ import '../../features/suppliers/presentation/pages/supplier_detail_page.dart';
 import '../../features/product/presentation/bloc/product_bloc.dart';
 import '../../features/product/presentation/pages/products_page.dart';
 import '../../features/inventory/presentation/pages/stock_import_page.dart';
+import '../../features/sales_order/presentation/bloc/sales_order_bloc.dart';
+import '../../features/sales_order/presentation/pages/sales_orders_page.dart';
+import '../../features/sales_order/presentation/pages/sales_order_detail_page.dart';
+import '../../features/invoice/presentation/bloc/invoice_bloc.dart';
+import '../../features/invoice/presentation/pages/invoices_page.dart';
+import '../../features/invoice/presentation/pages/invoice_detail_page.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.welcome,
@@ -20,8 +26,14 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.welcome,
       builder: (context, state) => const WelcomePage(),
     ),
-    GoRoute(path: AppRoutes.login, builder: (context, state) => const LoginPage()),
-    GoRoute(path: AppRoutes.home, builder: (context, state) => const HomePage()),
+    GoRoute(
+      path: AppRoutes.login,
+      builder: (context, state) => const LoginPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.home,
+      builder: (context, state) => const HomePage(),
+    ),
     GoRoute(
       path: AppRoutes.products,
       builder: (context, state) => BlocProvider(
@@ -33,9 +45,9 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.importStock,
       builder: (context, state) => StockImportPage(),
     ),
+    // Suppliers — ShellRoute so list + detail share the same SupplierBloc
     ShellRoute(
       builder: (context, state, child) {
-        // Route-level bloc so List + Detail share the same source of truth.
         return BlocProvider(
           create: (_) => getIt<SupplierBloc>()..add(SuppliersStarted()),
           child: child,
@@ -44,12 +56,57 @@ final GoRouter appRouter = GoRouter(
       routes: [
         GoRoute(
           path: AppRoutes.suppliers,
-      builder: (context, state) => const SuppliersPage(),
+          builder: (context, state) => const SuppliersPage(),
+          routes: [
+            GoRoute(
+              path: ':id',
+              builder: (context, state) =>
+                  SupplierDetailPage(id: state.pathParameters['id']!),
+            ),
+          ],
+        ),
+      ],
+    ),
+    // Sales Orders — ShellRoute so list + detail share the same SalesOrderBloc
+    ShellRoute(
+      builder: (context, state, child) {
+        return BlocProvider(
+          create: (_) =>
+              getIt<SalesOrderBloc>()..add(const SalesOrdersStarted()),
+          child: child,
+        );
+      },
       routes: [
         GoRoute(
-          path: ':id',
-          builder: (context, state) =>
-              SupplierDetailPage(id: state.pathParameters['id']!),
+          path: AppRoutes.salesOrders,
+          builder: (context, state) => const SalesOrdersPage(),
+          routes: [
+            GoRoute(
+              path: ':id',
+              builder: (context, state) =>
+                  SalesOrderDetailPage(id: state.pathParameters['id']!),
+            ),
+          ],
+        ),
+      ],
+    ),
+    // Invoices — ShellRoute so list + detail share the same InvoiceBloc
+    ShellRoute(
+      builder: (context, state, child) {
+        return BlocProvider(
+          create: (_) => getIt<InvoiceBloc>()..add(const InvoicesStarted()),
+          child: child,
+        );
+      },
+      routes: [
+        GoRoute(
+          path: AppRoutes.invoices,
+          builder: (context, state) => const InvoicesPage(),
+          routes: [
+            GoRoute(
+              path: ':id',
+              builder: (context, state) =>
+                  InvoiceDetailPage(id: state.pathParameters['id']!),
             ),
           ],
         ),
