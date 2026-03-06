@@ -9,6 +9,8 @@ class ProductState extends Equatable {
   final ProductStatus detailStatus;
   final String? errorMessage;
   final String searchTerm;
+  final List<ProductVariant> variants;
+  final ProductStatus variantStatus;
 
   const ProductState({
     this.status = ProductStatus.initial,
@@ -17,6 +19,8 @@ class ProductState extends Equatable {
     this.detailStatus = ProductStatus.initial,
     this.errorMessage,
     this.searchTerm = '',
+    this.variants = const [],
+    this.variantStatus = ProductStatus.initial,
   });
 
   ProductState copyWith({
@@ -26,6 +30,8 @@ class ProductState extends Equatable {
     ProductStatus? detailStatus,
     String? errorMessage,
     String? searchTerm,
+    List<ProductVariant>? variants,
+    ProductStatus? variantStatus,
   }) {
     return ProductState(
       status: status ?? this.status,
@@ -34,6 +40,8 @@ class ProductState extends Equatable {
       detailStatus: detailStatus ?? this.detailStatus,
       errorMessage: errorMessage,
       searchTerm: searchTerm ?? this.searchTerm,
+      variants: variants ?? this.variants,
+      variantStatus: variantStatus ?? this.variantStatus,
     );
   }
 
@@ -45,5 +53,7 @@ class ProductState extends Equatable {
     detailStatus,
     errorMessage,
     searchTerm,
+    variants,
+    variantStatus,
   ];
 }
