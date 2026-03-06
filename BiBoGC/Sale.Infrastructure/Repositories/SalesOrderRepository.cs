@@ -87,6 +87,11 @@ public class SalesOrderRepository : ISalesOrderRepository
 
     public async Task UpdateAsync(SalesOrder order, CancellationToken ct = default)
     {
+        var orderEntry = _context.Entry(order);
+        if (orderEntry.State == EntityState.Detached)
+            _context.SalesOrders.Attach(order);
+        orderEntry.State = EntityState.Modified;
+
         foreach (var item in order.Items)
             if (_context.Entry(item).State == EntityState.Detached)
                 _context.SalesOrderItems.Add(item);

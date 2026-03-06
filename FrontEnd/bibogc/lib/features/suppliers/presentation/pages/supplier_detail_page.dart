@@ -243,37 +243,53 @@ class _SupplierDetailViewState extends State<SupplierDetailView> {
             transaction.transactionType == 'Import' ||
             transaction.transactionType == 'Purchase'; // Adjust based on API
 
+        final typeLabel = isImport ? 'Nhập hàng' : 'Bán hàng';
+        final typeColor = isImport ? Colors.green : Colors.orange;
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
-            leading: Icon(
-              isImport ? Icons.arrow_downward : Icons.arrow_upward,
-              color: isImport ? Colors.green : Colors.orange,
+            leading: CircleAvatar(
+              backgroundColor: typeColor.withAlpha(30),
+              child: Icon(
+                isImport ? Icons.arrow_downward : Icons.arrow_upward,
+                color: typeColor,
+                size: 20,
+              ),
             ),
             title: Text(
-              transaction.productName ?? 'Sản phẩm #${transaction.productId}',
+              transaction.productName ?? 'Sản phẩm không xác định',
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: Text(
-              DateFormat(
-                'dd/MM/yyyy HH:mm',
-              ).format(transaction.transactionDate),
-            ),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (transaction.batchNumber != null)
+                  Text(
+                    'Lô: ${transaction.batchNumber}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
                 Text(
-                  NumberFormat.currency(
-                    locale: 'vi_VN',
-                    symbol: '₫',
-                  ).format(transaction.totalAmount),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'Sl: ${transaction.quantity}',
+                  DateFormat('dd/MM/yyyy HH:mm').format(transaction.transactionDate),
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
+            ),
+            isThreeLine: transaction.batchNumber != null,
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: typeColor.withAlpha(30),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: typeColor.withAlpha(100)),
+              ),
+              child: Text(
+                typeLabel,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: typeColor,
+                ),
+              ),
             ),
           ),
         );

@@ -15,6 +15,7 @@ ProductModel _$ProductModelFromJson(Map<String, dynamic> json) => ProductModel(
       categoryId: json['categoryId'] as String?,
       categoryName: json['categoryName'] as String?,
       totalStock: (json['totalStock'] as num?)?.toInt(),
+      availableStock: (json['availableStock'] as num?)?.toInt(),
       lowStockThreshold: (json['lowStockThreshold'] as num?)?.toInt(),
       variants: (json['variants'] as List<dynamic>?)
           ?.map((e) => ProductVariantModel.fromJson(e as Map<String, dynamic>))
@@ -31,28 +32,11 @@ Map<String, dynamic> _$ProductModelToJson(ProductModel instance) =>
       'categoryId': instance.categoryId,
       'categoryName': instance.categoryName,
       'totalStock': instance.totalStock,
+      'availableStock': instance.availableStock,
       'lowStockThreshold': instance.lowStockThreshold,
       'variants': instance.variants?.map((e) => e.toJson()).toList(),
     };
 
-ProductVariantModel _$ProductVariantModelFromJson(Map<String, dynamic> json) =>
-    ProductVariantModel(
-      id: json['id'] as String,
-      productId: json['productId'] as String,
-      sku: json['sku'] as String,
-      name: json['name'] as String,
-      unit: json['unit'] as String,
-      quantityBaseUnit: (json['quantityBaseUnit'] as num).toInt(),
-      salePrice: (json['salePrice'] as num).toDouble(),
-      barcode: json['barcode'] as String?,
-      costPrice: (json['costPrice'] as num?)?.toDouble(),
-      stockQuantity: (json['stockQuantity'] as num?)?.toInt(),
-      nearestExpiryDate: json['nearestExpiryDate'] == null
-          ? null
-          : DateTime.parse(json['nearestExpiryDate'] as String),
-      batchNumber: json['batchNumber'] as String?,
-      isActive: json['isActive'] as bool? ?? true,
-    );
 
 Map<String, dynamic> _$ProductVariantModelToJson(
         ProductVariantModel instance) =>
