@@ -13,8 +13,13 @@ class AppRoutes {
   static const suppliers = '/suppliers';
   static String supplierDetail(String id) => '$suppliers/$id';
 
+  static const salesOrders = '/sales-orders';
+  static String salesOrderDetail(String id) => '$salesOrders/$id';
+
+  static const invoices = '/invoices';
+  static String invoiceDetail(String id) => '$invoices/$id';
+
   static const importStock = '/inventory/import';
 
   const AppRoutes._();
 }
-

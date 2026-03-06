@@ -4,6 +4,7 @@ class ApiConstants {
 
   // Auth
   static const String login = '/api/auth/login';
+  static const String refreshToken = '/api/auth/refresh';
 
   // Products
   static const String products = '/api/products';
@@ -21,4 +22,10 @@ class ApiConstants {
   static const String purchase = '$stockTransactions/purchase';
   static const String sale = '$stockTransactions/sale';
   static const String adjustment = '$stockTransactions/adjustment';
+
+  // Sales Orders
+  static const String salesOrders = '/api/salesorders';
+
+  // Invoices
+  static const String invoices = '/api/invoices';
 }
