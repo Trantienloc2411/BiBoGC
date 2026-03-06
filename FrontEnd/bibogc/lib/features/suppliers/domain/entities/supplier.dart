@@ -43,7 +43,7 @@ class SupplierTransaction {
     this.productName,
     this.productBatchId,
     this.batchNumber,
-    required this.supplierId,
+    this.supplierId,
     this.supplierName,
     this.sku,
     required this.transactionType,

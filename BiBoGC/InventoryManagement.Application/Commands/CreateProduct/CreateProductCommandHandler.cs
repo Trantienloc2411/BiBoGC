@@ -39,6 +39,19 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             lowStockThreshold: request.LowStockThreshold
         );
 
+        // Add a default variant (1 base unit) automatically
+        product.AddProductVariant(
+            $"{request.Sku}-DEFAULT",
+            product.Id,
+            $"{request.Name} 1 {request.BaseUnits}",
+            request.BaseUnits,
+            1,
+            new Money(request.Price),
+            1,
+            null,
+            null
+        );
+
         // Save to database
         await _productRepository.AddAsync(product, cancellationToken);
 

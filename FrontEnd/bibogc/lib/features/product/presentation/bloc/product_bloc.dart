@@ -23,6 +23,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           .switchMap(mapper),
     );
     on<ProductDetailRequested>(_onDetailRequested);
+    on<ProductVariantsRequested>(_onVariantsRequested);
   }
 
   Future<void> _onStarted(
@@ -37,7 +38,6 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     ProductsSearchChanged event,
     Emitter<ProductState> emit,
   ) async {
-    if (state.searchTerm == event.searchTerm) return;
     emit(
       state.copyWith(
         searchTerm: event.searchTerm,
@@ -94,5 +94,24 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       return failure.message;
     }
     return 'Đã xảy ra lỗi không xác định';
+  }
+
+  Future<void> _onVariantsRequested(
+    ProductVariantsRequested event,
+    Emitter<ProductState> emit,
+  ) async {
+    emit(state.copyWith(variantStatus: ProductStatus.loading, variants: []));
+    final result = await _repository.getVariantsByProductId(event.productId);
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          variantStatus: ProductStatus.failure,
+          errorMessage: _mapFailureToMessage(failure),
+        ),
+      ),
+      (variants) => emit(
+        state.copyWith(variantStatus: ProductStatus.success, variants: variants),
+      ),
+    );
   }
 }
