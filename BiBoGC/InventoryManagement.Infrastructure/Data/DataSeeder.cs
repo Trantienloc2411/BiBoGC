@@ -763,6 +763,23 @@ public static class DataSeeder
             Units.Thung, 24, new Money(275000), 2, null, new Money(251000));
         productVariants.AddRange(new[] { saigonDoLoc6, saigonDoThung24 });
 
+        // Add a default variant (quantityBaseUnit = 1) for every product that has no variants yet
+        foreach (var product in products.Where(p => !p.Variants.Any()))
+        {
+            var defaultVariant = product.AddProductVariant(
+                $"{product.SkuGeneral.Value}-DEFAULT",
+                product.Id,
+                "Mặc định",
+                product.BaseUnits,
+                1,
+                product.BasePrice,
+                1,
+                null,
+                null
+            );
+            productVariants.Add(defaultVariant);
+        }
+
         context.ProductVariants.AddRange(productVariants);
         await context.SaveChangesAsync();
 
