@@ -1,6 +1,7 @@
+import '../config/env_config.dart';
+
 class ApiConstants {
-  // Base URL (User requested to use testUrl)
-  static const String baseUrl = 'https://bibo-s-gcs-test.onrender.com';
+  static String get baseUrl => EnvConfig.baseUrl;
 
   // Auth
   static const String login = '/api/auth/login';
