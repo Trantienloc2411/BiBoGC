@@ -224,6 +224,9 @@ public class Program
         // Redirect root to API documentation
         app.MapGet("/", () => Results.Redirect("/scalar/v1"));
 
+        // Suppress 404 noise for browser favicon requests
+        app.MapGet("/favicon.ico", () => Results.NoContent());
+
         app.Run();
     }
 }
