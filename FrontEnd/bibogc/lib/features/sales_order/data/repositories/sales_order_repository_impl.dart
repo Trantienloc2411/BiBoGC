@@ -4,6 +4,7 @@ import 'package:bibogc/features/sales_order/data/datasources/sales_order_remote_
 import 'package:bibogc/features/sales_order/domain/entities/sales_order.dart';
 import 'package:bibogc/features/sales_order/domain/repositories/sales_order_repository.dart';
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
 @LazySingleton(as: SalesOrderRepository)
@@ -11,6 +12,20 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
   final SalesOrderRemoteDataSource _remoteDataSource;
 
   SalesOrderRepositoryImpl(this._remoteDataSource);
+
+  /// Extracts a user-readable message from any exception.
+  /// For Dio 4xx/5xx responses the server's `message` field is used;
+  /// for everything else a generic string is returned.
+  String _serverMessage(Object e) {
+    if (e is DioException) {
+      final data = e.response?.data;
+      if (data is Map) {
+        final msg = data['message'] ?? data['error'] ?? data['title'];
+        if (msg != null) return msg.toString();
+      }
+    }
+    return 'Đã xảy ra lỗi không xác định';
+  }
 
   @override
   Future<Either<Failure, (List<SalesOrder>, bool)>> getSalesOrders({
@@ -33,7 +48,7 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
       final orders = result.items.map((m) => m.toEntity()).toList();
       return Right((orders, result.hasMore));
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(_serverMessage(e)));
     }
   }
 
@@ -43,7 +58,7 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
       final model = await _remoteDataSource.getSalesOrderById(id);
       return Right(model.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(_serverMessage(e)));
     }
   }
 
@@ -63,7 +78,7 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
       );
       return Right(model.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(_serverMessage(e)));
     }
   }
 
@@ -85,7 +100,7 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
       );
       return Right(model.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(_serverMessage(e)));
     }
   }
 
@@ -103,7 +118,7 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
       );
       return Right(model.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(_serverMessage(e)));
     }
   }
 
@@ -119,7 +134,7 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
       );
       return Right(model.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(_serverMessage(e)));
     }
   }
 
@@ -135,7 +150,7 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
       );
       return Right(model.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(_serverMessage(e)));
     }
   }
 
@@ -151,7 +166,7 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
       );
       return Right(model.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(_serverMessage(e)));
     }
   }
 
@@ -167,7 +182,7 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
       );
       return Right(model.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(_serverMessage(e)));
     }
   }
 
@@ -177,7 +192,7 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
       final model = await _remoteDataSource.generateInvoice(orderId);
       return Right(model.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(_serverMessage(e)));
     }
   }
 }

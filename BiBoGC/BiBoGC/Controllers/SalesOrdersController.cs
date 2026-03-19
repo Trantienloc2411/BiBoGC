@@ -23,11 +23,13 @@ namespace BiBoGC.Controllers;
 [Route("api/[controller]")]
 public class SalesOrdersController : ControllerBase
 {
+    private readonly ILogger<SalesOrdersController> _logger;
     private readonly IMediator _mediator;
 
-    public SalesOrdersController(IMediator mediator)
+    public SalesOrdersController(IMediator mediator, ILogger<SalesOrdersController> logger)
     {
         _mediator = mediator;
+        _logger = logger;
     }
 
     /// <summary>
@@ -216,8 +218,12 @@ public class SalesOrdersController : ControllerBase
         var result = await _mediator.Send(command, ct);
 
         if (!result.IsSuccess)
+        {
+            _logger.LogWarning("CompleteOrder failed for order {OrderId}: {Errors}",
+                id, string.Join("; ", result.Errors));
             return BadRequest(ApiResponse<object>.Error(result.Errors.FirstOrDefault() ?? "Lỗi không xác định",
                 result.Errors.Skip(1)));
+        }
 
         return Ok(ApiResponse<SalesOrderDto>.Ok(result.Value!));
     }

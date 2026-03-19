@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/config/app_routes.dart';
+import '../../../../core/config/router.dart';
+import '../../../../core/di/injection.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../presentation/widgets/home_app_bar.dart';
 import '../../presentation/widgets/quick_actions_grid.dart';
 import '../../presentation/widgets/recent_activity_list.dart';
 import '../../presentation/widgets/summary_card.dart';
-import '../../../../core/config/app_routes.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -74,6 +77,11 @@ class _HomePageState extends State<HomePage>
     }
   }
 
+  Future<void> _handleLogout() async {
+    await getIt<AuthRepository>().logout();
+    appRouter.go(AppRoutes.login);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,11 +99,11 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildMobileLayout() {
-    return const SafeArea(
+    return SafeArea(
       child: SingleChildScrollView(
         child: Column(
           children: [
-            HomeAppBar(username: 'Chủ Cửa Hàng'),
+            HomeAppBar(username: 'Chủ Cửa Hàng', onLogout: _handleLogout),
             Padding(
               padding: EdgeInsets.all(16.0),
               child: Column(
@@ -164,7 +172,7 @@ class _HomePageState extends State<HomePage>
         Expanded(
           child: Column(
             children: [
-              const HomeAppBar(username: 'Chủ Cửa Hàng'),
+              HomeAppBar(username: 'Chủ Cửa Hàng', onLogout: _handleLogout),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24.0),

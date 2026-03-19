@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Read(//e/Github-Repository/BiBo-s-GC/FrontEnd/**)",
+      "Bash(find /mnt -maxdepth 4 -name sales_order_model*)",
+      "Bash(find E:/Github-Repository/BiBo-s-GC -type f -name *test*.dart)",
+      "Bash(find E:/Github-Repository/BiBo-s-GC/BiBoGC -type f -name *.csproj)",
+      "Bash(find E:/Github-Repository/BiBo-s-GC -type f -name *.cs -path */Data/*)",
+      "Bash(find E:/Github-Repository/BiBo-s-GC/FrontEnd/bibogc -type f -name *.dart)"
     ]
   }
 }

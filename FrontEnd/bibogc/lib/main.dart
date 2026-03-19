@@ -3,11 +3,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'app.dart';
 import 'core/config/app_routes.dart';
+import 'core/config/env_config.dart';
 import 'core/config/router.dart';
 import 'core/di/injection.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  EnvConfig.init();
   await initializeDateFormatting('vi_VN');
   await configureDependencies();
 

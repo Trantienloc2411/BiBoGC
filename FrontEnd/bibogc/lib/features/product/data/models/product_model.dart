@@ -127,7 +127,21 @@ class ProductVariantModel {
     );
   }
 
-  Map<String, dynamic> toJson() => _$ProductVariantModelToJson(this);
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'productId': productId,
+    'skuUnique': {'value': sku},
+    'barcode': barcode,
+    'variantName': name,
+    'unitName': unit,
+    'quantityBaseUnit': quantityBaseUnit,
+    'salePrice': {'value': salePrice},
+    'costPrice': costPrice != null ? {'value': costPrice} : null,
+    'stockQuantity': stockQuantity,
+    'nearestExpiryDate': nearestExpiryDate?.toIso8601String(),
+    'batchNumber': batchNumber,
+    'isActive': isActive,
+  };
 
   ProductVariant toEntity() => ProductVariant(
     id: id,

@@ -20,6 +20,9 @@ class SalesOrderDetailPage extends StatefulWidget {
 }
 
 class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
+  final Set<String> _knownItemIds = {};
+  bool _initialLoadDone = false;
+
   @override
   void initState() {
     super.initState();
@@ -93,23 +96,21 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
                 _buildOrderInfoCard(context, order),
                 const SizedBox(height: 16),
                 if (isWide)
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: _buildItemsSection(
-                            context, state, order, isDraft,
-                          ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: _buildItemsSection(
+                          context, state, order, isDraft,
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          flex: 2,
-                          child: _buildTotalsSection(context, order),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 2,
+                        child: _buildTotalsSection(context, order),
+                      ),
+                    ],
                   )
                 else ...[
                   _buildItemsSection(context, state, order, isDraft),
@@ -155,7 +156,7 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
             const Divider(height: 20),
             _InfoRow(
               label: 'Ngày tạo',
-              value: dateFormat.format(order.orderDate),
+              value: dateFormat.format(order.orderDate.toLocal()),
             ),
             const SizedBox(height: 6),
             _InfoRow(
@@ -187,6 +188,17 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
     final theme = Theme.of(context);
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final isLoading = state.actionStatus == SalesOrderStatus.loading;
+
+    final currentIds = order.items.map((e) => e.id).toSet();
+    final newIds = _initialLoadDone
+        ? currentIds.difference(_knownItemIds)
+        : <String>{};
+    _knownItemIds
+      ..clear()
+      ..addAll(currentIds);
+    _initialLoadDone = true;
+
+    final reversedItems = order.items.reversed.toList();
 
     return Card(
       child: Padding(
@@ -242,16 +254,27 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
                 ),
               )
             else
-              ...order.items.map((item) {
-                return isDraft
-                    ? Dismissible(
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 300),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: reversedItems.length,
+                  itemBuilder: (context, index) {
+                    final item = reversedItems[index];
+                    final isNew = newIds.contains(item.id);
+                    Widget tile = _buildItemTile(
+                      context, item, order, isDraft, currencyFormat,
+                    );
+                    if (isDraft) {
+                      tile = Dismissible(
                         key: Key(item.id),
                         direction: DismissDirection.endToStart,
                         background: Container(
                           color: Colors.red,
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.only(right: 16),
-                          child: const Icon(Icons.delete, color: Colors.white),
+                          child:
+                              const Icon(Icons.delete, color: Colors.white),
                         ),
                         onDismissed: (_) {
                           context.read<SalesOrderBloc>().add(
@@ -261,22 +284,17 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
                             ),
                           );
                         },
-                        child: _buildItemTile(
-                          context,
-                          item,
-                          order,
-                          isDraft,
-                          currencyFormat,
-                        ),
-                      )
-                    : _buildItemTile(
-                        context,
-                        item,
-                        order,
-                        isDraft,
-                        currencyFormat,
+                        child: tile,
                       );
-              }),
+                    }
+                    return _BlinkingTile(
+                      key: ValueKey('blink_${item.id}'),
+                      isNew: isNew,
+                      child: tile,
+                    );
+                  },
+                ),
+              ),
           ],
         ),
       ),
@@ -301,25 +319,49 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
         style: const TextStyle(fontSize: 12),
       ),
       trailing: isDraft
-          ? GestureDetector(
-              onTap: () => _editQuantity(context, item, order),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${item.quantity} ${item.unit}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.blue,
-                    ),
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () => _editQuantity(context, item, order),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${item.quantity} ${item.unit}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      Text(
+                        currencyFormat.format(item.lineTotal),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
-                  Text(
-                    currencyFormat.format(item.lineTotal),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: const Icon(
+                    Icons.remove_circle_outline,
+                    color: Colors.red,
                   ),
-                ],
-              ),
+                  iconSize: 20,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: 'Xóa',
+                  onPressed: () {
+                    context.read<SalesOrderBloc>().add(
+                      SalesOrderItemRemoved(
+                        orderId: order.id,
+                        itemId: item.id,
+                      ),
+                    );
+                  },
+                ),
+              ],
             )
           : Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -717,6 +759,71 @@ class _TotalRow extends StatelessWidget {
               : theme.textTheme.bodyMedium?.copyWith(color: valueColor),
         ),
       ],
+    );
+  }
+}
+
+class _BlinkingTile extends StatefulWidget {
+  final Widget child;
+  final bool isNew;
+
+  const _BlinkingTile({super.key, required this.child, this.isNew = false});
+
+  @override
+  State<_BlinkingTile> createState() => _BlinkingTileState();
+}
+
+class _BlinkingTileState extends State<_BlinkingTile>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Color?> _colorAnimation;
+  bool _shouldAnimate = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _colorAnimation = ColorTween(
+      begin: Colors.green.withValues(alpha: 0.3),
+      end: Colors.green.withValues(alpha: 0.0),
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    if (widget.isNew) {
+      _shouldAnimate = true;
+      _controller.repeat(reverse: true);
+      Future.delayed(const Duration(seconds: 3), _stopAnimation);
+    }
+  }
+
+  void _stopAnimation() {
+    if (!mounted) return;
+    _controller.forward().then((_) {
+      if (mounted) setState(() => _shouldAnimate = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_shouldAnimate) return widget.child;
+    return AnimatedBuilder(
+      animation: _colorAnimation,
+      builder: (context, child) => DecoratedBox(
+        decoration: BoxDecoration(
+          color: _colorAnimation.value,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: child,
+      ),
+      child: widget.child,
     );
   }
 }

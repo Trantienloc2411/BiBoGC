@@ -67,7 +67,7 @@ class InvoiceCard extends StatelessWidget {
                   const Icon(Icons.access_time, size: 14, color: Colors.grey),
                   const SizedBox(width: 4),
                   Text(
-                    dateFormat.format(invoice.invoiceDate),
+                    dateFormat.format(invoice.invoiceDate.toLocal()),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: Colors.grey[600],
                     ),
