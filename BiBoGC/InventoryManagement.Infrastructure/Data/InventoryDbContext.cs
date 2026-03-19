@@ -1,5 +1,6 @@
 ﻿using InventoryManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace InventoryManagement.Infrastructure.Data;
 
@@ -27,7 +28,13 @@ public class InventoryDbContext : DbContext
     public DbSet<StockTransaction> StockTransactions { get; set; } = null!;
     public DbSet<Category> Categories { get; set; } = null!;
     public DbSet<ProductVariant> ProductVariants { get; set; }
-    
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder
+            .Properties<DateTime>()
+            .HaveConversion<UtcDateTimeConverter>();
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,5 +42,14 @@ public class InventoryDbContext : DbContext
 
         // Apply all configurations from the current assembly
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(InventoryDbContext).Assembly);
+    }
+
+    private sealed class UtcDateTimeConverter : ValueConverter<DateTime, DateTime>
+    {
+        public UtcDateTimeConverter() : base(
+            v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(),
+            v => DateTime.SpecifyKind(v, DateTimeKind.Utc))
+        {
+        }
     }
 }

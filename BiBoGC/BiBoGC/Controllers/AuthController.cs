@@ -1,8 +1,10 @@
 ﻿using AuthorizationModule.Application.Command.Login;
+using AuthorizationModule.Application.Command.Logout;
 using AuthorizationModule.Application.Command.RefreshToken;
 using AuthorizationModule.Application.Command.RevokeToken;
 using AuthorizationModule.Application.DTOs;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BiBoGC.Controllers;
@@ -56,6 +58,23 @@ public class AuthController : ControllerBase
             });
 
         return Ok(result.Value);
+    }
+
+    [Authorize]
+    [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Logout()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var command = new LogoutCommand(userId, ipAddress);
+        await _mediator.Send(command);
+
+        return Ok(new { message = "Đăng xuất thành công" });
     }
 
     [HttpPost("revoke")]

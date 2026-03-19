@@ -7,20 +7,20 @@ part of 'product_model.dart';
 // **************************************************************************
 
 ProductModel _$ProductModelFromJson(Map<String, dynamic> json) => ProductModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      description: json['description'] as String?,
-      status: json['status'] as String? ?? 'Active',
-      requiresBatchTracking: json['requiresBatchTracking'] as bool? ?? false,
-      categoryId: json['categoryId'] as String?,
-      categoryName: json['categoryName'] as String?,
-      totalStock: (json['totalStock'] as num?)?.toInt(),
-      availableStock: (json['availableStock'] as num?)?.toInt(),
-      lowStockThreshold: (json['lowStockThreshold'] as num?)?.toInt(),
-      variants: (json['variants'] as List<dynamic>?)
-          ?.map((e) => ProductVariantModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
+  id: json['id'] as String,
+  name: json['name'] as String,
+  description: json['description'] as String?,
+  status: json['status'] as String? ?? 'Active',
+  requiresBatchTracking: json['requiresBatchTracking'] as bool? ?? false,
+  categoryId: json['categoryId'] as String?,
+  categoryName: json['categoryName'] as String?,
+  totalStock: (json['totalStock'] as num?)?.toInt(),
+  availableStock: (json['availableStock'] as num?)?.toInt(),
+  lowStockThreshold: (json['lowStockThreshold'] as num?)?.toInt(),
+  variants: (json['variants'] as List<dynamic>?)
+      ?.map((e) => ProductVariantModel.fromJson(e as Map<String, dynamic>))
+      .toList(),
+);
 
 Map<String, dynamic> _$ProductModelToJson(ProductModel instance) =>
     <String, dynamic>{
@@ -35,23 +35,4 @@ Map<String, dynamic> _$ProductModelToJson(ProductModel instance) =>
       'availableStock': instance.availableStock,
       'lowStockThreshold': instance.lowStockThreshold,
       'variants': instance.variants?.map((e) => e.toJson()).toList(),
-    };
-
-
-Map<String, dynamic> _$ProductVariantModelToJson(
-        ProductVariantModel instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'productId': instance.productId,
-      'sku': instance.sku,
-      'barcode': instance.barcode,
-      'name': instance.name,
-      'unit': instance.unit,
-      'quantityBaseUnit': instance.quantityBaseUnit,
-      'salePrice': instance.salePrice,
-      'costPrice': instance.costPrice,
-      'stockQuantity': instance.stockQuantity,
-      'nearestExpiryDate': instance.nearestExpiryDate?.toIso8601String(),
-      'batchNumber': instance.batchNumber,
-      'isActive': instance.isActive,
     };
