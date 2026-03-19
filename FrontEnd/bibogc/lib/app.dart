@@ -38,7 +38,7 @@ class _BiBoAppState extends State<BiBoApp> {
           ),
         ),
       );
-      appRouter.go(AppRoutes.welcome);
+      appRouter.go(AppRoutes.login);
     });
   }
 

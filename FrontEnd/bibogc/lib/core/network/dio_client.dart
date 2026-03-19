@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
+import '../config/env_config.dart';
 import '../constants/api_constants.dart';
 
 @lazySingleton
@@ -28,6 +31,13 @@ class DioClient {
           },
         ),
       ) {
+    if (EnvConfig.isDevelopment) {
+      (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
+        final client = HttpClient();
+        client.badCertificateCallback = (cert, host, port) => true;
+        return client;
+      };
+    }
     _dio.interceptors.add(
       QueuedInterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -49,6 +59,10 @@ class DioClient {
           return handler.next(response);
         },
         onError: (DioException e, handler) async {
+          _logger.e(
+            'Error: ${e.response?.statusCode} ${e.requestOptions.method} ${e.requestOptions.path}\n'
+            'Response body: ${e.response?.data}',
+          );
           if (e.response?.statusCode == 401 &&
               e.requestOptions.extra['_retry'] != true) {
             try {
@@ -113,6 +127,26 @@ class DioClient {
 
   Future<void> _forceLogout(String message) async {
     _logger.w('Force logout: $message');
+    try {
+      final refreshToken = await _storage.read(key: 'refresh_token');
+      if (refreshToken != null) {
+        final revokeDio = Dio(
+          BaseOptions(
+            baseUrl: ApiConstants.baseUrl,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+          ),
+        );
+        await revokeDio.post(
+          ApiConstants.revoke,
+          data: {'refreshToken': refreshToken},
+        );
+      }
+    } catch (e) {
+      _logger.w('Failed to revoke token on server: $e');
+    }
     await _storage.delete(key: 'auth_token');
     await _storage.delete(key: 'refresh_token');
     _logoutController.add(message);

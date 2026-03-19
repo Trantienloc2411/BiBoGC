@@ -87,14 +87,27 @@ public class SalesOrderRepository : ISalesOrderRepository
 
     public async Task UpdateAsync(SalesOrder order, CancellationToken ct = default)
     {
-        var orderEntry = _context.Entry(order);
-        if (orderEntry.State == EntityState.Detached)
-            _context.SalesOrders.Attach(order);
-        orderEntry.State = EntityState.Modified;
+        // Disable auto-detect so that Entry() calls below do NOT trigger DetectChanges.
+        // Without this, DetectChanges would find the new item (which has a non-default GUID
+        // from BaseEntity) in the navigation collection and track it as Unchanged, causing
+        // SaveChanges to emit UPDATE instead of INSERT → DbUpdateConcurrencyException (0 rows).
+        _context.ChangeTracker.AutoDetectChangesEnabled = false;
+        try
+        {
+            var entry = _context.Entry(order);
+            if (entry.State == EntityState.Detached)
+                throw new InvalidOperationException(
+                    $"SalesOrder {order.Id} must be loaded via GetByIdWithItemsAsync before calling UpdateAsync " +
+                    "so that EF Core tracks it. Detached updates are not supported.");
 
-        foreach (var item in order.Items)
-            if (_context.Entry(item).State == EntityState.Detached)
-                _context.SalesOrderItems.Add(item);
+            foreach (var item in order.Items)
+                if (_context.Entry(item).State == EntityState.Detached)
+                    _context.SalesOrderItems.Add(item); // new item → INSERT
+        }
+        finally
+        {
+            _context.ChangeTracker.AutoDetectChangesEnabled = true;
+        }
 
         await _context.SaveChangesAsync(ct);
     }

@@ -7,6 +7,7 @@ import 'package:bibogc/features/product/presentation/bloc/product_bloc.dart';
 import 'package:bibogc/features/suppliers/presentation/bloc/supplier_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/app_button.dart';
@@ -84,6 +85,7 @@ class _StockImportViewState extends State<StockImportView> {
           DialogUtils.showSuccessDialog(
             context,
             message: 'Nhập kho thành công.',
+            onPressed: () => context.pop(),
           );
         } else if (state.status == StockImportStatus.failure &&
             state.errorMessage != null) {

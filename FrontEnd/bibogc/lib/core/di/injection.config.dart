@@ -1,4 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format width=80
 
 // **************************************************************************
 // InjectableConfigGenerator
@@ -8,115 +9,138 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i3;
-import 'package:get_it/get_it.dart' as _i1;
-import 'package:injectable/injectable.dart' as _i2;
-import 'package:logger/logger.dart' as _i4;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i558;
+import 'package:get_it/get_it.dart' as _i174;
+import 'package:injectable/injectable.dart' as _i526;
+import 'package:logger/logger.dart' as _i974;
 
 import '../../features/auth/data/datasources/auth_remote_datasource.dart'
-    as _i22;
+    as _i161;
 import '../../features/auth/data/repositories/auth_repository_impl.dart'
-    as _i24;
-import '../../features/auth/domain/repositories/auth_repository.dart' as _i23;
-import '../../features/auth/presentation/bloc/auth_bloc.dart' as _i29;
+    as _i153;
+import '../../features/auth/domain/repositories/auth_repository.dart' as _i787;
+import '../../features/auth/presentation/bloc/auth_bloc.dart' as _i797;
 import '../../features/inventory/data/datasources/inventory_remote_data_source.dart'
-    as _i6;
+    as _i248;
 import '../../features/inventory/data/repositories/inventory_repository_impl.dart'
-    as _i8;
+    as _i572;
 import '../../features/inventory/domain/repositories/inventory_repository.dart'
-    as _i7;
+    as _i422;
 import '../../features/inventory/presentation/bloc/stock_import_bloc.dart'
-    as _i18;
+    as _i916;
 import '../../features/invoice/data/datasources/invoice_remote_data_source.dart'
-    as _i9;
+    as _i610;
 import '../../features/invoice/data/repositories/invoice_repository_impl.dart'
-    as _i11;
+    as _i205;
 import '../../features/invoice/domain/repositories/invoice_repository.dart'
-    as _i10;
-import '../../features/invoice/presentation/bloc/invoice_bloc.dart' as _i25;
+    as _i339;
+import '../../features/invoice/presentation/bloc/invoice_bloc.dart' as _i269;
 import '../../features/product/data/datasources/product_remote_data_source.dart'
-    as _i12;
+    as _i1;
 import '../../features/product/data/repositories/product_repository_impl.dart'
-    as _i14;
+    as _i1040;
 import '../../features/product/domain/repositories/product_repository.dart'
-    as _i13;
-import '../../features/product/presentation/bloc/product_bloc.dart' as _i26;
+    as _i39;
+import '../../features/product/presentation/bloc/product_bloc.dart' as _i415;
 import '../../features/sales_order/data/datasources/sales_order_remote_data_source.dart'
-    as _i15;
+    as _i376;
 import '../../features/sales_order/data/repositories/sales_order_repository_impl.dart'
-    as _i17;
+    as _i448;
 import '../../features/sales_order/domain/repositories/sales_order_repository.dart'
-    as _i16;
+    as _i568;
 import '../../features/sales_order/presentation/bloc/sales_order_bloc.dart'
-    as _i27;
+    as _i1060;
 import '../../features/suppliers/data/datasources/supplier_remote_data_source.dart'
-    as _i19;
+    as _i184;
 import '../../features/suppliers/data/repositories/supplier_repository_impl.dart'
-    as _i21;
+    as _i427;
 import '../../features/suppliers/domain/repositories/supplier_repository.dart'
-    as _i20;
-import '../../features/suppliers/presentation/bloc/supplier_bloc.dart' as _i28;
-import '../network/dio_client.dart' as _i5;
-import 'register_module.dart' as _i30;
+    as _i642;
+import '../../features/suppliers/presentation/bloc/supplier_bloc.dart' as _i720;
+import '../network/dio_client.dart' as _i667;
+import 'register_module.dart' as _i291;
 
-extension GetItInjectableX on _i1.GetIt {
-// initializes the registration of main-scope dependencies inside of GetIt
-  _i1.GetIt init({
+extension GetItInjectableX on _i174.GetIt {
+  // initializes the registration of main-scope dependencies inside of GetIt
+  _i174.GetIt init({
     String? environment,
-    _i2.EnvironmentFilter? environmentFilter,
+    _i526.EnvironmentFilter? environmentFilter,
   }) {
-    final gh = _i2.GetItHelper(
-      this,
-      environment,
-      environmentFilter,
-    );
+    final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final registerModule = _$RegisterModule();
-    gh.lazySingleton<_i3.FlutterSecureStorage>(
-        () => registerModule.secureStorage);
-    gh.lazySingleton<_i4.Logger>(() => registerModule.logger);
-    gh.lazySingleton<_i5.DioClient>(() => _i5.DioClient(
-          storage: gh<_i3.FlutterSecureStorage>(),
-          logger: gh<_i4.Logger>(),
-        ));
-    gh.lazySingleton<_i6.InventoryRemoteDataSource>(
-        () => _i6.InventoryRemoteDataSourceImpl(gh<_i5.DioClient>()));
-    gh.lazySingleton<_i7.InventoryRepository>(
-        () => _i8.InventoryRepositoryImpl(gh<_i6.InventoryRemoteDataSource>()));
-    gh.lazySingleton<_i9.InvoiceRemoteDataSource>(
-        () => _i9.InvoiceRemoteDataSourceImpl(gh<_i5.DioClient>()));
-    gh.lazySingleton<_i10.InvoiceRepository>(
-        () => _i11.InvoiceRepositoryImpl(gh<_i9.InvoiceRemoteDataSource>()));
-    gh.lazySingleton<_i12.ProductRemoteDataSource>(
-        () => _i12.ProductRemoteDataSourceImpl(gh<_i5.DioClient>()));
-    gh.lazySingleton<_i13.ProductRepository>(
-        () => _i14.ProductRepositoryImpl(gh<_i12.ProductRemoteDataSource>()));
-    gh.lazySingleton<_i15.SalesOrderRemoteDataSource>(
-        () => _i15.SalesOrderRemoteDataSourceImpl(gh<_i5.DioClient>()));
-    gh.lazySingleton<_i16.SalesOrderRepository>(() =>
-        _i17.SalesOrderRepositoryImpl(gh<_i15.SalesOrderRemoteDataSource>()));
-    gh.factory<_i18.StockImportBloc>(
-        () => _i18.StockImportBloc(gh<_i7.InventoryRepository>()));
-    gh.lazySingleton<_i19.SupplierRemoteDataSource>(
-        () => _i19.SupplierRemoteDataSourceImpl(gh<_i5.DioClient>()));
-    gh.lazySingleton<_i20.SupplierRepository>(
-        () => _i21.SupplierRepositoryImpl(gh<_i19.SupplierRemoteDataSource>()));
-    gh.lazySingleton<_i22.AuthRemoteDataSource>(
-        () => _i22.AuthRemoteDataSourceImpl(gh<_i5.DioClient>()));
-    gh.lazySingleton<_i23.AuthRepository>(() => _i24.AuthRepositoryImpl(
-          gh<_i22.AuthRemoteDataSource>(),
-          gh<_i3.FlutterSecureStorage>(),
-        ));
-    gh.factory<_i25.InvoiceBloc>(
-        () => _i25.InvoiceBloc(gh<_i10.InvoiceRepository>()));
-    gh.factory<_i26.ProductBloc>(
-        () => _i26.ProductBloc(gh<_i13.ProductRepository>()));
-    gh.factory<_i27.SalesOrderBloc>(
-        () => _i27.SalesOrderBloc(gh<_i16.SalesOrderRepository>()));
-    gh.factory<_i28.SupplierBloc>(
-        () => _i28.SupplierBloc(gh<_i20.SupplierRepository>()));
-    gh.factory<_i29.AuthBloc>(() => _i29.AuthBloc(gh<_i23.AuthRepository>()));
+    gh.lazySingleton<_i974.Logger>(() => registerModule.logger);
+    gh.lazySingleton<_i558.FlutterSecureStorage>(
+      () => registerModule.secureStorage,
+    );
+    gh.lazySingleton<_i667.DioClient>(
+      () => _i667.DioClient(
+        storage: gh<_i558.FlutterSecureStorage>(),
+        logger: gh<_i974.Logger>(),
+      ),
+    );
+    gh.lazySingleton<_i161.AuthRemoteDataSource>(
+      () => _i161.AuthRemoteDataSourceImpl(gh<_i667.DioClient>()),
+    );
+    gh.lazySingleton<_i184.SupplierRemoteDataSource>(
+      () => _i184.SupplierRemoteDataSourceImpl(gh<_i667.DioClient>()),
+    );
+    gh.lazySingleton<_i1.ProductRemoteDataSource>(
+      () => _i1.ProductRemoteDataSourceImpl(gh<_i667.DioClient>()),
+    );
+    gh.lazySingleton<_i610.InvoiceRemoteDataSource>(
+      () => _i610.InvoiceRemoteDataSourceImpl(gh<_i667.DioClient>()),
+    );
+    gh.lazySingleton<_i787.AuthRepository>(
+      () => _i153.AuthRepositoryImpl(
+        gh<_i161.AuthRemoteDataSource>(),
+        gh<_i558.FlutterSecureStorage>(),
+        gh<_i974.Logger>(),
+      ),
+    );
+    gh.lazySingleton<_i339.InvoiceRepository>(
+      () => _i205.InvoiceRepositoryImpl(gh<_i610.InvoiceRemoteDataSource>()),
+    );
+    gh.lazySingleton<_i642.SupplierRepository>(
+      () => _i427.SupplierRepositoryImpl(gh<_i184.SupplierRemoteDataSource>()),
+    );
+    gh.lazySingleton<_i248.InventoryRemoteDataSource>(
+      () => _i248.InventoryRemoteDataSourceImpl(gh<_i667.DioClient>()),
+    );
+    gh.factory<_i797.AuthBloc>(
+      () => _i797.AuthBloc(gh<_i787.AuthRepository>()),
+    );
+    gh.lazySingleton<_i39.ProductRepository>(
+      () => _i1040.ProductRepositoryImpl(gh<_i1.ProductRemoteDataSource>()),
+    );
+    gh.factory<_i720.SupplierBloc>(
+      () => _i720.SupplierBloc(gh<_i642.SupplierRepository>()),
+    );
+    gh.lazySingleton<_i376.SalesOrderRemoteDataSource>(
+      () => _i376.SalesOrderRemoteDataSourceImpl(gh<_i667.DioClient>()),
+    );
+    gh.factory<_i415.ProductBloc>(
+      () => _i415.ProductBloc(gh<_i39.ProductRepository>()),
+    );
+    gh.factory<_i269.InvoiceBloc>(
+      () => _i269.InvoiceBloc(gh<_i339.InvoiceRepository>()),
+    );
+    gh.lazySingleton<_i422.InventoryRepository>(
+      () =>
+          _i572.InventoryRepositoryImpl(gh<_i248.InventoryRemoteDataSource>()),
+    );
+    gh.lazySingleton<_i568.SalesOrderRepository>(
+      () => _i448.SalesOrderRepositoryImpl(
+        gh<_i376.SalesOrderRemoteDataSource>(),
+      ),
+    );
+    gh.factory<_i916.StockImportBloc>(
+      () => _i916.StockImportBloc(gh<_i422.InventoryRepository>()),
+    );
+    gh.factory<_i1060.SalesOrderBloc>(
+      () => _i1060.SalesOrderBloc(gh<_i568.SalesOrderRepository>()),
+    );
     return this;
   }
 }
 
-class _$RegisterModule extends _i30.RegisterModule {}
+class _$RegisterModule extends _i291.RegisterModule {}

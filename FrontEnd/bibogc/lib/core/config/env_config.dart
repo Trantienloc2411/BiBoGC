@@ -8,7 +8,7 @@ class EnvConfig {
   static bool get isDeployment => _current == Environment.deployment;
 
   static const _baseUrls = {
-    Environment.development: 'https://bibogc.dev.localhost:7079',
+    Environment.development: 'https://10.0.2.2:7079', // Android emulator → host machine
     Environment.deployment: 'https://bibo-s-gcs-test.onrender.com',
   };
 

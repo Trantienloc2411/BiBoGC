@@ -74,17 +74,17 @@ SalesOrderItemModel _$SalesOrderItemModelFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$SalesOrderItemModelToJson(
-        SalesOrderItemModel instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'productId': instance.productId,
-      'productVariantId': instance.productVariantId,
-      'productBatchId': instance.productBatchId,
-      'productName': instance.productName,
-      'variantName': instance.variantName,
-      'sku': instance.sku,
-      'unit': instance.unit,
-      'quantity': instance.quantity,
-      'unitPrice': instance.unitPrice,
-      'lineTotal': instance.lineTotal,
-    };
+  SalesOrderItemModel instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'productId': instance.productId,
+  'productVariantId': instance.productVariantId,
+  'productBatchId': instance.productBatchId,
+  'productName': instance.productName,
+  'variantName': instance.variantName,
+  'sku': instance.sku,
+  'unit': instance.unit,
+  'quantity': instance.quantity,
+  'unitPrice': instance.unitPrice,
+  'lineTotal': instance.lineTotal,
+};

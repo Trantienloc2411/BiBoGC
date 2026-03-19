@@ -4,8 +4,10 @@ class ApiConstants {
   static String get baseUrl => EnvConfig.baseUrl;
 
   // Auth
-  static const String login = '/api/auth/login';
-  static const String refreshToken = '/api/auth/refresh';
+  static const String login = '/api/Auth/login';
+  static const String refreshToken = '/api/Auth/refresh';
+  static const String logout = '/api/Auth/logout';
+  static const String revoke = '/api/Auth/revoke';
 
   // Products
   static const String products = '/api/products';

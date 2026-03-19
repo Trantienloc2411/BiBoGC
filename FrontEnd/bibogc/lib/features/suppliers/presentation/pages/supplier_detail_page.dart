@@ -269,7 +269,7 @@ class _SupplierDetailViewState extends State<SupplierDetailView> {
                     style: const TextStyle(fontSize: 12),
                   ),
                 Text(
-                  DateFormat('dd/MM/yyyy HH:mm').format(transaction.transactionDate),
+                  DateFormat('dd/MM/yyyy HH:mm').format(transaction.transactionDate.toLocal()),
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],

@@ -4,6 +4,8 @@ import '../../../../core/network/dio_client.dart';
 
 abstract class AuthRemoteDataSource {
   Future<Map<String, dynamic>> login(String username, String password);
+  Future<void> logout();
+  Future<void> revokeRefreshToken(String refreshToken);
 }
 
 @LazySingleton(as: AuthRemoteDataSource)
@@ -14,15 +16,23 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<Map<String, dynamic>> login(String username, String password) async {
-    try {
-      final response = await _dioClient.dio.post(
-        ApiConstants.login,
-        data: {'username': username, 'password': password},
-      );
-      // Return the whole response data to be parsed by Repository or Model
-      return response.data;
-    } catch (e) {
-      rethrow;
-    }
+    final response = await _dioClient.dio.post(
+      ApiConstants.login,
+      data: {'username': username, 'password': password},
+    );
+    return response.data;
+  }
+
+  @override
+  Future<void> logout() async {
+    await _dioClient.dio.post(ApiConstants.logout);
+  }
+
+  @override
+  Future<void> revokeRefreshToken(String refreshToken) async {
+    await _dioClient.dio.post(
+      ApiConstants.revoke,
+      data: {'refreshToken': refreshToken},
+    );
   }
 }
