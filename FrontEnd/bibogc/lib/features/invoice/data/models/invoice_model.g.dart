@@ -7,29 +7,29 @@ part of 'invoice_model.dart';
 // **************************************************************************
 
 InvoiceModel _$InvoiceModelFromJson(Map<String, dynamic> json) => InvoiceModel(
-      id: json['id'] as String,
-      invoiceNumber: json['invoiceNumber'] as String,
-      invoiceDate: DateTime.parse(json['invoiceDate'] as String),
-      salesOrderId: json['salesOrderId'] as String,
-      orderNumber: json['orderNumber'] as String,
-      storeName: json['storeName'] as String,
-      storeAddress: json['storeAddress'] as String,
-      storePhone: json['storePhone'] as String,
-      storeTaxCode: json['storeTaxCode'] as String?,
-      customerName: json['customerName'] as String?,
-      customerPhone: json['customerPhone'] as String?,
-      subTotal: (json['subTotal'] as num).toDouble(),
-      discountAmount: (json['discountAmount'] as num).toDouble(),
-      taxAmount: (json['taxAmount'] as num).toDouble(),
-      grandTotal: (json['grandTotal'] as num).toDouble(),
-      amountPaid: (json['amountPaid'] as num).toDouble(),
-      changeAmount: (json['changeAmount'] as num).toDouble(),
-      paymentMethod: json['paymentMethod'] as String,
-      items: (json['items'] as List<dynamic>)
-          .map((e) => InvoiceItemModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-    );
+  id: json['id'] as String,
+  invoiceNumber: json['invoiceNumber'] as String,
+  invoiceDate: DateTime.parse(json['invoiceDate'] as String),
+  salesOrderId: json['salesOrderId'] as String,
+  orderNumber: json['orderNumber'] as String,
+  storeName: json['storeName'] as String,
+  storeAddress: json['storeAddress'] as String,
+  storePhone: json['storePhone'] as String,
+  storeTaxCode: json['storeTaxCode'] as String?,
+  customerName: json['customerName'] as String?,
+  customerPhone: json['customerPhone'] as String?,
+  subTotal: (json['subTotal'] as num).toDouble(),
+  discountAmount: (json['discountAmount'] as num).toDouble(),
+  taxAmount: (json['taxAmount'] as num).toDouble(),
+  grandTotal: (json['grandTotal'] as num).toDouble(),
+  amountPaid: (json['amountPaid'] as num).toDouble(),
+  changeAmount: (json['changeAmount'] as num).toDouble(),
+  paymentMethod: json['paymentMethod'] as String,
+  items: (json['items'] as List<dynamic>)
+      .map((e) => InvoiceItemModel.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  createdAt: DateTime.parse(json['createdAt'] as String),
+);
 
 Map<String, dynamic> _$InvoiceModelToJson(InvoiceModel instance) =>
     <String, dynamic>{

@@ -114,7 +114,7 @@ class InvoiceDetailContent extends StatelessWidget {
           // Invoice meta
           _SectionCard(
             title: invoice.invoiceNumber,
-            subtitle: dateFormat.format(invoice.invoiceDate),
+            subtitle: dateFormat.format(invoice.invoiceDate.toLocal()),
             child: Column(
               children: [
                 _InfoRow(label: 'Đơn hàng', value: invoice.orderNumber),

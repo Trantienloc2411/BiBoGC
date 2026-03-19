@@ -1,7 +1,8 @@
-import 'package:dio/dio.dart'; // Added
+import 'package:dio/dio.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
+import 'package:logger/logger.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -11,8 +12,9 @@ import '../datasources/auth_remote_datasource.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remoteDataSource;
   final FlutterSecureStorage _storage;
+  final Logger _logger;
 
-  AuthRepositoryImpl(this._remoteDataSource, this._storage);
+  AuthRepositoryImpl(this._remoteDataSource, this._storage, this._logger);
 
   @override
   Future<Either<Failure, void>> login(String username, String password) async {
@@ -62,6 +64,15 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
+    try {
+      final refreshToken = await _storage.read(key: 'refresh_token');
+      if (refreshToken != null) {
+        await _remoteDataSource.revokeRefreshToken(refreshToken);
+      }
+      await _remoteDataSource.logout();
+    } catch (e) {
+      _logger.w('Server logout failed (tokens will be cleared locally): $e');
+    }
     await _storage.delete(key: 'auth_token');
     await _storage.delete(key: 'refresh_token');
   }

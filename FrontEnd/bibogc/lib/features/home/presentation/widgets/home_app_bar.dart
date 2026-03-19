@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String username;
+  final VoidCallback? onLogout;
 
-  const HomeAppBar({super.key, required this.username});
+  const HomeAppBar({super.key, required this.username, this.onLogout});
 
   @override
   Widget build(BuildContext context) {
@@ -65,8 +66,92 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ],
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 8),
+        PopupMenuButton<String>(
+          icon: CircleAvatar(
+            radius: 18,
+            backgroundColor: Colors.white.withAlpha(51),
+            child: Icon(
+              Icons.person,
+              color: theme.colorScheme.onPrimary,
+              size: 22,
+            ),
+          ),
+          offset: const Offset(0, 56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              enabled: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    username,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Divider(),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'logout',
+              child: Row(
+                children: [
+                  Icon(Icons.logout, color: Colors.red, size: 20),
+                  SizedBox(width: 12),
+                  Text(
+                    'Đăng xuất',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          onSelected: (value) {
+            if (value == 'logout') {
+              _showLogoutDialog(context);
+            }
+          },
+        ),
+        const SizedBox(width: 8),
       ],
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout, color: Colors.red),
+            SizedBox(width: 12),
+            Text('Đăng xuất'),
+          ],
+        ),
+        content: const Text(
+          'Bạn có chắc chắn muốn đăng xuất không?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              onLogout?.call();
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Đăng xuất'),
+          ),
+        ],
+      ),
     );
   }
 
