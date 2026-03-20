@@ -7,7 +7,9 @@
       "Bash(find E:/Github-Repository/BiBo-s-GC -type f -name *test*.dart)",
       "Bash(find E:/Github-Repository/BiBo-s-GC/BiBoGC -type f -name *.csproj)",
       "Bash(find E:/Github-Repository/BiBo-s-GC -type f -name *.cs -path */Data/*)",
-      "Bash(find E:/Github-Repository/BiBo-s-GC/FrontEnd/bibogc -type f -name *.dart)"
+      "Bash(find E:/Github-Repository/BiBo-s-GC/FrontEnd/bibogc -type f -name *.dart)",
+      "Bash(find \"C:\\\\Users\\\\ttloc\\\\OneDrive - Netcompany\\\\Desktop\\\\Learn\\\\BIBOGS\\\\Code\\\\BiBo-s-GC\\\\BiBoGC\" -name \"*.cs\" | xargs grep -l \"audit\\\\|log\" -i | head -15)",
+      "Bash(cd \"C:\\\\Users\\\\ttloc\\\\OneDrive - Netcompany\\\\Desktop\\\\Learn\\\\BIBOGS\\\\Code\\\\BiBo-s-GC\\\\BiBoGC\" && dotnet ef migrations add Add_AuditLog --project AuthorizationModule.Infrastructure --startup-project BiBoGC 2>&1)"
     ]
   }
 }

@@ -214,6 +214,7 @@ public class Program
         app.UseCors("AllowAll");
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseAuditLog();
 
         // Map Aspire health check endpoints
         app.MapDefaultEndpoints();
