@@ -74,10 +74,13 @@ public class AuthController : ControllerBase
         var command = new LogoutCommand(userId, ipAddress);
         await _mediator.Send(command);
 
-        return Ok(new { message = "Đăng xuất thành công" });
+        return Ok(new { message = "Đăng xuất thành công" }); 
     }
 
+    [Authorize]
     [HttpPost("revoke")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Revoke([FromBody] RefreshTokenRequestDto request)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";

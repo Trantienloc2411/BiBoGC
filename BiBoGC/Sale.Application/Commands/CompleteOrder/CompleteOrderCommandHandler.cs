@@ -7,6 +7,7 @@ using Sale.Application.Interfaces;
 using Sale.Application.Mappers;
 using Sale.Domain.Exceptions;
 using Shared.Application.Common;
+using Shared.Application.Interfaces;
 
 namespace Sale.Application.Commands.CompleteOrder;
 
@@ -17,19 +18,22 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
     private readonly IStockTransactionRepository _stockTransactionRepository;
     private readonly ISaleUnitOfWork _unitOfWork;
     private readonly IProductVariantRepository _variantRepository;
+    private readonly IAuditLogger _auditLogger;
 
     public CompleteOrderCommandHandler(
         ISalesOrderRepository orderRepository,
         IProductRepository productRepository,
         IProductVariantRepository variantRepository,
         IStockTransactionRepository stockTransactionRepository,
-        ISaleUnitOfWork unitOfWork)
+        ISaleUnitOfWork unitOfWork,
+        IAuditLogger auditLogger)
     {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
         _variantRepository = variantRepository;
         _stockTransactionRepository = stockTransactionRepository;
         _unitOfWork = unitOfWork;
+        _auditLogger = auditLogger;
     }
 
     public async Task<Result<SalesOrderDto>> Handle(
@@ -131,6 +135,14 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
             await _stockTransactionRepository.AddAsync(stockTransaction, cancellationToken);
         }
 
-        return Result<SalesOrderDto>.Success(SalesOrderMapper.MapToDto(order));
+        var dto = SalesOrderMapper.MapToDto(order);
+
+        await _auditLogger.LogAsync(
+            action: "SalesOrder.Complete",
+            isSuccess: true,
+            description: $"OrderId={order.Id}, OrderNumber={order.OrderNumber}, Total={order.TotalAmount:F2}, AmountPaid={request.AmountPaid:F2}",
+            cancellationToken: cancellationToken);
+
+        return Result<SalesOrderDto>.Success(dto);
     }
 }

@@ -29,7 +29,9 @@ public class StockTransaction : BaseEntity
         TransactionType = transactionType;
         Quantity = quantity;
         UnitPrice = unitPrice;
-        TransactionDate = DateTime.UtcNow;
+        TransactionDate = transactionDate.Kind == DateTimeKind.Local
+            ? transactionDate.ToUniversalTime()
+            : DateTime.SpecifyKind(transactionDate, DateTimeKind.Utc);
         Notes = notes?.Trim();
     }
 
