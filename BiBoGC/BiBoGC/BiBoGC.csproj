@@ -40,6 +40,8 @@
         <ProjectReference Include="..\InventoryManagement.Infrastructure\InventoryManagement.Infrastructure.csproj"/>
         <ProjectReference Include="..\Sale.Application\Sale.Application.csproj"/>
         <ProjectReference Include="..\Sale.Infrastructure\Sale.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Finance.Application\Finance.Application.csproj"/>
+        <ProjectReference Include="..\Finance.Infrastructure\Finance.Infrastructure.csproj"/>
     </ItemGroup>
 
 </Project>

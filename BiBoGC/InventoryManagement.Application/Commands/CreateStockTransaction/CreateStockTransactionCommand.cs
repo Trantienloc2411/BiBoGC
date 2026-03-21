@@ -13,5 +13,6 @@ public record CreateStockTransactionCommand : IRequest<Result<StockTransactionDt
     public StockTransactionType TransactionType { get; init; }
     public int Quantity { get; init; }
     public decimal UnitPrice { get; init; }
+    public DateTime? TransactionDate { get; init; }
     public string? Notes { get; init; }
 }

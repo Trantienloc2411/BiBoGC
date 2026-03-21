@@ -388,7 +388,7 @@ public class ProductsController : ControllerBase
             });
         }
 
-        return CreatedAtAction(nameof(GetProduct), new { id = productId }, result.Value);
+        return CreatedAtAction(nameof(GetBatch), new { productId = productId, batchId = result.Value!.Id }, result.Value);
     }
 
     /// <summary>
@@ -669,12 +669,24 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(command);
 
         if (!result.IsSuccess)
+        {
+            var errorMessage = result.Errors.FirstOrDefault() ?? string.Empty;
+            if (errorMessage.Contains("không tồn tại", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("không tìm thấy", StringComparison.OrdinalIgnoreCase))
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Không tìm thấy biến thể sản phẩm",
+                    Detail = errorMessage,
+                    Status = StatusCodes.Status404NotFound
+                });
+
             return BadRequest(new ProblemDetails
             {
                 Title = "Hành động không thể thực thi!",
-                Detail = result.Errors.FirstOrDefault(),
+                Detail = errorMessage,
                 Status = StatusCodes.Status400BadRequest
             });
+        }
         return NoContent();
     }
 }

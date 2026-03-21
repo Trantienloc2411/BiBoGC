@@ -12,6 +12,7 @@ public class AuthorizationDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

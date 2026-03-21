@@ -263,6 +263,7 @@ public class SuppliersController : ControllerBase
     /// <param name="id">Supplier ID to activate</param>
     /// <returns>Activated supplier</returns>
     [HttpPost("{id:guid}/activate")]
+    [Authorize(Roles = "Administrator")]
     [ProducesResponseType(typeof(SupplierDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ActivateSupplier(Guid id)
@@ -300,6 +301,7 @@ public class SuppliersController : ControllerBase
     /// <param name="id">Supplier ID to deactivate</param>
     /// <returns>Deactivated supplier</returns>
     [HttpPost("{id:guid}/deactivate")]
+    [Authorize(Roles = "Administrator")]
     [ProducesResponseType(typeof(SupplierDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeactivateSupplier(Guid id)
