@@ -7,7 +7,6 @@ using InventoryManagement.Application.Queries.GetCategory;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Application.Common;
 
 namespace BiBoGC.Controllers;
 
@@ -27,7 +26,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(PagedResult<CategoryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<CategoryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCategories(
         [FromQuery] bool includeInactive = false,
         [FromQuery] Guid? parentCategoryId = null)

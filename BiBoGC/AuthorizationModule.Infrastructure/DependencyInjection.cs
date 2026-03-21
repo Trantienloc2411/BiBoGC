@@ -5,6 +5,7 @@ using AuthorizationModule.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Shared.Application.Interfaces;
 
 namespace AuthorizationModule.Infrastructure;
 
@@ -15,6 +16,7 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IAuditLogService, AuditLogService>();
+        services.AddScoped<IAuditLogger, AuditLoggerAdapter>();
         services.AddScoped<IAuthService, AuthService>();
 
         return services;

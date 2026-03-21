@@ -3,6 +3,7 @@ using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Domain.Entities;
 using MediatR;
 using Shared.Application.Common;
+using Shared.Application.Interfaces;
 
 namespace InventoryManagement.Application.Commands.CreateStockTransaction;
 
@@ -12,15 +13,18 @@ public class
     private readonly IProductRepository _productRepository;
     private readonly IStockTransactionRepository _stockTransactionRepository;
     private readonly ISupplierRepository _supplierRepository;
+    private readonly IAuditLogger _auditLogger;
 
     public CreateStockTransactionCommandHandler(
         IStockTransactionRepository stockTransactionRepository,
         IProductRepository productRepository,
-        ISupplierRepository supplierRepository)
+        ISupplierRepository supplierRepository,
+        IAuditLogger auditLogger)
     {
         _stockTransactionRepository = stockTransactionRepository;
         _productRepository = productRepository;
         _supplierRepository = supplierRepository;
+        _auditLogger = auditLogger;
     }
 
     public async Task<Result<StockTransactionDto>> Handle(CreateStockTransactionCommand request,
@@ -57,7 +61,7 @@ public class
             request.TransactionType,
             request.Quantity,
             request.UnitPrice,
-            DateTime.UtcNow,
+            request.TransactionDate ?? DateTime.UtcNow,
             request.Notes
         );
 
@@ -72,6 +76,12 @@ public class
         }
 
         var createdTransaction = await _stockTransactionRepository.AddAsync(transaction, cancellationToken);
+
+        await _auditLogger.LogAsync(
+            action: "StockTransaction.Create",
+            isSuccess: true,
+            description: $"Type={request.TransactionType}, ProductId={request.ProductId}, Qty={request.Quantity}, UnitPrice={request.UnitPrice:F2}",
+            cancellationToken: cancellationToken);
 
         // Fetch the transaction with navigation properties
         var fullTransaction = await _stockTransactionRepository.GetByIdAsync(createdTransaction.Id, cancellationToken);

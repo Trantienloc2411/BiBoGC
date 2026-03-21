@@ -3,6 +3,9 @@ using AuthorizationModule.Application;
 using AuthorizationModule.Infrastructure;
 using AuthorizationModule.Infrastructure.Data;
 using BiBoGC.Middleware;
+using Finance.Application;
+using Finance.Infrastructure;
+using Finance.Infrastructure.Data;
 using InventoryManagement.Application;
 using InventoryManagement.Infrastructure;
 using InventoryManagement.Infrastructure.Data;
@@ -49,10 +52,16 @@ public class Program
                 options.EnableDetailedErrors();
                 options.EnableSensitiveDataLogging(true);
             });
+            builder.AddNpgsqlDbContext<FinanceDbContext>("FinanceDb", configureDbContextOptions: options =>
+            {
+                options.EnableDetailedErrors();
+                options.EnableSensitiveDataLogging(true);
+            });
 
             // Register repositories (DbContext already registered by Aspire above)
             builder.Services.AddInventoryInfrastructureWithAspire();
             builder.Services.AddSaleInfrastructureWithAspire();
+            builder.Services.AddFinanceInfrastructureWithAspire();
         }
         else
         {
@@ -103,9 +112,26 @@ public class Program
                 options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
             });
 
+            var financeConnectionString = builder.Configuration.GetConnectionString("FinanceDb")
+                ?? connectionString;
+            builder.Services.AddDbContextPool<FinanceDbContext>(options =>
+            {
+                options.UseNpgsql(financeConnectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsAssembly(typeof(FinanceDbContext).Assembly.FullName);
+                    npgsqlOptions.EnableRetryOnFailure(
+                        5,
+                        TimeSpan.FromSeconds(30),
+                        null);
+                });
+                options.EnableDetailedErrors();
+                options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
+            });
+
             // Register repositories
             builder.Services.AddInventoryInfrastructureWithAspire();
             builder.Services.AddSaleInfrastructureWithAspire();
+            builder.Services.AddFinanceInfrastructureWithAspire();
         }
 
         // Register Application layer (MediatR, Validators)
@@ -113,6 +139,7 @@ public class Program
         builder.Services.AddAuthorizationModuleApplication();
         builder.Services.AddAuthorizationModule();
         builder.Services.AddSaleApplication();
+        builder.Services.AddFinanceApplication();
 
         var jwtSection = builder.Configuration.GetSection("Jwt");
         var key = Encoding.UTF8.GetBytes(jwtSection["Key"]!);
@@ -175,14 +202,28 @@ public class Program
         // Configure OpenAPI/Swagger
         builder.Services.AddOpenApi();
 
-        // Add CORS for development
+        // Add CORS — allow any origin in dev, explicit allowlist in production
+        var allowedOrigins = builder.Configuration
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>() ?? [];
+
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowAll", policy =>
             {
-                policy.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
+                if (builder.Environment.IsDevelopment() || allowedOrigins.Length == 0)
+                {
+                    policy.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                }
+                else
+                {
+                    policy.WithOrigins(allowedOrigins)
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
+                }
             });
         });
 
@@ -192,6 +233,7 @@ public class Program
         await app.Services.InitializeDatabaseAsync();
         await app.Services.InitializeAuthorizationDatabaseAsync();
         await app.Services.InitializeSaleDatabaseAsync();
+        await app.Services.InitializeFinanceDatabaseAsync();
 
         // Configure middleware pipeline
         if (app.Environment.IsDevelopment())

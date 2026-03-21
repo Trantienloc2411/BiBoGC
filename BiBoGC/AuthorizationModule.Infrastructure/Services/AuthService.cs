@@ -77,7 +77,16 @@ public class AuthService(
             .SingleOrDefaultAsync(t => t.Token == refreshToken, cancellationToken);
 
         if (token is null || !token.IsActive)
+        {
+            await auditLogService.LogAsync(new AuditLog
+            {
+                Action = "TokenRefresh",
+                IpAddress = ipAddress,
+                IsSuccess = false,
+                Description = "Refresh token không hợp lệ hoặc đã hết hạn",
+            }, cancellationToken);
             return Result<AuthResponseDto>.Failure("Refresh token không hợp lệ");
+        }
 
         var user = token.User;
         var accessToken = jwtTokenGenerator.GenerateJwtToken(user, out var accessExpirationAt);
@@ -99,6 +108,15 @@ public class AuthService(
         dbContext.RefreshTokens.Add(newRefreshToken);
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        await auditLogService.LogAsync(new AuditLog
+        {
+            UserId = user.Id,
+            Username = user.Username,
+            Action = "TokenRefresh",
+            IpAddress = ipAddress,
+            IsSuccess = true,
+        }, cancellationToken);
+
         return Result<AuthResponseDto>.Success(new AuthResponseDto
         {
             AccessToken = accessToken,
@@ -116,11 +134,35 @@ public class AuthService(
             .SingleOrDefaultAsync(r => r.Token == refreshToken, cancellationToken);
 
         if (token is null || !token.IsActive)
+        {
+            await auditLogService.LogAsync(new AuditLog
+            {
+                Action = "TokenRevoke",
+                IpAddress = ipAddress,
+                IsSuccess = false,
+                Description = "Refresh token không hợp lệ hoặc đã bị thu hồi",
+            }, cancellationToken);
             return Result.Failure("Refresh token không thành công, vui lòng sử dụng token mới");
+        }
+
+        var revokedUser = await dbContext.Users.AsNoTracking()
+            .Where(u => u.Id == token.UserId)
+            .Select(u => new { u.Id, u.Username })
+            .FirstOrDefaultAsync(cancellationToken);
 
         token.RevokedAt = DateTime.UtcNow;
         token.RevokedByIp = ipAddress;
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await auditLogService.LogAsync(new AuditLog
+        {
+            UserId = revokedUser?.Id,
+            Username = revokedUser?.Username,
+            Action = "TokenRevoke",
+            IpAddress = ipAddress,
+            IsSuccess = true,
+        }, cancellationToken);
+
         return Result.Success();
     }
 
