@@ -7,3 +7,5 @@ public record TopProduct(string ProductName, string VariantName, int QuantitySol
 public record HourlySales(int Hour, decimal Revenue, int TransactionCount);
 
 public record DailySales(int Day, decimal Revenue, int TransactionCount);
+
+public record MonthlySales(int Month, decimal Revenue, int TransactionCount);

@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sale.Application.DTOs;
+using Sale.Application.Queries.ExportInvoicePdf;
 using Sale.Application.Queries.GetInvoice;
 using Sale.Application.Queries.GetInvoices;
 using Shared.Application.Common;
@@ -61,5 +62,22 @@ public class InvoicesController : ControllerBase
                 result.Errors.Skip(1)));
 
         return Ok(ApiResponse<InvoiceDto>.Ok(result.Value!));
+    }
+
+    /// <summary>
+    /// Xuất hóa đơn dạng PDF
+    /// </summary>
+    [HttpGet("{id:guid}/export/pdf")]
+    [Authorize(Roles = "Administrator,Seller")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ExportInvoicePdf(Guid id, CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new ExportInvoicePdfQuery(id), ct);
+
+        if (!result.IsSuccess)
+            return NotFound(ApiResponse<object>.Error(result.Errors.FirstOrDefault() ?? "Lỗi không xác định"));
+
+        return File(result.Value!, "application/pdf", $"invoice-{id}.pdf");
     }
 }

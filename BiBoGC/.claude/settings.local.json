@@ -34,7 +34,10 @@
       "Bash(npx --yes create-next-app@latest admin-dashboard --typescript --tailwind --app --no-src-dir --eslint --import-alias \"@/*\" --no-turbopack)",
       "Bash(printf \"No\\\\nNo\\\\n\")",
       "Bash(npm install:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(dotnet add:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(python3:*)"
     ]
   }
 }

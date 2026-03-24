@@ -8,17 +8,19 @@ using Sale.Application.Mappers;
 using Sale.Domain.Exceptions;
 using Shared.Application.Common;
 using Shared.Application.Interfaces;
+using ITaxConfigService = Shared.Application.Interfaces.ITaxConfigService;
 
 namespace Sale.Application.Commands.CompleteOrder;
 
 public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand, Result<SalesOrderDto>>
 {
+    private readonly IAuditLogger _auditLogger;
     private readonly ISalesOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
     private readonly IStockTransactionRepository _stockTransactionRepository;
+    private readonly ITaxConfigService _taxConfigService;
     private readonly ISaleUnitOfWork _unitOfWork;
     private readonly IProductVariantRepository _variantRepository;
-    private readonly IAuditLogger _auditLogger;
 
     public CompleteOrderCommandHandler(
         ISalesOrderRepository orderRepository,
@@ -26,7 +28,8 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
         IProductVariantRepository variantRepository,
         IStockTransactionRepository stockTransactionRepository,
         ISaleUnitOfWork unitOfWork,
-        IAuditLogger auditLogger)
+        IAuditLogger auditLogger,
+        ITaxConfigService taxConfigService)
     {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
@@ -34,6 +37,7 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
         _stockTransactionRepository = stockTransactionRepository;
         _unitOfWork = unitOfWork;
         _auditLogger = auditLogger;
+        _taxConfigService = taxConfigService;
     }
 
     public async Task<Result<SalesOrderDto>> Handle(
@@ -93,6 +97,10 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
             stockDeductions.Add((product, variant, batch, quantityInBaseUnits, item));
         }
 
+        // Apply VAT before completing (rate = 0 when VAT is disabled)
+        var vatRate = await _taxConfigService.GetActiveVatRateAsync(cancellationToken);
+        order.ApplyTax(vatRate);
+
         // Complete the order in memory (raises SalesOrderCompletedEvent)
         try
         {
@@ -140,7 +148,8 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
         await _auditLogger.LogAsync(
             action: "SalesOrder.Complete",
             isSuccess: true,
-            description: $"OrderId={order.Id}, OrderNumber={order.OrderNumber}, Total={order.TotalAmount:F2}, AmountPaid={request.AmountPaid:F2}",
+            description:
+            $"OrderId={order.Id}, OrderNumber={order.OrderNumber}, Total={order.TotalAmount:F2}, AmountPaid={request.AmountPaid:F2}",
             cancellationToken: cancellationToken);
 
         return Result<SalesOrderDto>.Success(dto);

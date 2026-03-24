@@ -144,6 +144,21 @@ public class SalesOrder : BaseEntity
     }
 
     /// <summary>
+    /// Tính và áp dụng thuế dựa trên thuế suất (0.0 – 1.0).
+    /// Gọi trước Complete(). Nếu rate = 0 thì TaxAmount = 0.
+    /// </summary>
+    public void ApplyTax(decimal taxRate)
+    {
+        EnsureDraftStatus("áp dụng thuế");
+
+        if (taxRate < 0 || taxRate > 1)
+            throw new ArgumentException("Thuế suất phải nằm trong khoảng 0 – 1.", nameof(taxRate));
+
+        TaxAmount = Math.Round(SubTotal * taxRate, 2, MidpointRounding.AwayFromZero);
+        RecalculateTotals();
+    }
+
+    /// <summary>
     /// Áp dụng giảm giá theo số tiền
     /// </summary>
     public void ApplyDiscount(decimal amount)

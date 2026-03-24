@@ -13,6 +13,7 @@ using InventoryManagement.Application.Queries.GetBatches;
 using InventoryManagement.Application.Queries.GetProduct;
 using InventoryManagement.Application.Queries.GetProducts;
 using InventoryManagement.Application.Queries.GetProductVariantsByProductId;
+using InventoryManagement.Application.Queries.GetVariantByBarcode;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -388,7 +389,8 @@ public class ProductsController : ControllerBase
             });
         }
 
-        return CreatedAtAction(nameof(GetBatch), new { productId = productId, batchId = result.Value!.Id }, result.Value);
+        return CreatedAtAction(nameof(GetBatch), new { productId = productId, batchId = result.Value!.Id },
+            result.Value);
     }
 
     /// <summary>
@@ -687,7 +689,34 @@ public class ProductsController : ControllerBase
                 Status = StatusCodes.Status400BadRequest
             });
         }
+
         return NoContent();
+    }
+
+    // ─── Barcode Lookup ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Tìm biến thể sản phẩm theo barcode (dùng cho máy quét mã vạch)
+    /// </summary>
+    [HttpGet("variants/by-barcode")]
+    [Authorize(Roles = "Administrator,Seller")]
+    [ProducesResponseType(typeof(ProductVariantDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetVariantByBarcode(
+        [FromQuery] string code,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetVariantByBarcodeQuery(code), ct);
+
+        if (!result.IsSuccess)
+            return NotFound(new ProblemDetails
+            {
+                Title = "Không tìm thấy sản phẩm",
+                Detail = result.Errors.FirstOrDefault(),
+                Status = StatusCodes.Status404NotFound
+            });
+
+        return Ok(result.Value);
     }
 }
 

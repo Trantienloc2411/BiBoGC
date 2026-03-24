@@ -6,6 +6,8 @@ using Finance.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using QuestPDF.Infrastructure;
+using Shared.Application.Interfaces;
 
 namespace Finance.Infrastructure;
 
@@ -37,10 +39,18 @@ public static class DependencyInjection
 
     private static void RegisterServices(IServiceCollection services)
     {
+        QuestPDF.Settings.License = LicenseType.Community;
+
         services.AddScoped<IExpenseRepository, ExpenseRepository>();
+        services.AddScoped<ITaxConfigRepository, TaxConfigRepository>();
         services.AddScoped<IFinanceUnitOfWork, FinanceUnitOfWork>();
         services.AddScoped<ISalesDataReader, SalesDataReader>();
         services.AddScoped<IStockDataReader, StockDataReader>();
+        services.AddScoped<ITaxConfigService, TaxConfigService>();
+        services.AddScoped<IReportPdfExportService, ReportPdfExportService>();
+        services.AddScoped<IInvoiceDataReader, InvoiceDataReader>();
+        services.AddScoped<ITaxReportExportService, TaxReportExportService>();
+        services.AddScoped<ITaxDeclarationExportService, TaxDeclarationExportService>();
     }
 
     public static async Task InitializeFinanceDatabaseAsync(this IServiceProvider serviceProvider)
