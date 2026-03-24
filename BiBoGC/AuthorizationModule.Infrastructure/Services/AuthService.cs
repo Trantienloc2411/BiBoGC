@@ -34,20 +34,6 @@ public class AuthService(
             return Result<AuthResponseDto>.Failure("Tài khoản hoặc mật khẩu không chính xác");
         }
 
-        if (user.Role == AuthorizationModule.Domain.Enums.UserRole.Seller)
-        {
-            await auditLogService.LogAsync(new AuditLog
-            {
-                UserId = user.Id,
-                Username = user.Username,
-                Action = "Login",
-                IpAddress = ipAddress,
-                IsSuccess = false,
-                Description = "Tài khoản Seller không được phép đăng nhập qua website",
-            }, cancellationToken);
-            return Result<AuthResponseDto>.Failure("Tài khoản không có quyền truy cập");
-        }
-
         var accessToken = jwtTokenGenerator.GenerateJwtToken(user, out var accessExpirationAt);
         var refreshTokenValue = jwtTokenGenerator.GenerateRefreshToken();
 

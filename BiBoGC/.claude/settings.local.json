@@ -37,7 +37,25 @@
       "Bash(npm run:*)",
       "Bash(dotnet add:*)",
       "Bash(python3 -c \":*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(ls *.sln)",
+      "Bash(dotnet --version)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet test:*)",
+      "Bash(docker info:*)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(find E:/Github-Repository/BiBo-s-GC/BiBoGC/AuthorizationModule.Application -name *.cs)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -rn 'class StoreInfo' E:/Github-Repository/BiBo-s-GC/BiBoGC --include=*.cs -A 10)",
+      "Bash(dotnet list:*)",
+      "Bash(dotnet package:*)",
+      "Bash(/tmp/structure.txt:*)",
+      "Bash(find E:/Github-Repository/BiBo-s-GC/BiBoGC -name Program.cs -not -path */Tests/*)",
+      "Bash(echo $TEMP)",
+      "Bash(echo $TMP)",
+      "Read(//e/Github-Repository/BiBo-s-GC/BiBoGC/Tests/BiBoGC.Tests.Unit/**)",
+      "Bash(find \"E:\\\\Github-Repository\\\\BiBo-s-GC\\\\admin-dashboard\\\\app\\\\\\(admin\\)\" -type f -name \"page.tsx\")"
     ]
   }
 }

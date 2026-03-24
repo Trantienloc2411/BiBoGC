@@ -29,6 +29,10 @@
         <Project Path="Shared.Contracts/Shared.Contracts.csproj" Id="4c1117e9-0776-4ec5-8f4b-2f14edc6b735" />
         <Project Path="Shared.Domain/Shared.Domain.csproj" />
     </Folder>
+    <Folder Name="/Tests/">
+        <Project Path="Tests/BiBoGC.Tests.Integration/BiBoGC.Tests.Integration.csproj"/>
+        <Project Path="Tests/BiBoGC.Tests.Unit/BiBoGC.Tests.Unit.csproj"/>
+    </Folder>
     <Project Path="BiBoGC.AppHost/BiBoGC.AppHost.csproj" />
     <Project Path="BiBoGC.ServiceDefaults/BiBoGC.ServiceDefaults.csproj" />
 </Solution>

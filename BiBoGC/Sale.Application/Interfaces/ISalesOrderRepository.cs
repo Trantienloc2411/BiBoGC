@@ -9,7 +9,7 @@ public interface ISalesOrderRepository
     Task<SalesOrder?> GetByIdWithItemsAsync(Guid id, CancellationToken ct = default);
     Task<SalesOrder?> GetByOrderNumberAsync(string orderNumber, CancellationToken ct = default);
 
-    Task<(IEnumerable<SalesOrder> Items, int TotalCount)> GetAllAsync(
+    Task<(IEnumerable<SalesOrder> Items, int TotalCount, IReadOnlyDictionary<Guid, string> InvoiceNumbers)> GetAllAsync(
         int page,
         int pageSize,
         OrderStatus? status = null,

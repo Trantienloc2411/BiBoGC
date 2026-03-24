@@ -49,9 +49,9 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="text-center py-16 text-red-500">
-        <p>{error}</p>
-        <button onClick={() => window.location.reload()} className="mt-3 text-blue-600 underline text-sm">
+      <div className="text-center py-20 text-red-500">
+        <p className="text-base">{error}</p>
+        <button onClick={() => window.location.reload()} className="mt-4 text-blue-600 underline text-sm">
           Tải lại
         </button>
       </div>
@@ -64,20 +64,18 @@ export default function DashboardPage() {
   const change   = sales?.revenueChangePercent ?? 0
 
   return (
-    <div className="space-y-3">
-      {/* Header */}
-      <div className="flex items-center gap-2 text-gray-500 text-sm">
-        <CalendarDays size={16} />
-        <span>{formatDate(today)}</span>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2.5 text-gray-500">
+        <CalendarDays size={18} />
+        <span className="text-sm">{formatDate(today)}</span>
         {sales && (
-          <span className="ml-auto bg-blue-50 rounded-md px-3 py-1 text-xs text-blue-700 font-medium">
+          <span className="ml-auto bg-blue-50 rounded-md px-3.5 py-1.5 text-sm text-blue-700 font-medium">
             {sales.transactionCount} giao dịch
           </span>
         )}
       </div>
 
-      {/* Stat cards - 3 in a row on md+ */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="Doanh thu hôm nay" value={revenue} changePercent={change} icon="💰" color="blue" />
         <StatCard label="Chi phí hôm nay"   value={expense} icon="💸" color="red" />
         <StatCard
@@ -88,8 +86,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Chart + Top products side-by-side on lg+ */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <div className="lg:col-span-3">
           <HourlyChart data={sales?.salesByHour ?? []} />
         </div>

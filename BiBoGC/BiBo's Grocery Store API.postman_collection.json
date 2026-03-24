@@ -7557,6 +7557,308 @@
               ]
             }
           ]
+        },
+        {
+          "name": "notifications",
+          "item": [
+            {
+              "name": "Lấy danh sách thông báo",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{testUrl}}/api/notifications?role=Admin&unreadOnly=false&page=1&pageSize=20",
+                  "host": [
+                    "{{testUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "notifications"
+                  ],
+                  "query": [
+                    {
+                      "key": "role",
+                      "value": "Admin",
+                      "description": "Admin | Seller (bỏ trống = tất cả)"
+                    },
+                    {
+                      "key": "unreadOnly",
+                      "value": "false",
+                      "description": "true = chỉ trả về thông báo chưa đọc"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "description": "Trang (mặc định 1)"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "20",
+                      "description": "Kích thước trang (mặc định 20, tối đa 100)"
+                    }
+                  ]
+                },
+                "description": "Lấy danh sách thông báo theo vai trò và trạng thái đọc. Yêu cầu role Administrator hoặc Seller."
+              },
+              "response": [
+                {
+                  "name": "200 OK - danh sách thông báo",
+                  "originalRequest": {
+                    "method": "GET",
+                    "header": [],
+                    "url": {
+                      "raw": "{{testUrl}}/api/notifications?role=Admin&unreadOnly=false&page=1&pageSize=20",
+                      "host": [
+                        "{{testUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "notifications"
+                      ],
+                      "query": [
+                        {
+                          "key": "role",
+                          "value": "Admin"
+                        },
+                        {
+                          "key": "unreadOnly",
+                          "value": "false"
+                        },
+                        {
+                          "key": "page",
+                          "value": "1"
+                        },
+                        {
+                          "key": "pageSize",
+                          "value": "20"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": "{\"isSuccess\":true,\"message\":null,\"data\":{\"items\":[{\"id\":\"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\"title\":\"Đơn hàng hoàn thành\",\"message\":\"Đơn hàng ORD-001 đã được thanh toán thành công. Tổng tiền: 250,000đ.\",\"type\":\"Info\",\"role\":\"Seller\",\"isRead\":false,\"createdAt\":\"2026-03-24T08:30:00Z\",\"referenceId\":\"abc12345-0000-0000-0000-000000000001\",\"referenceType\":\"SalesOrder\"}],\"totalCount\":1,\"page\":1,\"pageSize\":20,\"totalPages\":1,\"hasNextPage\":false,\"unreadCount\":1}}"
+                }
+              ]
+            },
+            {
+              "name": "Đánh dấu một thông báo đã đọc",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{testUrl}}/api/notifications/:id/read",
+                  "host": [
+                    "{{testUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "notifications",
+                    ":id",
+                    "read"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                      "description": "Notification ID (UUID)"
+                    }
+                  ]
+                },
+                "description": "Đánh dấu một thông báo là đã đọc theo ID."
+              },
+              "response": [
+                {
+                  "name": "200 OK - đánh dấu thành công",
+                  "originalRequest": {
+                    "method": "PUT",
+                    "header": [],
+                    "url": {
+                      "raw": "{{testUrl}}/api/notifications/:id/read",
+                      "host": [
+                        "{{testUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "notifications",
+                        ":id",
+                        "read"
+                      ],
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": "{\"isSuccess\":true,\"message\":\"Đã đánh dấu thông báo là đã đọc.\",\"data\":null}"
+                },
+                {
+                  "name": "404 Not Found - không tìm thấy thông báo",
+                  "originalRequest": {
+                    "method": "PUT",
+                    "header": [],
+                    "url": {
+                      "raw": "{{testUrl}}/api/notifications/:id/read",
+                      "host": [
+                        "{{testUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "notifications",
+                        ":id",
+                        "read"
+                      ],
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "00000000-0000-0000-0000-000000000000"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "Not Found",
+                  "code": 404,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": "{\"isSuccess\":false,\"message\":\"Không tìm thấy thông báo.\",\"data\":null}"
+                }
+              ]
+            },
+            {
+              "name": "Đánh dấu tất cả thông báo đã đọc",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{testUrl}}/api/notifications/read-all?role=Admin",
+                  "host": [
+                    "{{testUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "notifications",
+                    "read-all"
+                  ],
+                  "query": [
+                    {
+                      "key": "role",
+                      "value": "Admin",
+                      "description": "Admin | Seller | Both"
+                    }
+                  ]
+                },
+                "description": "Đánh dấu tất cả thông báo của một vai trò là đã đọc (bulk update)."
+              },
+              "response": [
+                {
+                  "name": "200 OK - đánh dấu tất cả thành công",
+                  "originalRequest": {
+                    "method": "PUT",
+                    "header": [],
+                    "url": {
+                      "raw": "{{testUrl}}/api/notifications/read-all?role=Admin",
+                      "host": [
+                        "{{testUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "notifications",
+                        "read-all"
+                      ],
+                      "query": [
+                        {
+                          "key": "role",
+                          "value": "Admin"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": "{\"isSuccess\":true,\"message\":\"Đã đánh dấu tất cả thông báo là đã đọc.\",\"data\":null}"
+                },
+                {
+                  "name": "400 Bad Request - vai trò không hợp lệ",
+                  "originalRequest": {
+                    "method": "PUT",
+                    "header": [],
+                    "url": {
+                      "raw": "{{testUrl}}/api/notifications/read-all?role=Invalid",
+                      "host": [
+                        "{{testUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "notifications",
+                        "read-all"
+                      ],
+                      "query": [
+                        {
+                          "key": "role",
+                          "value": "Invalid"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "Bad Request",
+                  "code": 400,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": "{\"isSuccess\":false,\"message\":\"Vai trò 'Invalid' không hợp lệ.\",\"data\":null}"
+                }
+              ]
+            }
+          ]
         }
       ],
       "auth": {

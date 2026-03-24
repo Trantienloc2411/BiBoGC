@@ -144,8 +144,10 @@ public class SalesOrder : BaseEntity
     }
 
     /// <summary>
-    /// Tính và áp dụng thuế dựa trên thuế suất (0.0 – 1.0).
-    /// Gọi trước Complete(). Nếu rate = 0 thì TaxAmount = 0.
+    /// Trích xuất thuế từ tổng tiền (giá đã bao gồm thuế).
+    /// TotalAmount KHÔNG thay đổi — khách hàng vẫn trả đúng số tiền ban đầu.
+    /// TaxAmount chỉ mang tính chất kế toán/báo cáo.
+    /// Công thức: taxAmount = total * rate / (1 + rate)
     /// </summary>
     public void ApplyTax(decimal taxRate)
     {
@@ -154,8 +156,14 @@ public class SalesOrder : BaseEntity
         if (taxRate < 0 || taxRate > 1)
             throw new ArgumentException("Thuế suất phải nằm trong khoảng 0 – 1.", nameof(taxRate));
 
-        TaxAmount = Math.Round(SubTotal * taxRate, 2, MidpointRounding.AwayFromZero);
-        RecalculateTotals();
+        // Tax-inclusive pricing: extract the embedded tax — do NOT add on top
+        var taxableAmount = SubTotal - DiscountAmount;
+        TaxAmount = taxRate == 0
+            ? 0m
+            : Math.Round(taxableAmount * taxRate / (1 + taxRate), 2, MidpointRounding.AwayFromZero);
+
+        UpdatedAt = DateTime.UtcNow;
+        // TotalAmount is intentionally NOT recalculated — customer pays the same amount
     }
 
     /// <summary>
@@ -297,11 +305,13 @@ public class SalesOrder : BaseEntity
     private void RecalculateTotals()
     {
         SubTotal = _items.Sum(i => i.LineTotal);
-        TotalAmount = SubTotal - DiscountAmount + TaxAmount;
+        TotalAmount = SubTotal - DiscountAmount;
 
         if (TotalAmount < 0)
             TotalAmount = 0;
 
+        // Reset extracted tax whenever totals change — ApplyTax must be called again before Complete
+        TaxAmount = 0;
         UpdatedAt = DateTime.UtcNow;
     }
 

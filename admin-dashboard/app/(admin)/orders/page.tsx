@@ -1,0 +1,188 @@
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
+import { api } from '@/lib/api'
+import { SalesOrderSummaryDto, PagedResult, ApiResponse } from '@/types'
+import { formatCurrency, formatDateTime } from '@/lib/utils'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Pagination } from '@/components/ui/Pagination'
+import { Search, Eye, FileText, X } from 'lucide-react'
+
+const PAGE_SIZE = 20
+
+const STATUS_OPTIONS = [
+  { value: '', label: 'Tất cả' },
+  { value: 'Draft', label: 'Đang soạn' },
+  { value: 'Completed', label: 'Hoàn thành' },
+  { value: 'Cancelled', label: 'Đã huỷ' },
+]
+
+export default function OrdersPage() {
+  const [orders, setOrders] = useState<SalesOrderSummaryDto[]>([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(true)
+
+  const [status, setStatus] = useState('')
+  const [search, setSearch] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+
+  const load = useCallback(async (p: number) => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: String(p),
+        pageSize: String(PAGE_SIZE),
+      })
+      if (status) params.set('status', status)
+      if (search) params.set('search', search)
+      if (dateFrom) params.set('dateFrom', dateFrom)
+      if (dateTo) params.set('dateTo', dateTo)
+
+      const res = await api.get(`/api/salesorders?${params}`)
+      if (res.ok) {
+        const json = await res.json()
+        const data: PagedResult<SalesOrderSummaryDto> = json.data ?? json
+        const sorted = [...data.items].sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        setOrders(sorted)
+        setTotal(data.totalCount)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [status, search, dateFrom, dateTo])
+
+  useEffect(() => {
+    setPage(1)
+    load(1)
+  }, [status, search, dateFrom, dateTo]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { load(page) }, [page, load])
+
+  const totalPages = Math.ceil(total / PAGE_SIZE)
+
+  return (
+    <div className="space-y-4">
+      <h1 className="text-xl font-bold text-gray-800">Đơn hàng</h1>
+
+      {/* Filters */}
+      <Card className="flex flex-wrap gap-3 items-end">
+        <div className="flex-1 min-w-[180px]">
+          <label className="block text-xs font-medium text-gray-500 mb-1.5">Tìm kiếm</label>
+          <div className="relative">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Mã đơn, khách hàng..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full text-sm text-gray-700 border border-gray-200 rounded-md pl-9 pr-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1.5">Trạng thái</label>
+          <select
+            value={status}
+            onChange={e => setStatus(e.target.value)}
+            className="text-sm text-gray-700 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          >
+            {STATUS_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1.5">Từ ngày</label>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={e => setDateFrom(e.target.value)}
+            className="text-sm text-gray-700 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1.5">Đến ngày</label>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={e => setDateTo(e.target.value)}
+            className="text-sm text-gray-700 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          />
+        </div>
+        {(status || search || dateFrom || dateTo) && (
+          <button
+            onClick={() => { setStatus(''); setSearch(''); setDateFrom(''); setDateTo('') }}
+            className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1 pb-2"
+          >
+            <X size={14} /> Xoá bộ lọc
+          </button>
+        )}
+      </Card>
+
+      <p className="text-sm text-gray-400 px-1">{total.toLocaleString()} đơn hàng</p>
+
+      {loading ? <LoadingSpinner /> : (
+        <>
+          {orders.length === 0 ? (
+            <Card>
+              <p className="text-center text-gray-400 py-8 text-sm">Không có đơn hàng nào</p>
+            </Card>
+          ) : (
+            <Card className="p-0 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 bg-gray-50/60">
+                      <th className="text-left font-medium text-gray-500 px-4 py-3">Mã đơn</th>
+                      <th className="text-left font-medium text-gray-500 px-4 py-3">Trạng thái</th>
+                      <th className="text-right font-medium text-gray-500 px-4 py-3">Tổng tiền</th>
+                      <th className="text-left font-medium text-gray-500 px-4 py-3">Ngày tạo</th>
+                      <th className="text-center font-medium text-gray-500 px-4 py-3">Hoá đơn</th>
+                      <th className="text-right font-medium text-gray-500 px-4 py-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {orders.map(order => (
+                      <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-4 py-3 font-medium text-gray-800">{order.orderNumber}</td>
+                        <td className="px-4 py-3"><StatusBadge status={order.status} /></td>
+                        <td className="px-4 py-3 text-right text-gray-700">{formatCurrency(order.totalAmount)}</td>
+                        <td className="px-4 py-3 text-gray-500">{formatDateTime(order.createdAt)}</td>
+                        <td className="px-4 py-3 text-center">
+                          {order.invoiceNumber ? (
+                            <Link href={`/invoices`} className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
+                              <FileText size={13} /> {order.invoiceNumber}
+                            </Link>
+                          ) : (
+                            <span className="text-xs text-gray-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Link href={`/orders/${order.id}`}>
+                            <Button size="sm" variant="ghost" className="gap-1.5">
+                              <Eye size={15} /> Chi tiết
+                            </Button>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+        </>
+      )}
+    </div>
+  )
+}
