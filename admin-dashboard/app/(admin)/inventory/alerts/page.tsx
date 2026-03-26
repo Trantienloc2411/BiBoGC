@@ -167,8 +167,8 @@ export default function AlertsPage() {
                       </thead>
                       <tbody className="divide-y divide-gray-100">
                         {lowStock.map(p => {
-                          const pct = p.lowStockThreshold > 0
-                            ? Math.min(100, Math.round((p.availableStock / p.lowStockThreshold) * 100))
+                          const pct = (p.lowStockThreshold ?? 0) > 0
+                            ? Math.min(100, Math.round((p.availableStock / p.lowStockThreshold!) * 100))
                             : 0
                           const barColor = pct === 0 ? 'bg-red-500' : pct < 50 ? 'bg-orange-400' : 'bg-amber-400'
                           return (
