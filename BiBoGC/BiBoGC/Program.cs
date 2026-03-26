@@ -12,6 +12,9 @@ using InventoryManagement.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Notification.Application;
+using Notification.Infrastructure;
+using Notification.Infrastructure.Data;
 using Sale.Application;
 using Sale.Infrastructure;
 using Sale.Infrastructure.Data;
@@ -57,11 +60,17 @@ public class Program
                 options.EnableDetailedErrors();
                 options.EnableSensitiveDataLogging(true);
             });
+            builder.AddNpgsqlDbContext<NotificationDbContext>("InventoryDb", configureDbContextOptions: options =>
+            {
+                options.EnableDetailedErrors();
+                options.EnableSensitiveDataLogging(true);
+            });
 
             // Register repositories (DbContext already registered by Aspire above)
             builder.Services.AddInventoryInfrastructureWithAspire();
             builder.Services.AddSaleInfrastructureWithAspire();
             builder.Services.AddFinanceInfrastructureWithAspire();
+            builder.Services.AddNotificationInfrastructureWithAspire();
         }
         else
         {
@@ -113,7 +122,7 @@ public class Program
             });
 
             var financeConnectionString = builder.Configuration.GetConnectionString("FinanceDb")
-                ?? connectionString;
+                                          ?? connectionString;
             builder.Services.AddDbContextPool<FinanceDbContext>(options =>
             {
                 options.UseNpgsql(financeConnectionString, npgsqlOptions =>
@@ -128,10 +137,22 @@ public class Program
                 options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
             });
 
+            builder.Services.AddDbContextPool<NotificationDbContext>(options =>
+            {
+                options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.MigrationsAssembly(typeof(NotificationDbContext).Assembly.FullName);
+                    npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null);
+                });
+                options.EnableDetailedErrors();
+                options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
+            });
+
             // Register repositories
             builder.Services.AddInventoryInfrastructureWithAspire();
             builder.Services.AddSaleInfrastructureWithAspire();
             builder.Services.AddFinanceInfrastructureWithAspire();
+            builder.Services.AddNotificationInfrastructureWithAspire();
         }
 
         // Register Application layer (MediatR, Validators)
@@ -140,6 +161,7 @@ public class Program
         builder.Services.AddAuthorizationModule();
         builder.Services.AddSaleApplication();
         builder.Services.AddFinanceApplication();
+        builder.Services.AddNotificationApplication();
 
         var jwtSection = builder.Configuration.GetSection("Jwt");
         var key = Encoding.UTF8.GetBytes(jwtSection["Key"]!);
@@ -234,6 +256,7 @@ public class Program
         await app.Services.InitializeAuthorizationDatabaseAsync();
         await app.Services.InitializeSaleDatabaseAsync();
         await app.Services.InitializeFinanceDatabaseAsync();
+        await app.Services.InitializeNotificationDatabaseAsync();
 
         // Configure middleware pipeline
         if (app.Environment.IsDevelopment())

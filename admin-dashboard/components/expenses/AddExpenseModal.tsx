@@ -13,7 +13,7 @@ interface Props {
 }
 
 export function AddExpenseModal({ onClose, onSuccess, defaultDate }: Props) {
-  const [category, setCategory]       = useState<number>(ExpenseCategory.Others)
+  const [category, setCategory]       = useState<number>(ExpenseCategory.Other)
   const [amount, setAmount]           = useState('')
   const [description, setDescription] = useState('')
   const [expenseDate, setExpenseDate] = useState(defaultDate)

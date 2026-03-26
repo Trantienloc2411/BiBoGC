@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using QuestPDF.Infrastructure;
 using Sale.Application.Interfaces;
 using Sale.Infrastructure.Data;
 using Sale.Infrastructure.Repositories;
@@ -14,6 +15,8 @@ public static class DependencyInjection
         this IServiceCollection services,
         string connectionString)
     {
+        QuestPDF.Settings.License = LicenseType.Community;
+
         services.AddDbContext<SaleDbContext>(options =>
         {
             options.UseNpgsql(connectionString, npgsqlOptions =>
@@ -33,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IInvoiceNumberGenerator, InvoiceNumberGenerator>();
         services.AddScoped<IStoreInfoService, StoreInfoService>();
         services.AddScoped<ISaleUnitOfWork, SaleUnitOfWork>();
+        services.AddScoped<IPdfExportService, PdfExportService>();
 
         return services;
     }
@@ -46,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<IInvoiceNumberGenerator, InvoiceNumberGenerator>();
         services.AddScoped<IStoreInfoService, StoreInfoService>();
         services.AddScoped<ISaleUnitOfWork, SaleUnitOfWork>();
+        services.AddScoped<IPdfExportService, PdfExportService>();
 
         return services;
     }

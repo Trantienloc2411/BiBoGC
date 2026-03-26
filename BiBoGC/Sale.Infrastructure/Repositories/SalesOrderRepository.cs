@@ -35,14 +35,15 @@ public class SalesOrderRepository : ISalesOrderRepository
             .FirstOrDefaultAsync(x => x.OrderNumber == orderNumber, ct);
     }
 
-    public async Task<(IEnumerable<SalesOrder> Items, int TotalCount)> GetAllAsync(
-        int page,
-        int pageSize,
-        OrderStatus? status = null,
-        DateTime? dateFrom = null,
-        DateTime? dateTo = null,
-        string? search = null,
-        CancellationToken ct = default)
+    public async Task<(IEnumerable<SalesOrder> Items, int TotalCount, IReadOnlyDictionary<Guid, string> InvoiceNumbers)>
+        GetAllAsync(
+            int page,
+            int pageSize,
+            OrderStatus? status = null,
+            DateTime? dateFrom = null,
+            DateTime? dateTo = null,
+            string? search = null,
+            CancellationToken ct = default)
     {
         var query = _context.SalesOrders
             .Include(x => x.Items.Where(i => !i.IsDeleted))
@@ -75,7 +76,20 @@ public class SalesOrderRepository : ISalesOrderRepository
             .AsNoTracking()
             .ToListAsync(ct);
 
-        return (items, totalCount);
+        // Batch-fetch invoice numbers for orders that have an InvoiceId
+        var invoiceIds = items
+            .Where(o => o.InvoiceId.HasValue)
+            .Select(o => o.InvoiceId!.Value)
+            .ToList();
+
+        IReadOnlyDictionary<Guid, string> invoiceNumbers = new Dictionary<Guid, string>();
+        if (invoiceIds.Count > 0)
+            invoiceNumbers = await _context.Invoices
+                .Where(i => invoiceIds.Contains(i.Id))
+                .Select(i => new { i.Id, i.InvoiceNumber })
+                .ToDictionaryAsync(i => i.Id, i => i.InvoiceNumber, ct);
+
+        return (items, totalCount, invoiceNumbers);
     }
 
     public async Task<SalesOrder> AddAsync(SalesOrder order, CancellationToken ct = default)

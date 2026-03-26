@@ -8,17 +8,21 @@ using Sale.Application.Mappers;
 using Sale.Domain.Exceptions;
 using Shared.Application.Common;
 using Shared.Application.Interfaces;
+using Shared.Domain.Enums;
+using ITaxConfigService = Shared.Application.Interfaces.ITaxConfigService;
 
 namespace Sale.Application.Commands.CompleteOrder;
 
 public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand, Result<SalesOrderDto>>
 {
+    private readonly IAuditLogger _auditLogger;
+    private readonly INotificationService _notificationService;
     private readonly ISalesOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
     private readonly IStockTransactionRepository _stockTransactionRepository;
+    private readonly ITaxConfigService _taxConfigService;
     private readonly ISaleUnitOfWork _unitOfWork;
     private readonly IProductVariantRepository _variantRepository;
-    private readonly IAuditLogger _auditLogger;
 
     public CompleteOrderCommandHandler(
         ISalesOrderRepository orderRepository,
@@ -26,7 +30,9 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
         IProductVariantRepository variantRepository,
         IStockTransactionRepository stockTransactionRepository,
         ISaleUnitOfWork unitOfWork,
-        IAuditLogger auditLogger)
+        IAuditLogger auditLogger,
+        ITaxConfigService taxConfigService,
+        INotificationService notificationService)
     {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
@@ -34,6 +40,8 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
         _stockTransactionRepository = stockTransactionRepository;
         _unitOfWork = unitOfWork;
         _auditLogger = auditLogger;
+        _taxConfigService = taxConfigService;
+        _notificationService = notificationService;
     }
 
     public async Task<Result<SalesOrderDto>> Handle(
@@ -93,9 +101,13 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
             stockDeductions.Add((product, variant, batch, quantityInBaseUnits, item));
         }
 
+        // Extract embedded tax for accounting/invoice purposes (does NOT change TotalAmount)
+        var vatRate = await _taxConfigService.GetActiveVatRateAsync(cancellationToken);
+
         // Complete the order in memory (raises SalesOrderCompletedEvent)
         try
         {
+            order.ApplyTax(vatRate);
             order.Complete(request.AmountPaid);
         }
         catch (InvalidOrderStateException ex)
@@ -140,8 +152,18 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
         await _auditLogger.LogAsync(
             action: "SalesOrder.Complete",
             isSuccess: true,
-            description: $"OrderId={order.Id}, OrderNumber={order.OrderNumber}, Total={order.TotalAmount:F2}, AmountPaid={request.AmountPaid:F2}",
+            description:
+            $"OrderId={order.Id}, OrderNumber={order.OrderNumber}, Total={order.TotalAmount:F2}, AmountPaid={request.AmountPaid:F2}",
             cancellationToken: cancellationToken);
+
+        await _notificationService.NotifyAsync(
+            "Đơn hàng hoàn thành",
+            $"Đơn hàng {order.OrderNumber} đã được thanh toán thành công. Tổng tiền: {order.TotalAmount:N0}đ.",
+            NotificationType.Info,
+            NotificationRole.Both,
+            order.Id,
+            "SalesOrder",
+            cancellationToken);
 
         return Result<SalesOrderDto>.Success(dto);
     }

@@ -42,6 +42,8 @@
         <ProjectReference Include="..\Sale.Infrastructure\Sale.Infrastructure.csproj"/>
         <ProjectReference Include="..\Finance.Application\Finance.Application.csproj"/>
         <ProjectReference Include="..\Finance.Infrastructure\Finance.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Notification.Application\Notification.Application.csproj"/>
+        <ProjectReference Include="..\Notification.Infrastructure\Notification.Infrastructure.csproj"/>
     </ItemGroup>
 
 </Project>

@@ -19,4 +19,6 @@ public interface ISalesDataReader
 
     Task<List<DailySales>> GetDailyBreakdownAsync(
         DateTime utcFrom, DateTime utcTo, CancellationToken ct = default);
+
+    Task<List<MonthlySales>> GetMonthlyBreakdownAsync(int year, CancellationToken ct = default);
 }

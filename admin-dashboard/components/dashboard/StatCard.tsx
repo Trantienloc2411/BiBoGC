@@ -21,17 +21,17 @@ export function StatCard({ label, value, changePercent, icon, color }: StatCardP
   const isZero     = (changePercent ?? 0) === 0
 
   return (
-    <Card className="flex flex-col gap-1">
+    <Card className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-500 font-medium">{label}</span>
-        <span className={`text-base p-1.5 rounded-md ${colors[color]}`}>{icon}</span>
+        <span className="text-sm text-gray-500 font-medium">{label}</span>
+        <span className={`text-lg p-2 rounded-md ${colors[color]}`}>{icon}</span>
       </div>
-      <p className="text-xl font-bold text-gray-800">{formatCurrency(value)}</p>
+      <p className="text-2xl font-bold text-gray-800">{formatCurrency(value)}</p>
       {changePercent !== undefined && (
-        <div className={`flex items-center gap-1 text-xs font-medium ${
+        <div className={`flex items-center gap-1 text-sm font-medium ${
           isZero ? 'text-gray-400' : isPositive ? 'text-emerald-600' : 'text-red-500'
         }`}>
-          {isZero ? <Minus size={12} /> : isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+          {isZero ? <Minus size={14} /> : isPositive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
           <span>{formatPercent(changePercent)} so với hôm qua</span>
         </div>
       )}

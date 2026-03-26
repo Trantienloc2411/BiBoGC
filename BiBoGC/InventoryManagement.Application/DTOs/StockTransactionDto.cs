@@ -10,6 +10,7 @@ public class StockTransactionDto
     public Guid? SupplierId { get; set; }
     public string? SupplierName { get; set; }
     public string Sku { get; set; } = null!;
+    public int Quantity { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal TotalAmount { get; set; }
     public string? ReferenceNumber { get; set; }

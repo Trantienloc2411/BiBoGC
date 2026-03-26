@@ -159,18 +159,18 @@ class QuickActionsGrid extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              child: Icon(icon, color: iconColor, size: 28),
+              child: Icon(icon, color: iconColor, size: 22),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
             Text(
               label,
-              style: theme.textTheme.titleMedium?.copyWith(
+              style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               subLabel,
               style: theme.textTheme.bodySmall?.copyWith(

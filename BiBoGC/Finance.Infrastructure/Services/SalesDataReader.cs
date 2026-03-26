@@ -25,7 +25,7 @@ public class SalesDataReader : ISalesDataReader
             .GroupBy(_ => 1)
             .Select(g => new
             {
-                TotalRevenue     = g.Sum(o => o.TotalAmount),
+                TotalRevenue = g.Sum(o => o.TotalAmount),
                 TransactionCount = g.Count()
             })
             .FirstOrDefaultAsync(ct);
@@ -56,14 +56,14 @@ public class SalesDataReader : ISalesDataReader
                 g.Key.ProductName,
                 g.Key.VariantName,
                 QuantitySold = g.Sum(i => i.Quantity),
-                Revenue      = g.Sum(i => i.UnitPrice * (decimal)i.Quantity)
+                Revenue = g.Sum(i => i.UnitPrice * (decimal)i.Quantity)
             })
             .OrderByDescending(r => r.Revenue)
             .Take(take)
             .ToListAsync(ct);
 
         return rows.Select(r => new TopProduct(r.ProductName, r.VariantName, r.QuantitySold, r.Revenue))
-                   .ToList();
+            .ToList();
     }
 
     public async Task<List<HourlySales>> GetHourlySalesAsync(
@@ -76,15 +76,15 @@ public class SalesDataReader : ISalesDataReader
             .GroupBy(o => o.OrderDate.Hour)
             .Select(g => new
             {
-                Hour             = g.Key,
-                Revenue          = g.Sum(o => o.TotalAmount),
+                Hour = g.Key,
+                Revenue = g.Sum(o => o.TotalAmount),
                 TransactionCount = g.Count()
             })
             .OrderBy(r => r.Hour)
             .ToListAsync(ct);
 
         return rows.Select(r => new HourlySales(r.Hour, r.Revenue, r.TransactionCount))
-                   .ToList();
+            .ToList();
     }
 
     public async Task<List<DailySales>> GetDailyBreakdownAsync(
@@ -97,14 +97,37 @@ public class SalesDataReader : ISalesDataReader
             .GroupBy(o => o.OrderDate.Day)
             .Select(g => new
             {
-                Day              = g.Key,
-                Revenue          = g.Sum(o => o.TotalAmount),
+                Day = g.Key,
+                Revenue = g.Sum(o => o.TotalAmount),
                 TransactionCount = g.Count()
             })
             .OrderBy(r => r.Day)
             .ToListAsync(ct);
 
         return rows.Select(r => new DailySales(r.Day, r.Revenue, r.TransactionCount))
-                   .ToList();
+            .ToList();
+    }
+
+    public async Task<List<MonthlySales>> GetMonthlyBreakdownAsync(int year, CancellationToken ct = default)
+    {
+        var utcFrom = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var utcTo = new DateTime(year, 12, 31, 23, 59, 59, 999, DateTimeKind.Utc);
+
+        var rows = await _context.SalesOrders
+            .Where(o => o.Status == OrderStatus.Completed
+                        && o.OrderDate >= utcFrom
+                        && o.OrderDate <= utcTo)
+            .GroupBy(o => o.OrderDate.Month)
+            .Select(g => new
+            {
+                Month = g.Key,
+                Revenue = g.Sum(o => o.TotalAmount),
+                TransactionCount = g.Count()
+            })
+            .OrderBy(r => r.Month)
+            .ToListAsync(ct);
+
+        return rows.Select(r => new MonthlySales(r.Month, r.Revenue, r.TransactionCount))
+            .ToList();
     }
 }

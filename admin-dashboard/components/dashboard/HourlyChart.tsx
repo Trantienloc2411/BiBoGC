@@ -23,16 +23,16 @@ export function HourlyChart({ data }: HourlyChartProps) {
 
   return (
     <Card className="h-full flex flex-col">
-      <h3 className="font-semibold text-gray-700 mb-3 text-sm">Doanh thu theo giờ</h3>
+      <h3 className="font-semibold text-gray-700 mb-4 text-base">Doanh thu theo giờ</h3>
       {chartData.length === 0 ? (
-        <p className="text-center text-gray-400 py-6 text-sm">Chưa có dữ liệu hôm nay</p>
+        <p className="text-center text-gray-400 py-10 text-sm">Chưa có dữ liệu hôm nay</p>
       ) : (
-        <div className="flex-1 min-h-[160px]">
+        <div className="flex-1 min-h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+            <BarChart data={chartData} margin={{ top: 0, right: 0, left: -15, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <XAxis dataKey="hour" tick={{ fontSize: 11, fill: '#9ca3af' }} />
-              <YAxis tickFormatter={formatMillions} tick={{ fontSize: 11, fill: '#9ca3af' }} />
+              <XAxis dataKey="hour" tick={{ fontSize: 12, fill: '#9ca3af' }} />
+              <YAxis tickFormatter={formatMillions} tick={{ fontSize: 12, fill: '#9ca3af' }} />
               <Tooltip
                 formatter={(v: number) => [`${formatMillions(v)}đ`, 'Doanh thu']}
                 contentStyle={{ borderRadius: 6, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: 13 }}

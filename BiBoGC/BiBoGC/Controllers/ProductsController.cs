@@ -12,7 +12,12 @@ using InventoryManagement.Application.Queries.GetBatch;
 using InventoryManagement.Application.Queries.GetBatches;
 using InventoryManagement.Application.Queries.GetProduct;
 using InventoryManagement.Application.Queries.GetProducts;
+using InventoryManagement.Application.Queries.GetExpiredBatchProducts;
+using InventoryManagement.Application.Queries.GetExpiringSoonProducts;
+using InventoryManagement.Application.Queries.GetLowStockProducts;
 using InventoryManagement.Application.Queries.GetProductVariantsByProductId;
+using InventoryManagement.Application.Queries.GetVariantByBarcode;
+using InventoryManagement.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -92,16 +97,55 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> GetProducts(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] string? searchTerm = null)
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] ProductStatuses? status = null)
     {
         var query = new GetProductsQuery
         {
             PageNumber = pageNumber,
             PageSize = pageSize,
-            SearchTerm = searchTerm
+            SearchTerm = searchTerm,
+            Status = status
         };
 
         var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Get products with low stock (AvailableStock below LowStockThreshold)
+    /// </summary>
+    [HttpGet("low-stock")]
+    [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)]
+    [Authorize(Roles = "Seller,Administrator")]
+    public async Task<IActionResult> GetLowStockProducts()
+    {
+        var result = await _mediator.Send(new GetLowStockProductsQuery());
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Get products that have expired batches
+    /// </summary>
+    [HttpGet("expired-batches")]
+    [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)]
+    [Authorize(Roles = "Seller,Administrator")]
+    public async Task<IActionResult> GetExpiredBatchProducts()
+    {
+        var result = await _mediator.Send(new GetExpiredBatchProductsQuery());
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Get products that have batches expiring soon
+    /// </summary>
+    /// <param name="thresholdDays">Days threshold for "expiring soon" (default: 30)</param>
+    [HttpGet("expiring-soon")]
+    [ProducesResponseType(typeof(IEnumerable<ProductDto>), StatusCodes.Status200OK)]
+    [Authorize(Roles = "Seller,Administrator")]
+    public async Task<IActionResult> GetExpiringSoonProducts([FromQuery] int thresholdDays = 30)
+    {
+        var result = await _mediator.Send(new GetExpiringSoonProductsQuery { ThresholdDays = thresholdDays });
         return Ok(result);
     }
 
@@ -388,7 +432,8 @@ public class ProductsController : ControllerBase
             });
         }
 
-        return CreatedAtAction(nameof(GetBatch), new { productId = productId, batchId = result.Value!.Id }, result.Value);
+        return CreatedAtAction(nameof(GetBatch), new { productId = productId, batchId = result.Value!.Id },
+            result.Value);
     }
 
     /// <summary>
@@ -687,7 +732,34 @@ public class ProductsController : ControllerBase
                 Status = StatusCodes.Status400BadRequest
             });
         }
+
         return NoContent();
+    }
+
+    // ─── Barcode Lookup ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Tìm biến thể sản phẩm theo barcode (dùng cho máy quét mã vạch)
+    /// </summary>
+    [HttpGet("variants/by-barcode")]
+    [Authorize(Roles = "Administrator,Seller")]
+    [ProducesResponseType(typeof(ProductVariantDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetVariantByBarcode(
+        [FromQuery] string code,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetVariantByBarcodeQuery(code), ct);
+
+        if (!result.IsSuccess)
+            return NotFound(new ProblemDetails
+            {
+                Title = "Không tìm thấy sản phẩm",
+                Detail = result.Errors.FirstOrDefault(),
+                Status = StatusCodes.Status404NotFound
+            });
+
+        return Ok(result.Value);
     }
 }
 
