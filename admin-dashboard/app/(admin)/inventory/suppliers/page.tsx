@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { supplierApi } from '@/lib/api'
-import type { SupplierDtoV2, CreateSupplierRequestV2 } from '@/types'
+import type { SupplierDtoV2, CreateSupplierRequestV2, UpdateSupplierRequest } from '@/types'
 import { formatDate } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -11,7 +11,7 @@ import { Pagination } from '@/components/ui/Pagination'
 import { FormDialog, FormField, FormError, inputClass } from '@/components/ui/FormDialog'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/ui/Toast'
-import { Plus, Pencil, Trash2, Search, X, Phone, Mail, MapPin, Building2, FileText, StickyNote } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, X, Phone, MapPin, Building2 } from 'lucide-react'
 
 const PAGE_SIZE = 12
 
@@ -30,7 +30,19 @@ export default function SuppliersPage() {
   const [editing, setEditing] = useState<SupplierDtoV2 | null>(null)
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState('')
-  const [form, setForm] = useState<CreateSupplierRequestV2>({ name: '' })
+
+  // For create: contactPerson + phoneNumber; for edit: contactName + contactPhone + isActive
+  const [form, setForm] = useState<{
+    name: string
+    // create fields
+    contactPerson: string
+    phoneNumber: string
+    // edit fields
+    contactName: string
+    contactPhone: string
+    address: string
+    isActive?: boolean
+  }>({ name: '', contactPerson: '', phoneNumber: '', contactName: '', contactPhone: '', address: '' })
 
   const [deleteTarget, setDeleteTarget] = useState<SupplierDtoV2 | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -60,7 +72,7 @@ export default function SuppliersPage() {
 
   function openCreate() {
     setEditing(null)
-    setForm({ name: '', contactPerson: '', phone: '', email: '', address: '', taxCode: '', notes: '' })
+    setForm({ name: '', contactPerson: '', phoneNumber: '', contactName: '', contactPhone: '', address: '' })
     setFormError('')
     setShowForm(true)
   }
@@ -68,9 +80,13 @@ export default function SuppliersPage() {
   function openEdit(s: SupplierDtoV2) {
     setEditing(s)
     setForm({
-      name: s.name, contactPerson: s.contactPerson ?? '', phone: s.phone ?? '',
-      email: s.email ?? '', address: s.address ?? '', taxCode: s.taxCode ?? '',
-      notes: s.notes ?? '',
+      name: s.name,
+      contactPerson: '',
+      phoneNumber: '',
+      contactName: s.contactName ?? '',
+      contactPhone: s.contactPhone ?? '',
+      address: s.address ?? '',
+      isActive: s.isActive,
     })
     setFormError('')
     setShowForm(true)
@@ -81,19 +97,25 @@ export default function SuppliersPage() {
     if (!form.name.trim()) { setFormError('Tên nhà cung cấp không được trống.'); return }
     setFormLoading(true)
     try {
-      const body: CreateSupplierRequestV2 = {
-        name: form.name.trim(),
-        contactPerson: form.contactPerson || undefined,
-        phone: form.phone || undefined,
-        email: form.email || undefined,
-        address: form.address || undefined,
-        taxCode: form.taxCode || undefined,
-        notes: form.notes || undefined,
-      }
       if (editing) {
+        // UpdateSupplierRequest: { name, contactName, contactPhone, address, isActive }
+        const body: UpdateSupplierRequest = {
+          name: form.name.trim(),
+          contactName: form.contactName || undefined,
+          contactPhone: form.contactPhone || undefined,
+          address: form.address || undefined,
+          isActive: form.isActive,
+        }
         await supplierApi.update(editing.id, body)
         success('Cập nhật nhà cung cấp thành công')
       } else {
+        // CreateSupplierRequestV2: { name, contactPerson, phoneNumber, address }
+        const body: CreateSupplierRequestV2 = {
+          name: form.name.trim(),
+          contactPerson: form.contactPerson || undefined,
+          phoneNumber: form.phoneNumber || undefined,
+          address: form.address || undefined,
+        }
         await supplierApi.create(body)
         success('Thêm nhà cung cấp thành công')
       }
@@ -128,7 +150,7 @@ export default function SuppliersPage() {
           <label className="block text-xs font-medium text-gray-500 mb-1.5">Tìm kiếm</label>
           <div className="relative">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type="text" placeholder="Tên, liên hệ, email..." value={searchInput} onChange={e => setSearchInput(e.target.value)}
+            <input type="text" placeholder="Tên, liên hệ..." value={searchInput} onChange={e => setSearchInput(e.target.value)}
               className="w-full text-sm text-gray-700 border border-gray-200 rounded-md pl-9 pr-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400" />
           </div>
         </div>
@@ -156,10 +178,13 @@ export default function SuppliersPage() {
                       </div>
                       <div className="min-w-0">
                         <p className="font-semibold text-gray-800 truncate">{s.name}</p>
-                        {s.contactPerson && <p className="text-xs text-gray-500 mt-0.5 truncate">{s.contactPerson}</p>}
+                        {s.contactName && <p className="text-xs text-gray-500 mt-0.5 truncate">{s.contactName}</p>}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
+                      {!s.isActive && (
+                        <span className="text-xs bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">Ngưng</span>
+                      )}
                       <Button size="sm" variant="ghost" onClick={() => openEdit(s)} className="h-8 w-8 p-0 flex items-center justify-center">
                         <Pencil size={14} />
                       </Button>
@@ -170,14 +195,9 @@ export default function SuppliersPage() {
                   </div>
 
                   <div className="space-y-1.5 text-xs text-gray-500">
-                    {s.phone && (
-                      <a href={`tel:${s.phone}`} className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
-                        <Phone size={12} className="shrink-0" /> {s.phone}
-                      </a>
-                    )}
-                    {s.email && (
-                      <a href={`mailto:${s.email}`} className="flex items-center gap-1.5 hover:text-blue-600 transition-colors truncate">
-                        <Mail size={12} className="shrink-0" /> {s.email}
+                    {s.contactPhone && (
+                      <a href={`tel:${s.contactPhone}`} className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
+                        <Phone size={12} className="shrink-0" /> {s.contactPhone}
                       </a>
                     )}
                     {s.address && (
@@ -185,21 +205,11 @@ export default function SuppliersPage() {
                         <MapPin size={12} className="shrink-0 mt-0.5" /> {s.address}
                       </span>
                     )}
-                    {s.taxCode && (
-                      <span className="flex items-center gap-1.5">
-                        <FileText size={12} className="shrink-0" /> MST: {s.taxCode}
-                      </span>
-                    )}
-                    {s.notes && (
-                      <span className="flex items-start gap-1.5 text-gray-400 italic">
-                        <StickyNote size={12} className="shrink-0 mt-0.5" /> {s.notes}
-                      </span>
-                    )}
                   </div>
 
-                  {s.createdAt && (
+                  {s.createAt && (
                     <p className="text-xs text-gray-300 mt-auto pt-2 border-t border-gray-50">
-                      Thêm ngày {formatDate(s.createdAt)}
+                      Thêm ngày {formatDate(s.createAt)}
                     </p>
                   )}
                 </Card>
@@ -214,26 +224,41 @@ export default function SuppliersPage() {
         <FormField label="Tên nhà cung cấp" required>
           <input className={inputClass} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Nhập tên NCC" />
         </FormField>
-        <FormField label="Người liên hệ">
-          <input className={inputClass} value={form.contactPerson ?? ''} onChange={e => setForm(f => ({ ...f, contactPerson: e.target.value }))} />
-        </FormField>
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Điện thoại">
-            <input type="tel" className={inputClass} value={form.phone ?? ''} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
-          </FormField>
-          <FormField label="Email">
-            <input type="email" className={inputClass} value={form.email ?? ''} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-          </FormField>
-        </div>
-        <FormField label="Địa chỉ">
-          <input className={inputClass} value={form.address ?? ''} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
-        </FormField>
-        <FormField label="Mã số thuế">
-          <input className={inputClass} value={form.taxCode ?? ''} onChange={e => setForm(f => ({ ...f, taxCode: e.target.value }))} />
-        </FormField>
-        <FormField label="Ghi chú">
-          <textarea className={inputClass} rows={2} value={form.notes ?? ''} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
-        </FormField>
+
+        {editing ? (
+          // Edit mode: contactName + contactPhone
+          <>
+            <FormField label="Người liên hệ">
+              <input className={inputClass} value={form.contactName} onChange={e => setForm(f => ({ ...f, contactName: e.target.value }))} />
+            </FormField>
+            <FormField label="Điện thoại">
+              <input type="tel" className={inputClass} value={form.contactPhone} onChange={e => setForm(f => ({ ...f, contactPhone: e.target.value }))} />
+            </FormField>
+            <FormField label="Địa chỉ">
+              <input className={inputClass} value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
+            </FormField>
+            <FormField label="Trạng thái">
+              <select className={inputClass} value={form.isActive ? '1' : '0'} onChange={e => setForm(f => ({ ...f, isActive: e.target.value === '1' }))}>
+                <option value="1">Đang hoạt động</option>
+                <option value="0">Ngưng hoạt động</option>
+              </select>
+            </FormField>
+          </>
+        ) : (
+          // Create mode: contactPerson + phoneNumber
+          <>
+            <FormField label="Người liên hệ">
+              <input className={inputClass} value={form.contactPerson} onChange={e => setForm(f => ({ ...f, contactPerson: e.target.value }))} />
+            </FormField>
+            <FormField label="Số điện thoại">
+              <input type="tel" className={inputClass} value={form.phoneNumber} onChange={e => setForm(f => ({ ...f, phoneNumber: e.target.value }))} />
+            </FormField>
+            <FormField label="Địa chỉ">
+              <input className={inputClass} value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
+            </FormField>
+          </>
+        )}
+
         <FormError message={formError} />
       </FormDialog>
 

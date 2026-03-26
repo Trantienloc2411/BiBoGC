@@ -23,6 +23,7 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Paginat
             request.PageNumber,
             request.PageSize,
             request.SearchTerm,
+            request.Status,
             cancellationToken
         );
 
@@ -48,6 +49,8 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Paginat
             Currency = "VND",
             Description = product.Description,
             Status = product.Status.ToString(),
+            CategoryName = product.Category?.Name,
+            LowStockThreshold = product.LowStockThreshold,
             RequiresBatchTracking = product.RequiresBatchTracking,
             TotalStock = product.TotalStock,
             AvailableStock = product.GetAvailableStock(),

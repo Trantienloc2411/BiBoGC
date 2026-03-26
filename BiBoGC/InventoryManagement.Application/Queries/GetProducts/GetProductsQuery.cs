@@ -1,4 +1,5 @@
 ﻿using InventoryManagement.Application.DTOs;
+using InventoryManagement.Domain.Enums;
 using MediatR;
 
 namespace InventoryManagement.Application.Queries.GetProducts;
@@ -30,4 +31,9 @@ public record GetProductsQuery : IRequest<PaginatedResult<ProductDto>>
     /// </summary>
     /// <example>coca</example>
     public string? SearchTerm { get; init; }
+
+    /// <summary>
+    /// Optional filter by product status
+    /// </summary>
+    public ProductStatuses? Status { get; init; }
 }

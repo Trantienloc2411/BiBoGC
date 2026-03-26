@@ -19,6 +19,11 @@
         <Project Path="Finance.Domain/Finance.Domain.csproj" />
         <Project Path="Finance.Infrastructure/Finance.Infrastructure.csproj" />
     </Folder>
+    <Folder Name="/src/Modules/Notification/">
+        <Project Path="Notification.Application/Notification.Application.csproj" />
+        <Project Path="Notification.Domain/Notification.Domain.csproj" />
+        <Project Path="Notification.Infrastructure/Notification.Infrastructure.csproj" />
+    </Folder>
     <Folder Name="/src/Modules/SaleManagement/">
         <Project Path="Sale.Application/Sale.Application.csproj" Id="a1f8be13-85fa-4c7c-90b5-377469cce4f0" />
         <Project Path="Sale.Domain/Sale.Domain.csproj" Id="c9ce60c6-b2e3-4689-afe9-87bfbfa5d459" />

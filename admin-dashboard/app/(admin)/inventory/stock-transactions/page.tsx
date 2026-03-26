@@ -11,7 +11,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Pagination } from '@/components/ui/Pagination'
 import { FormDialog, FormField, FormError, inputClass, selectClass } from '@/components/ui/FormDialog'
 import { useToast } from '@/components/ui/Toast'
-import { Plus, X, ArrowDownToLine, ArrowUpFromLine, RefreshCw } from 'lucide-react'
+import { Plus, X, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react'
 
 const PAGE_SIZE = 20
 
@@ -40,15 +40,20 @@ export default function StockTransactionsPage() {
   const [loading, setLoading] = useState(true)
 
   const [filterType, setFilterType] = useState('')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
   const [productSearch, setProductSearch] = useState('')
 
   const [showAdjust, setShowAdjust] = useState(false)
   const [products, setProducts] = useState<ProductDto[]>([])
   const [adjustLoading, setAdjustLoading] = useState(false)
   const [adjustError, setAdjustError] = useState('')
-  const [adjustForm, setAdjustForm] = useState<AdjustStockRequestV2>({ productId: '', quantity: 0, reason: '', unitPrice: 0 })
+  const [adjustForm, setAdjustForm] = useState<AdjustStockRequestV2>({
+    productId: '',
+    isIncrease: true,
+    quantity: 0,
+    unitPrice: 0,
+  })
 
   const load = useCallback(async (p: number) => {
     setLoading(true)
@@ -56,8 +61,8 @@ export default function StockTransactionsPage() {
       const params: Parameters<typeof stockTransactionApi.list>[0] = {
         pageNumber: p, pageSize: PAGE_SIZE,
         transactionType: filterType || undefined,
-        dateFrom: dateFrom || undefined,
-        dateTo: dateTo || undefined,
+        fromDate: fromDate || undefined,
+        toDate: toDate || undefined,
         productId: productSearch || undefined,
       }
       const data = await stockTransactionApi.list(params)
@@ -67,13 +72,13 @@ export default function StockTransactionsPage() {
     } catch {
       showError('Không thể tải giao dịch kho')
     } finally { setLoading(false) }
-  }, [filterType, dateFrom, dateTo, productSearch, showError])
+  }, [filterType, fromDate, toDate, productSearch, showError])
 
-  useEffect(() => { setPage(1); load(1) }, [filterType, dateFrom, dateTo, productSearch]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setPage(1); load(1) }, [filterType, fromDate, toDate, productSearch]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { load(page) }, [page, load])
 
   async function openAdjust() {
-    setAdjustForm({ productId: '', quantity: 0, reason: '', unitPrice: 0 })
+    setAdjustForm({ productId: '', isIncrease: true, quantity: 0, unitPrice: 0 })
     setAdjustError('')
     if (products.length === 0) {
       try {
@@ -87,11 +92,10 @@ export default function StockTransactionsPage() {
   async function handleAdjust(e: React.FormEvent) {
     e.preventDefault(); setAdjustError('')
     if (!adjustForm.productId) { setAdjustError('Vui lòng chọn sản phẩm.'); return }
-    if (adjustForm.quantity === 0) { setAdjustError('Số lượng phải khác 0.'); return }
-    if (!adjustForm.reason.trim()) { setAdjustError('Vui lòng nhập lý do.'); return }
+    if (adjustForm.quantity <= 0) { setAdjustError('Số lượng phải lớn hơn 0.'); return }
     setAdjustLoading(true)
     try {
-      await stockTransactionApi.adjust({ ...adjustForm, reason: adjustForm.reason.trim() })
+      await stockTransactionApi.adjust(adjustForm)
       success('Điều chỉnh tồn kho thành công')
       setShowAdjust(false)
       load(page)
@@ -100,7 +104,7 @@ export default function StockTransactionsPage() {
     } finally { setAdjustLoading(false) }
   }
 
-  const hasFilters = filterType || dateFrom || dateTo || productSearch
+  const hasFilters = filterType || fromDate || toDate || productSearch
 
   return (
     <div className="space-y-4">
@@ -120,16 +124,16 @@ export default function StockTransactionsPage() {
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1.5">Từ ngày</label>
-          <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+          <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)}
             className="text-sm text-gray-700 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400" />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1.5">Đến ngày</label>
-          <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
+          <input type="date" value={toDate} onChange={e => setToDate(e.target.value)}
             className="text-sm text-gray-700 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400" />
         </div>
         {hasFilters && (
-          <button onClick={() => { setFilterType(''); setDateFrom(''); setDateTo(''); setProductSearch('') }}
+          <button onClick={() => { setFilterType(''); setFromDate(''); setToDate(''); setProductSearch('') }}
             className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1 pb-2">
             <X size={14} /> Xoá lọc
           </button>
@@ -165,7 +169,7 @@ export default function StockTransactionsPage() {
                         <tr key={t.id} className="hover:bg-gray-50/50">
                           <td className="px-4 py-3">
                             <p className="font-medium text-gray-800">{t.productName}</p>
-                            <p className="text-xs text-gray-400 mt-0.5 font-mono">{t.productSku}</p>
+                            <p className="text-xs text-gray-400 mt-0.5 font-mono">{t.sku}</p>
                             {t.notes && <p className="text-xs text-gray-400 mt-0.5 truncate max-w-[200px]">{t.notes}</p>}
                           </td>
                           <td className="px-4 py-3 text-gray-500 text-xs">{t.batchNumber ?? '—'}</td>
@@ -179,7 +183,7 @@ export default function StockTransactionsPage() {
                             {isIn ? '+' : '−'}{Math.abs(t.quantity)}
                           </td>
                           <td className="px-4 py-3 text-right text-gray-600">{formatCurrency(t.unitPrice)}</td>
-                          <td className="px-4 py-3 text-right text-gray-700 font-medium">{formatCurrency(t.totalValue)}</td>
+                          <td className="px-4 py-3 text-right text-gray-700 font-medium">{formatCurrency(t.totalAmount)}</td>
                           <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{formatDateTime(t.transactionDate)}</td>
                         </tr>
                       )
@@ -200,22 +204,25 @@ export default function StockTransactionsPage() {
             {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
           </select>
         </FormField>
-        <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-md text-xs text-blue-700">
-          <RefreshCw size={13} />
-          <span>Nhập số dương (+) để tăng, số âm (−) để giảm tồn kho</span>
-        </div>
-        <FormField label="Số lượng điều chỉnh" required>
-          <input type="number" className={inputClass} value={adjustForm.quantity || ''}
+        <FormField label="Loại điều chỉnh" required>
+          <select className={selectClass} value={adjustForm.isIncrease ? '1' : '0'}
+            onChange={e => setAdjustForm(f => ({ ...f, isIncrease: e.target.value === '1' }))}>
+            <option value="1">Tăng tồn kho</option>
+            <option value="0">Giảm tồn kho</option>
+          </select>
+        </FormField>
+        <FormField label="Số lượng" required>
+          <input type="number" min={1} className={inputClass} value={adjustForm.quantity || ''}
             onChange={e => setAdjustForm(f => ({ ...f, quantity: Number(e.target.value) }))}
-            placeholder="+10 hoặc -5" />
+            placeholder="Nhập số lượng" />
         </FormField>
         <FormField label="Đơn giá">
-          <input type="number" className={inputClass} value={adjustForm.unitPrice || ''}
+          <input type="number" min={0} className={inputClass} value={adjustForm.unitPrice || ''}
             onChange={e => setAdjustForm(f => ({ ...f, unitPrice: Number(e.target.value) }))} />
         </FormField>
-        <FormField label="Lý do điều chỉnh" required>
-          <textarea className={inputClass} rows={2} value={adjustForm.reason}
-            onChange={e => setAdjustForm(f => ({ ...f, reason: e.target.value }))}
+        <FormField label="Ghi chú">
+          <textarea className={inputClass} rows={2} value={adjustForm.notes ?? ''}
+            onChange={e => setAdjustForm(f => ({ ...f, notes: e.target.value }))}
             placeholder="Kiểm kê định kỳ, hàng hư hỏng..." />
         </FormField>
         <FormError message={adjustError} />

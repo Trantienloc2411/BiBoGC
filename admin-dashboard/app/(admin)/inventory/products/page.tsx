@@ -21,19 +21,6 @@ import { cn } from '@/lib/utils'
 
 const PAGE_SIZE = 20
 
-const UNIT_OPTIONS = [
-  { value: 'Pcs', label: 'Cái' }, { value: 'Hop', label: 'Hộp' },
-  { value: 'Chai', label: 'Chai' }, { value: 'Lon', label: 'Lon' },
-  { value: 'Goi', label: 'Gói' }, { value: 'Bich', label: 'Bịch' },
-  { value: 'Loc', label: 'Lọc' }, { value: 'Thung', label: 'Thùng' },
-  { value: 'Cuon', label: 'Cuộn' }, { value: 'Vi', label: 'Vỉ' },
-  { value: 'Cay', label: 'Cây' }, { value: 'Thanh', label: 'Thanh' },
-  { value: 'Tui', label: 'Túi' }, { value: 'Bo', label: 'Bộ' },
-  { value: 'Doi', label: 'Đôi' }, { value: 'Can', label: 'Cân' },
-  { value: 'Kg', label: 'Kg' }, { value: 'Lang', label: 'Lạng' },
-  { value: 'Lit', label: 'Lít' }, { value: 'Qua', label: 'Quả' },
-  { value: 'Trai', label: 'Trái' },
-]
 
 const STATUS_STYLES: Record<string, string> = {
   Active: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -55,13 +42,13 @@ const STATUS_VALUES: { value: number; label: string; key: ProductStatus }[] = [
 ]
 
 type CreateForm = {
-  name: string; description: string; sku: string; hasVariants: boolean
-  baseUnits: string; salePrice: number; costPrice: number
-  categoryId: string; supplierId: string; lowStockThreshold: number; initialStock: number
+  name: string; description: string; sku: string; requiresBatchTracking: boolean
+  price: number
+  categoryId: string; supplierId: string
 }
 type EditForm = {
-  name: string; description: string; salePrice: number; costPrice: number
-  categoryId: string; supplierId: string; lowStockThreshold: number; status: number
+  name: string; description: string; price: number
+  categoryId: string; supplierId: string; status: number
 }
 
 export default function ProductsPage() {
@@ -89,13 +76,13 @@ export default function ProductsPage() {
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState('')
   const [createForm, setCreateForm] = useState<CreateForm>({
-    name: '', description: '', sku: '', hasVariants: false,
-    baseUnits: 'Pcs', salePrice: 0, costPrice: 0,
-    categoryId: '', supplierId: '', lowStockThreshold: 10, initialStock: 0,
+    name: '', description: '', sku: '', requiresBatchTracking: false,
+    price: 0,
+    categoryId: '', supplierId: '',
   })
   const [editForm, setEditForm] = useState<EditForm>({
-    name: '', description: '', salePrice: 0, costPrice: 0,
-    categoryId: '', supplierId: '', lowStockThreshold: 10, status: 0,
+    name: '', description: '', price: 0,
+    categoryId: '', supplierId: '', status: 0,
   })
 
   const [deleteTarget, setDeleteTarget] = useState<ProductDto | null>(null)
@@ -111,8 +98,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     categoryApi.list().then(data => {
-      const flat = flattenCats(Array.isArray(data) ? data : [])
-      setCategories(flat)
+      setCategories(flattenCats(data.items ?? []))
     }).catch(() => {})
     supplierApi.list({ pageSize: 200 }).then(data => {
       setSuppliers(data.items ?? [])
@@ -139,8 +125,10 @@ export default function ProductsPage() {
     }
   }, [searchTerm, categoryId, supplierId, statusFilter, lowStockOnly, showError])
 
+  // Filter changes: reset to page 1 and reload. Also handles initial mount load.
   useEffect(() => { setPage(1); load(1) }, [searchTerm, categoryId, supplierId, statusFilter, lowStockOnly]) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { load(page) }, [page, load])
+  // Pagination clicks: only fire for pages > 1 to avoid duplicating the filter effect on mount.
+  useEffect(() => { if (page > 1) load(page) }, [page, load])
 
   function flattenCats(cats: CategoryDtoV2[], result: CategoryDtoV2[] = []): CategoryDtoV2[] {
     for (const c of cats) {
@@ -151,7 +139,7 @@ export default function ProductsPage() {
   }
 
   function openCreate() {
-    setCreateForm({ name: '', description: '', sku: '', hasVariants: false, baseUnits: 'Pcs', salePrice: 0, costPrice: 0, categoryId: '', supplierId: '', lowStockThreshold: 10, initialStock: 0 })
+    setCreateForm({ name: '', description: '', sku: '', requiresBatchTracking: false, price: 0, categoryId: '', supplierId: '' })
     setFormError('')
     setShowCreate(true)
   }
@@ -160,9 +148,8 @@ export default function ProductsPage() {
     setEditingProduct(p)
     setEditForm({
       name: p.name, description: p.description ?? '',
-      salePrice: p.salePrice, costPrice: p.costPrice ?? 0,
+      price: p.price,
       categoryId: p.categoryId ?? '', supplierId: p.supplierId ?? '',
-      lowStockThreshold: p.lowStockThreshold,
       status: STATUS_VALUES.find(s => s.key === p.status)?.value ?? 0,
     })
     setFormError('')
@@ -176,15 +163,11 @@ export default function ProductsPage() {
     setFormLoading(true)
     try {
       const body: CreateProductRequestV2 = {
-        name: createForm.name.trim(), sku: createForm.sku.trim(),
+        name: createForm.name.trim(),
+        sku: createForm.sku.trim(),
         description: createForm.description || undefined,
-        hasVariants: createForm.hasVariants, baseUnits: createForm.baseUnits,
-        salePrice: createForm.salePrice,
-        costPrice: createForm.costPrice || undefined,
-        categoryId: createForm.categoryId || undefined,
-        supplierId: createForm.supplierId || undefined,
-        lowStockThreshold: createForm.lowStockThreshold,
-        initialStock: createForm.initialStock || undefined,
+        requiresBatchTracking: createForm.requiresBatchTracking,
+        price: createForm.price,
       }
       await productApi.create(body)
       success('Thêm sản phẩm thành công')
@@ -204,11 +187,7 @@ export default function ProductsPage() {
       const body: UpdateProductRequest = {
         name: editForm.name.trim(),
         description: editForm.description || undefined,
-        salePrice: editForm.salePrice,
-        costPrice: editForm.costPrice || undefined,
-        categoryId: editForm.categoryId || undefined,
-        supplierId: editForm.supplierId || undefined,
-        lowStockThreshold: editForm.lowStockThreshold,
+        price: editForm.price || undefined,
         status: editForm.status,
       }
       await productApi.update(editingProduct.id, body)
@@ -316,11 +295,11 @@ export default function ProductsPage() {
                         <td className="px-4 py-3 text-gray-500 text-sm">{p.categoryName ?? '—'}</td>
                         <td className="px-4 py-3 text-right">
                           <span className={cn('font-medium', p.isLowStock ? 'text-red-600' : 'text-gray-700')}>
-                            {p.availableStock}
+                            {p.availableStock ?? 0}
                           </span>
                           {p.isLowStock && <AlertTriangle size={13} className="inline ml-1 text-amber-500" />}
                         </td>
-                        <td className="px-4 py-3 text-right text-gray-700">{formatCurrency(p.salePrice)}</td>
+                        <td className="px-4 py-3 text-right text-gray-700">{formatCurrency(p.price)}</td>
                         <td className="px-4 py-3">
                           <span className={cn('inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-md border',
                             STATUS_STYLES[p.status] ?? 'bg-gray-50 text-gray-600 border-gray-200')}>
@@ -355,45 +334,15 @@ export default function ProductsPage() {
         <FormField label="SKU" required>
           <input className={inputClass} value={createForm.sku} onChange={e => setCreateForm(f => ({ ...f, sku: e.target.value }))} placeholder="VD: SP001" />
         </FormField>
-        <FormField label="Đơn vị tính" required>
-          <select className={selectClass} value={createForm.baseUnits} onChange={e => setCreateForm(f => ({ ...f, baseUnits: e.target.value }))}>
-            {UNIT_OPTIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
-          </select>
+        <FormField label="Giá bán">
+          <input type="number" className={inputClass} value={createForm.price || ''} onChange={e => setCreateForm(f => ({ ...f, price: Number(e.target.value) }))} />
         </FormField>
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Giá bán">
-            <input type="number" className={inputClass} value={createForm.salePrice || ''} onChange={e => setCreateForm(f => ({ ...f, salePrice: Number(e.target.value) }))} />
-          </FormField>
-          <FormField label="Giá vốn">
-            <input type="number" className={inputClass} value={createForm.costPrice || ''} onChange={e => setCreateForm(f => ({ ...f, costPrice: Number(e.target.value) }))} />
-          </FormField>
-        </div>
-        <FormField label="Danh mục">
-          <select className={selectClass} value={createForm.categoryId} onChange={e => setCreateForm(f => ({ ...f, categoryId: e.target.value }))}>
-            <option value="">— Không chọn —</option>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </FormField>
-        <FormField label="Nhà cung cấp">
-          <select className={selectClass} value={createForm.supplierId} onChange={e => setCreateForm(f => ({ ...f, supplierId: e.target.value }))}>
-            <option value="">— Không chọn —</option>
-            {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        </FormField>
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Mức cảnh báo tồn kho">
-            <input type="number" className={inputClass} value={createForm.lowStockThreshold} onChange={e => setCreateForm(f => ({ ...f, lowStockThreshold: Number(e.target.value) }))} />
-          </FormField>
-          <FormField label="Tồn kho ban đầu">
-            <input type="number" className={inputClass} value={createForm.initialStock || ''} onChange={e => setCreateForm(f => ({ ...f, initialStock: Number(e.target.value) }))} />
-          </FormField>
-        </div>
         <FormField label="Mô tả">
           <textarea className={inputClass} rows={2} value={createForm.description} onChange={e => setCreateForm(f => ({ ...f, description: e.target.value }))} />
         </FormField>
         <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={createForm.hasVariants} onChange={e => setCreateForm(f => ({ ...f, hasVariants: e.target.checked }))} className="rounded" />
-          <span className="text-sm text-gray-700">Sản phẩm có biến thể</span>
+          <input type="checkbox" checked={createForm.requiresBatchTracking} onChange={e => setCreateForm(f => ({ ...f, requiresBatchTracking: e.target.checked }))} className="rounded" />
+          <span className="text-sm text-gray-700">Theo dõi theo lô hàng</span>
         </label>
         <FormError message={formError} />
       </FormDialog>
@@ -406,33 +355,13 @@ export default function ProductsPage() {
         <FormField label="SKU">
           <input className={cn(inputClass, 'bg-gray-50 text-gray-400 cursor-not-allowed')} value={editingProduct?.sku ?? ''} readOnly disabled />
         </FormField>
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Giá bán">
-            <input type="number" className={inputClass} value={editForm.salePrice || ''} onChange={e => setEditForm(f => ({ ...f, salePrice: Number(e.target.value) }))} />
-          </FormField>
-          <FormField label="Giá vốn">
-            <input type="number" className={inputClass} value={editForm.costPrice || ''} onChange={e => setEditForm(f => ({ ...f, costPrice: Number(e.target.value) }))} />
-          </FormField>
-        </div>
-        <FormField label="Danh mục">
-          <select className={selectClass} value={editForm.categoryId} onChange={e => setEditForm(f => ({ ...f, categoryId: e.target.value }))}>
-            <option value="">— Không chọn —</option>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </FormField>
-        <FormField label="Nhà cung cấp">
-          <select className={selectClass} value={editForm.supplierId} onChange={e => setEditForm(f => ({ ...f, supplierId: e.target.value }))}>
-            <option value="">— Không chọn —</option>
-            {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
+        <FormField label="Giá bán">
+          <input type="number" className={inputClass} value={editForm.price || ''} onChange={e => setEditForm(f => ({ ...f, price: Number(e.target.value) }))} />
         </FormField>
         <FormField label="Trạng thái">
           <select className={selectClass} value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: Number(e.target.value) }))}>
             {STATUS_VALUES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
-        </FormField>
-        <FormField label="Mức cảnh báo tồn kho">
-          <input type="number" className={inputClass} value={editForm.lowStockThreshold} onChange={e => setEditForm(f => ({ ...f, lowStockThreshold: Number(e.target.value) }))} />
         </FormField>
         <FormField label="Mô tả">
           <textarea className={inputClass} rows={2} value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} />

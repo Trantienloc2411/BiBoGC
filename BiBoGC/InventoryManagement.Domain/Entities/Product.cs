@@ -101,6 +101,8 @@ public class Product : BaseEntity
             throw new InvalidOperationException($"Không đủ số lượng hàng trong kho. Tồn kho hiện tại: {TotalStock}.");
 
         TotalStock -= quantityBaseUnit;
+        if (TotalStock == 0)
+            Status = ProductStatuses.OutOfStock;
         UpdatedAt = DateTime.UtcNow;
     }
 

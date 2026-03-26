@@ -8,11 +8,8 @@ import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { Pagination } from '@/components/ui/Pagination'
 import { Button } from '@/components/ui/Button'
 import { AlertTriangle, Clock, XCircle, Eye, ShieldAlert, CalendarX } from 'lucide-react'
-
-const PAGE_SIZE = 20
 
 const MAIN_TABS = [
   { id: 'low-stock', label: 'Sắp hết hàng', icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
@@ -30,61 +27,61 @@ export default function AlertsPage() {
   const [mainTab, setMainTab] = useState<MainTabId>('low-stock')
   const [subTab, setSubTab] = useState<SubTabId>('expired')
 
-  const [lowStockPage, setLowStockPage] = useState(1)
-  const [expiredPage, setExpiredPage] = useState(1)
-  const [expiringSoonPage, setExpiringSoonPage] = useState(1)
-
   const [lowStock, setLowStock] = useState<ProductDto[]>([])
   const [lowStockTotal, setLowStockTotal] = useState(0)
-  const [lowStockTotalPages, setLowStockTotalPages] = useState(1)
   const [lowStockLoading, setLowStockLoading] = useState(true)
 
-  const [expired, setExpired] = useState<ProductBatchDtoV2[]>([])
+  const [expired, setExpired] = useState<(ProductBatchDtoV2 & { productName: string })[]>([])
   const [expiredTotal, setExpiredTotal] = useState(0)
-  const [expiredTotalPages, setExpiredTotalPages] = useState(1)
   const [expiredLoading, setExpiredLoading] = useState(true)
 
-  const [expiringSoon, setExpiringSoon] = useState<ProductBatchDtoV2[]>([])
+  const [expiringSoon, setExpiringSoon] = useState<(ProductBatchDtoV2 & { productName: string })[]>([])
   const [expiringSoonTotal, setExpiringSoonTotal] = useState(0)
-  const [expiringSoonTotalPages, setExpiringSoonTotalPages] = useState(1)
   const [expiringSoonLoading, setExpiringSoonLoading] = useState(true)
 
-  const loadLowStock = useCallback(async (p: number) => {
+  const loadLowStock = useCallback(async () => {
     setLowStockLoading(true)
     try {
-      const data = await productApi.lowStock({ pageNumber: p, pageSize: PAGE_SIZE })
-      setLowStock(data.items)
-      setLowStockTotal(data.totalCount)
-      setLowStockTotalPages(data.totalPages)
+      const data = await productApi.lowStock()
+      setLowStock(data)
+      setLowStockTotal(data.length)
     } catch { /* ignore */ }
     finally { setLowStockLoading(false) }
   }, [])
 
-  const loadExpired = useCallback(async (p: number) => {
+  const loadExpired = useCallback(async () => {
     setExpiredLoading(true)
     try {
-      const data = await productApi.expiredBatches({ pageNumber: p, pageSize: PAGE_SIZE })
-      setExpired(data.items)
-      setExpiredTotal(data.totalCount)
-      setExpiredTotalPages(data.totalPages)
+      const data = await productApi.expiredBatches()
+      const batches = data.flatMap(p =>
+        (p.recentBatches ?? [])
+          .filter(b => b.isExpired)
+          .map(b => ({ ...b, productName: p.name, productId: p.id }))
+      )
+      setExpired(batches)
+      setExpiredTotal(batches.length)
     } catch { /* ignore */ }
     finally { setExpiredLoading(false) }
   }, [])
 
-  const loadExpiringSoon = useCallback(async (p: number) => {
+  const loadExpiringSoon = useCallback(async () => {
     setExpiringSoonLoading(true)
     try {
-      const data = await productApi.expiringSoon({ pageNumber: p, pageSize: PAGE_SIZE })
-      setExpiringSoon(data.items)
-      setExpiringSoonTotal(data.totalCount)
-      setExpiringSoonTotalPages(data.totalPages)
+      const data = await productApi.expiringSoon(30)
+      const batches = data.flatMap(p =>
+        (p.recentBatches ?? [])
+          .filter(b => b.isExpiringSoon && !b.isExpired)
+          .map(b => ({ ...b, productName: p.name, productId: p.id }))
+      )
+      setExpiringSoon(batches)
+      setExpiringSoonTotal(batches.length)
     } catch { /* ignore */ }
     finally { setExpiringSoonLoading(false) }
   }, [])
 
-  useEffect(() => { loadLowStock(lowStockPage) }, [lowStockPage, loadLowStock])
-  useEffect(() => { loadExpired(expiredPage) }, [expiredPage, loadExpired])
-  useEffect(() => { loadExpiringSoon(expiringSoonPage) }, [expiringSoonPage, loadExpiringSoon])
+  useEffect(() => {
+    Promise.all([loadLowStock(), loadExpired(), loadExpiringSoon()])
+  }, [loadLowStock, loadExpired, loadExpiringSoon])
 
   const summaryLoading = lowStockLoading && expiredLoading && expiringSoonLoading
 
@@ -202,7 +199,6 @@ export default function AlertsPage() {
                   </div>
                 </Card>
               )}
-              <Pagination page={lowStockPage} totalPages={lowStockTotalPages} onPageChange={setLowStockPage} />
             </>
           )}
         </>
@@ -256,7 +252,7 @@ export default function AlertsPage() {
                                 <td className="px-4 py-3">
                                   <span className="inline-flex items-center gap-1.5 text-red-600 font-medium">
                                     <XCircle size={13} />
-                                    {b.expiryDate ? formatDate(b.expiryDate) : '—'}
+                                    {b.expirationDate ? formatDate(b.expirationDate) : '—'}
                                   </span>
                                 </td>
                                 <td className="px-4 py-3 text-right">
@@ -271,7 +267,6 @@ export default function AlertsPage() {
                       </div>
                     </Card>
                   )}
-                  <Pagination page={expiredPage} totalPages={expiredTotalPages} onPageChange={setExpiredPage} />
                 </>
               )}
             </>
@@ -304,13 +299,13 @@ export default function AlertsPage() {
                                 <td className="px-4 py-3 text-gray-500">{b.batchNumber}</td>
                                 <td className="px-4 py-3 text-right text-gray-700">{b.quantity}</td>
                                 <td className="px-4 py-3 text-orange-600 font-medium">
-                                  {b.expiryDate ? formatDate(b.expiryDate) : '—'}
+                                  {b.expirationDate ? formatDate(b.expirationDate) : '—'}
                                 </td>
                                 <td className="px-4 py-3 text-right">
-                                  {b.daysUntilExpiry != null ? (
+                                  {b.daysUntilExpiration != null ? (
                                     <span className={cn('inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md',
-                                      b.daysUntilExpiry <= 7 ? 'bg-red-50 text-red-700' : 'bg-orange-50 text-orange-700')}>
-                                      {b.daysUntilExpiry} ngày
+                                      b.daysUntilExpiration <= 7 ? 'bg-red-50 text-red-700' : 'bg-orange-50 text-orange-700')}>
+                                      {b.daysUntilExpiration} ngày
                                     </span>
                                   ) : '—'}
                                 </td>
@@ -326,7 +321,6 @@ export default function AlertsPage() {
                       </div>
                     </Card>
                   )}
-                  <Pagination page={expiringSoonPage} totalPages={expiringSoonTotalPages} onPageChange={setExpiringSoonPage} />
                 </>
               )}
             </>

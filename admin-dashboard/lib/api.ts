@@ -239,6 +239,7 @@ import type {
   UpdateCategoryRequest,
   SupplierDtoV2,
   CreateSupplierRequestV2,
+  UpdateSupplierRequest,
   StockTransactionDtoV2,
   AdjustStockRequestV2,
 } from '@/types'
@@ -253,12 +254,12 @@ export const productApi = {
   create: (data: CreateProductRequestV2) => apiPost<ProductDto>('/api/products', data),
   update: (id: string, data: UpdateProductRequest) => apiPut<ProductDto>(`/api/products/${id}`, data),
   delete: (id: string) => apiDelete(`/api/products/${id}`),
-  lowStock: (params: { pageNumber?: number; pageSize?: number }) =>
-    apiGet<PaginatedResult<ProductDto>>('/api/products/low-stock', params as Record<string, unknown>),
-  expiredBatches: (params: { pageNumber?: number; pageSize?: number }) =>
-    apiGet<PaginatedResult<ProductBatchDtoV2>>('/api/products/expired-batches', params as Record<string, unknown>),
-  expiringSoon: (params: { pageNumber?: number; pageSize?: number; daysThreshold?: number }) =>
-    apiGet<PaginatedResult<ProductBatchDtoV2>>('/api/products/expiring-soon', params as Record<string, unknown>),
+  lowStock: () =>
+    apiGet<ProductDto[]>('/api/products/low-stock'),
+  expiredBatches: () =>
+    apiGet<ProductDto[]>('/api/products/expired-batches'),
+  expiringSoon: (thresholdDays?: number) =>
+    apiGet<ProductDto[]>('/api/products/expiring-soon', thresholdDays ? { thresholdDays } : undefined),
   getBatches: (productId: string, params?: { pageNumber?: number; pageSize?: number; includeExpired?: boolean; sortByExpiry?: boolean }) =>
     apiGet<PaginatedResult<ProductBatchDtoV2>>(`/api/products/${productId}/batches`, params as Record<string, unknown> | undefined),
   addBatch: (productId: string, data: AddBatchRequest) =>
@@ -268,7 +269,7 @@ export const productApi = {
   deleteBatch: (productId: string, batchId: string) =>
     apiDelete(`/api/products/${productId}/batches/${batchId}`),
   getVariants: (productId: string) =>
-    apiGet<PaginatedResult<ProductVariantDtoV2>>(`/api/products/${productId}/variants`),
+    apiGet<ProductVariantDtoV2[]>(`/api/products/${productId}/variants`),
   createVariant: (productId: string, data: CreateVariantRequestV2) =>
     apiPost<ProductVariantDtoV2>(`/api/products/${productId}/variants`, data),
   updateVariant: (productId: string, variantId: string, data: UpdateVariantRequest) =>
@@ -278,7 +279,8 @@ export const productApi = {
 }
 
 export const categoryApi = {
-  list: () => apiGet<CategoryDtoV2[]>('/api/categories'),
+  list: (params?: { includeInactive?: boolean; parentCategoryId?: string }) =>
+    apiGet<PaginatedResult<CategoryDtoV2>>('/api/categories', params as Record<string, unknown> | undefined),
   getById: (id: string) => apiGet<CategoryDtoV2>(`/api/categories/${id}`),
   create: (data: CreateCategoryRequestV2) => apiPost<CategoryDtoV2>('/api/categories', data),
   update: (id: string, data: UpdateCategoryRequest) => apiPut<CategoryDtoV2>(`/api/categories/${id}`, data),
@@ -286,19 +288,30 @@ export const categoryApi = {
 }
 
 export const supplierApi = {
-  list: (params: { pageNumber?: number; pageSize?: number; searchTerm?: string }) =>
+  list: (params: { pageNumber?: number; pageSize?: number; searchTerm?: string; isActive?: boolean }) =>
     apiGet<PaginatedResult<SupplierDtoV2>>('/api/suppliers', params as Record<string, unknown>),
   getById: (id: string) => apiGet<SupplierDtoV2>(`/api/suppliers/${id}`),
   create: (data: CreateSupplierRequestV2) => apiPost<SupplierDtoV2>('/api/suppliers', data),
-  update: (id: string, data: CreateSupplierRequestV2) => apiPut<SupplierDtoV2>(`/api/suppliers/${id}`, data),
+  update: (id: string, data: UpdateSupplierRequest) => apiPut<SupplierDtoV2>(`/api/suppliers/${id}`, data),
   delete: (id: string) => apiDelete(`/api/suppliers/${id}`),
+  activate: (id: string) => apiPost<SupplierDtoV2>(`/api/suppliers/${id}/activate`),
+  deactivate: (id: string) => apiPost<SupplierDtoV2>(`/api/suppliers/${id}/deactivate`),
 }
 
 export const stockTransactionApi = {
+  // URL is /api/stocktransactions (no hyphen) per Postman
   list: (params: {
     pageNumber?: number; pageSize?: number; productId?: string;
-    transactionType?: string; dateFrom?: string; dateTo?: string
-  }) => apiGet<PaginatedResult<StockTransactionDtoV2>>('/api/stock-transactions', params as Record<string, unknown>),
-  getById: (id: string) => apiGet<StockTransactionDtoV2>(`/api/stock-transactions/${id}`),
-  adjust: (data: AdjustStockRequestV2) => apiPost<StockTransactionDtoV2>('/api/stock-transactions/adjust', data),
+    transactionType?: string; fromDate?: string; toDate?: string;
+    supplierId?: string; sortBy?: string; sortDescending?: boolean
+  }) => apiGet<PaginatedResult<StockTransactionDtoV2>>('/api/stocktransactions', params as Record<string, unknown>),
+  getById: (id: string) => apiGet<StockTransactionDtoV2>(`/api/stocktransactions/${id}`),
+  // Adjustment endpoint per Postman: POST /api/stocktransactions/adjustment
+  adjust: (data: AdjustStockRequestV2) => apiPost<StockTransactionDtoV2>('/api/stocktransactions/adjustment', data),
+  // Purchase shortcut per Postman
+  purchase: (data: { productId: string; productBatchId?: string; supplierId?: string; quantity: number; unitPrice: number; notes?: string }) =>
+    apiPost<StockTransactionDtoV2>('/api/stocktransactions/purchase', data),
+  // Sale shortcut per Postman
+  sale: (data: { productId: string; productBatchId?: string; quantity: number; unitPrice: number; notes?: string }) =>
+    apiPost<StockTransactionDtoV2>('/api/stocktransactions/sale', data),
 }

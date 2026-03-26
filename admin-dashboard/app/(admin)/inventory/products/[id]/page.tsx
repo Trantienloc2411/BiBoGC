@@ -9,6 +9,7 @@ import type {
   AddBatchRequest, UpdateBatchRequest,
   CreateVariantRequestV2, UpdateVariantRequest,
 } from '@/types'
+import { VariantUnitCode, VariantUnitLabel } from '@/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
@@ -70,7 +71,7 @@ export default function ProductDetailPage() {
   const loadVariants = useCallback(async () => {
     try {
       const data = await productApi.getVariants(id)
-      setVariants(data.items)
+      setVariants(Array.isArray(data) ? data : [])
     } catch {
       setVariants([])
     }
@@ -100,7 +101,7 @@ export default function ProductDetailPage() {
         </Link>
         <div className="flex-1">
           <h1 className="text-xl font-bold text-gray-800">{product.name}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{product.sku} · {product.baseUnits}</p>
+          <p className="text-sm text-gray-500 mt-0.5">{product.sku}</p>
         </div>
         <span className={cn('inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-md border',
           STATUS_STYLES[product.status] ?? 'bg-gray-50 text-gray-600 border-gray-200')}>
@@ -116,11 +117,7 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <p className="text-xs text-gray-500">Giá bán</p>
-          <p className="text-lg font-bold text-gray-800 mt-1">{formatCurrency(product.salePrice)}</p>
-        </Card>
-        <Card>
-          <p className="text-xs text-gray-500">Giá vốn</p>
-          <p className="text-lg font-bold text-gray-800 mt-1">{product.costPrice != null ? formatCurrency(product.costPrice) : '—'}</p>
+          <p className="text-lg font-bold text-gray-800 mt-1">{formatCurrency(product.price)}</p>
         </Card>
         <Card>
           <p className="text-xs text-gray-500">Tổng tồn kho</p>
@@ -128,18 +125,22 @@ export default function ProductDetailPage() {
         </Card>
         <Card>
           <p className="text-xs text-gray-500">Có thể bán</p>
-          <p className={cn('text-lg font-bold mt-1', product.isLowStock ? 'text-red-600' : 'text-gray-800')}>{product.availableStock}</p>
+          <p className={cn('text-lg font-bold mt-1', product.isLowStock ? 'text-red-600' : 'text-gray-800')}>{product.availableStock ?? 0}</p>
         </Card>
         <Card>
-          <p className="text-xs text-gray-500">Ngưỡng cảnh báo</p>
-          <p className="text-lg font-bold text-gray-800 mt-1">{product.lowStockThreshold}</p>
+          <p className="text-xs text-gray-500">Hết hạn</p>
+          <p className="text-lg font-bold text-gray-800 mt-1">{product.expiredStock}</p>
+        </Card>
+        <Card>
+          <p className="text-xs text-gray-500">Sắp hết hạn</p>
+          <p className="text-lg font-bold text-gray-800 mt-1">{product.expiringSoonStock}</p>
         </Card>
       </div>
 
       {(product.categoryName || product.supplierName || product.description) && (
         <Card className="space-y-2 text-sm">
           {product.categoryName && <p><span className="text-gray-500">Danh mục:</span> <span className="text-gray-800">{product.categoryName}</span></p>}
-          {product.supplierName && <p><span className="text-gray-500">Nhà cung cấp:</span> <span className="text-gray-800">{product.supplierName}</span></p>}
+          {product.supplierName && <p><span className="text-gray-500">Nhà cung cấp:</span> <span className="text-gray-800">{product.supplierName as string}</span></p>}
           {product.description && <p className="text-gray-600">{product.description}</p>}
         </Card>
       )}
@@ -170,7 +171,7 @@ function batchStatusBadge(b: ProductBatchDtoV2) {
   if (b.isExpired) return <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md bg-red-50 text-red-700 border border-red-200">Hết hạn</span>
   if (b.isExpiringSoon) return (
     <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md bg-orange-50 text-orange-700 border border-orange-200">
-      Sắp hết hạn ({b.daysUntilExpiry} ngày)
+      Sắp hết hạn ({b.daysUntilExpiration} ngày)
     </span>
   )
   return <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">Còn hạn</span>
@@ -188,7 +189,7 @@ function BatchSection({ productId, batches, onRefresh }: { productId: string; ba
 
   function openCreate() {
     setEditing(null)
-    setForm({ batchNumber: '', quantity: 0, manufactureDate: undefined, expiryDate: undefined })
+    setForm({ batchNumber: '', quantity: 0, manufacturingDate: undefined, expirationDate: undefined })
     setFormError('')
     setShowForm(true)
   }
@@ -197,8 +198,8 @@ function BatchSection({ productId, batches, onRefresh }: { productId: string; ba
     setEditing(b)
     setForm({
       batchNumber: b.batchNumber, quantity: b.quantity,
-      manufactureDate: b.manufactureDate?.slice(0, 10),
-      expiryDate: b.expiryDate?.slice(0, 10),
+      manufacturingDate: b.manufacturingDate?.slice(0, 10),
+      expirationDate: b.expirationDate?.slice(0, 10),
     })
     setFormError('')
     setShowForm(true)
@@ -212,8 +213,8 @@ function BatchSection({ productId, batches, onRefresh }: { productId: string; ba
       if (editing) {
         const body: UpdateBatchRequest = {
           quantity: form.quantity,
-          manufactureDate: form.manufactureDate || undefined,
-          expiryDate: form.expiryDate || undefined,
+          manufacturingDate: form.manufacturingDate || undefined,
+          expirationDate: form.expirationDate || undefined,
         }
         await productApi.updateBatch(productId, editing.id, body)
         success('Cập nhật lô thành công')
@@ -267,8 +268,8 @@ function BatchSection({ productId, batches, onRefresh }: { productId: string; ba
                   <tr key={b.id} className="hover:bg-gray-50/50">
                     <td className="px-4 py-3 font-medium text-gray-800">{b.batchNumber}</td>
                     <td className="px-4 py-3 text-right text-gray-700">{b.quantity}</td>
-                    <td className="px-4 py-3 text-gray-500">{b.manufactureDate ? formatDate(b.manufactureDate) : '—'}</td>
-                    <td className="px-4 py-3 text-gray-500">{b.expiryDate ? formatDate(b.expiryDate) : '—'}</td>
+                    <td className="px-4 py-3 text-gray-500">{b.manufacturingDate ? formatDate(b.manufacturingDate) : '—'}</td>
+                    <td className="px-4 py-3 text-gray-500">{b.expirationDate ? formatDate(b.expirationDate) : '—'}</td>
                     <td className="px-4 py-3">{batchStatusBadge(b)}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">
@@ -293,10 +294,10 @@ function BatchSection({ productId, batches, onRefresh }: { productId: string; ba
         </FormField>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Ngày sản xuất">
-            <input type="date" className={inputClass} value={form.manufactureDate ?? ''} onChange={e => setForm(f => ({ ...f, manufactureDate: e.target.value || undefined }))} />
+            <input type="date" className={inputClass} value={form.manufacturingDate ?? ''} onChange={e => setForm(f => ({ ...f, manufacturingDate: e.target.value || undefined }))} />
           </FormField>
           <FormField label="Hạn sử dụng">
-            <input type="date" className={inputClass} value={form.expiryDate ?? ''} onChange={e => setForm(f => ({ ...f, expiryDate: e.target.value || undefined }))} />
+            <input type="date" className={inputClass} value={form.expirationDate ?? ''} onChange={e => setForm(f => ({ ...f, expirationDate: e.target.value || undefined }))} />
           </FormField>
         </div>
         <FormError message={formError} />
@@ -318,20 +319,20 @@ function VariantSection({ productId, variants, onRefresh }: { productId: string;
   const [editing, setEditing] = useState<ProductVariantDtoV2 | null>(null)
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState('')
-  const [form, setForm] = useState<CreateVariantRequestV2>({ variantName: '', unit: '', quantityBaseUnit: 1, salePrice: 0 })
+  const [form, setForm] = useState<Omit<CreateVariantRequestV2, 'productId'>>({ variantName: '', unit: VariantUnitCode.Lon, quantityBaseUnit: 1, salePrice: 0, costPrice: 0 })
   const [deleteTarget, setDeleteTarget] = useState<ProductVariantDtoV2 | null>(null)
   const [deleting, setDeleting] = useState(false)
 
   function openCreate() {
     setEditing(null)
-    setForm({ variantName: '', unit: '', quantityBaseUnit: 1, salePrice: 0, costPrice: undefined, barcode: undefined })
+    setForm({ variantName: '', unit: VariantUnitCode.Lon, quantityBaseUnit: 1, salePrice: 0, costPrice: 0, barcode: undefined, displayOrder: 0 })
     setFormError('')
     setShowForm(true)
   }
 
   function openEdit(v: ProductVariantDtoV2) {
     setEditing(v)
-    setForm({ variantName: v.variantName, unit: v.unit, quantityBaseUnit: v.quantityBaseUnit, salePrice: v.salePrice, costPrice: v.costPrice ?? undefined, barcode: v.barcode ?? undefined })
+    setForm({ variantName: v.variantName, unit: v.unit, quantityBaseUnit: v.quantityBaseUnit, salePrice: v.salePrice, costPrice: v.costPrice ?? 0, barcode: v.barcode ?? undefined, displayOrder: v.displayOrder ?? 0 })
     setFormError('')
     setShowForm(true)
   }
@@ -343,14 +344,30 @@ function VariantSection({ productId, variants, onRefresh }: { productId: string;
     try {
       if (editing) {
         const body: UpdateVariantRequest = {
-          variantName: form.variantName.trim(), salePrice: form.salePrice,
-          costPrice: form.costPrice, barcode: form.barcode || undefined,
+          productVariantId: editing.id,
+          productId,
+          variantName: form.variantName.trim(),
+          salePrice: form.salePrice,
+          costPrice: form.costPrice ?? 0,
+          barcode: form.barcode || undefined,
           quantityBaseUnit: form.quantityBaseUnit,
+          unit: form.unit,
+          displayOrder: form.displayOrder ?? 0,
         }
         await productApi.updateVariant(productId, editing.id, body)
         success('Cập nhật biến thể thành công')
       } else {
-        await productApi.createVariant(productId, { ...form, variantName: form.variantName.trim() })
+        const body: CreateVariantRequestV2 = {
+          productId,
+          variantName: form.variantName.trim(),
+          unit: form.unit,
+          quantityBaseUnit: form.quantityBaseUnit,
+          salePrice: form.salePrice,
+          costPrice: form.costPrice ?? 0,
+          barcode: form.barcode || undefined,
+          displayOrder: form.displayOrder ?? 0,
+        }
+        await productApi.createVariant(productId, body)
         success('Thêm biến thể thành công')
       }
       setShowForm(false)
@@ -400,7 +417,7 @@ function VariantSection({ productId, variants, onRefresh }: { productId: string;
                   <tr key={v.id} className="hover:bg-gray-50/50">
                     <td className="px-4 py-3 font-medium text-gray-800">{v.variantName}</td>
                     <td className="px-4 py-3 text-gray-500 font-mono text-xs">{v.sku}</td>
-                    <td className="px-4 py-3 text-gray-500">{v.unit}</td>
+                    <td className="px-4 py-3 text-gray-500">{VariantUnitLabel[v.unit] ?? v.unit}</td>
                     <td className="px-4 py-3 text-right text-gray-500">{v.quantityBaseUnit}</td>
                     <td className="px-4 py-3 text-gray-400 text-xs">{v.barcode ?? '—'}</td>
                     <td className="px-4 py-3 text-right text-gray-700">{formatCurrency(v.salePrice)}</td>
@@ -420,11 +437,15 @@ function VariantSection({ productId, variants, onRefresh }: { productId: string;
 
       <FormDialog open={showForm} title={editing ? 'Sửa biến thể' : 'Thêm biến thể'} loading={formLoading} onSubmit={handleSubmit} onCancel={() => setShowForm(false)}>
         <FormField label="Tên biến thể" required>
-          <input className={inputClass} value={form.variantName} onChange={e => setForm(f => ({ ...f, variantName: e.target.value }))} placeholder="VD: Hộp 500ml" />
+          <input className={inputClass} value={form.variantName} onChange={e => setForm(f => ({ ...f, variantName: e.target.value }))} placeholder="VD: Thùng 24 lon" />
         </FormField>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Đơn vị tính">
-            <input className={inputClass} value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} placeholder="Hộp, Thùng..." />
+          <FormField label="Đơn vị tính" required>
+            <select className={inputClass} value={form.unit} onChange={e => setForm(f => ({ ...f, unit: Number(e.target.value) }))}>
+              {Object.entries(VariantUnitLabel).map(([code, label]) => (
+                <option key={code} value={code}>{label}</option>
+              ))}
+            </select>
           </FormField>
           <FormField label="Quy đổi (đơn vị cơ sở)">
             <input type="number" className={inputClass} value={form.quantityBaseUnit || ''} onChange={e => setForm(f => ({ ...f, quantityBaseUnit: Number(e.target.value) }))} />
@@ -435,11 +456,14 @@ function VariantSection({ productId, variants, onRefresh }: { productId: string;
             <input type="number" className={inputClass} value={form.salePrice || ''} onChange={e => setForm(f => ({ ...f, salePrice: Number(e.target.value) }))} />
           </FormField>
           <FormField label="Giá vốn">
-            <input type="number" className={inputClass} value={form.costPrice || ''} onChange={e => setForm(f => ({ ...f, costPrice: Number(e.target.value) || undefined }))} />
+            <input type="number" className={inputClass} value={form.costPrice || ''} onChange={e => setForm(f => ({ ...f, costPrice: Number(e.target.value) }))} />
           </FormField>
         </div>
         <FormField label="Barcode">
           <input className={inputClass} value={form.barcode ?? ''} onChange={e => setForm(f => ({ ...f, barcode: e.target.value || undefined }))} />
+        </FormField>
+        <FormField label="Thứ tự hiển thị">
+          <input type="number" className={inputClass} value={form.displayOrder ?? 0} onChange={e => setForm(f => ({ ...f, displayOrder: Number(e.target.value) }))} />
         </FormField>
         <FormError message={formError} />
       </FormDialog>

@@ -1,31 +1,23 @@
-﻿using InventoryManagement.Application.DTOs;
+using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Domain.Entities;
 using MediatR;
-using Shared.Application.Common;
 
-namespace InventoryManagement.Application.Queries.GetProduct;
+namespace InventoryManagement.Application.Queries.GetLowStockProducts;
 
-/// <summary>
-/// Handler for GetProductQuery
-/// </summary>
-public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<ProductDto>>
+public class GetLowStockProductsQueryHandler : IRequestHandler<GetLowStockProductsQuery, IEnumerable<ProductDto>>
 {
     private readonly IProductRepository _productRepository;
 
-    public GetProductQueryHandler(IProductRepository productRepository)
+    public GetLowStockProductsQueryHandler(IProductRepository productRepository)
     {
         _productRepository = productRepository;
     }
 
-    public async Task<Result<ProductDto>> Handle(GetProductQuery request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<ProductDto>> Handle(GetLowStockProductsQuery request, CancellationToken cancellationToken)
     {
-        var product = await _productRepository.GetByIdAsync(request.Id, cancellationToken);
-
-        if (product == null) return Result<ProductDto>.Failure($"Không tìm thấy sản phẩm với ID '{request.Id}'.");
-
-        var dto = MapToDto(product);
-        return Result<ProductDto>.Success(dto);
+        var products = await _productRepository.GetProductsWithLowStockAsync(cancellationToken);
+        return products.Select(MapToDto);
     }
 
     private static ProductDto MapToDto(Product product)
@@ -51,10 +43,7 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<Pr
             RecentBatches = product.Batches
                 .OrderByDescending(b => b.CreatedAt)
                 .Take(5)
-                .Select(ProductBatchDto.FromEntity),
-            Variants = product.Variants
-                .OrderByDescending(b => b.DisplayOrder)
-                .Select(ProductVariantDto.FromEntity)
+                .Select(ProductBatchDto.FromEntity)
         };
     }
 }

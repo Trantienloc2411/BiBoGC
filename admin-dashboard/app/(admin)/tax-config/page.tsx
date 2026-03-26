@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/ui/Toast'
-import { FileSpreadsheet, FileText, Loader2, ToggleLeft, ToggleRight, Download } from 'lucide-react'
+import { FileSpreadsheet, FileText, Loader2, ToggleLeft, ToggleRight, Download, Save } from 'lucide-react'
 
 interface PendingDownload {
   key: string
@@ -24,7 +24,9 @@ export default function TaxConfigPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState('')
   const [saving, setSaving]   = useState<string | null>(null)
-  const { error: showError } = useToast()
+  // Draft rates: null means no pending change for that tax type
+  const [draftRates, setDraftRates] = useState<{ VAT: number | null; PIT: number | null }>({ VAT: null, PIT: null })
+  const { success, error: showError } = useToast()
 
   const now = monthYear()
   const [exportYear, setExportYear]       = useState(now.year)
@@ -65,7 +67,16 @@ export default function TaxConfigPage() {
     }
   }
 
-  async function handleRateChange(taxType: 'VAT' | 'PIT', current: TaxConfigDto, newRate: number) {
+  function handleDraftChange(taxType: 'VAT' | 'PIT', value: string) {
+    const v = parseFloat(value)
+    if (!isNaN(v) && v >= 0 && v <= 1) {
+      setDraftRates(prev => ({ ...prev, [taxType]: v }))
+    }
+  }
+
+  async function handleSave(taxType: 'VAT' | 'PIT', current: TaxConfigDto) {
+    const newRate = draftRates[taxType]
+    if (newRate === null) return
     setSaving(taxType)
     try {
       const res = await api.put('/api/finance/tax-config', {
@@ -73,7 +84,11 @@ export default function TaxConfigPage() {
         rate: newRate,
         isEnabled: current.isEnabled,
       })
-      if (res.ok) await load()
+      if (res.ok) {
+        setDraftRates(prev => ({ ...prev, [taxType]: null }))
+        success('Đã lưu cấu hình thuế')
+        await load()
+      }
     } finally {
       setSaving(null)
     }
@@ -113,6 +128,9 @@ export default function TaxConfigPage() {
           const cfg = data[key]
           const taxType = key.toUpperCase() as 'VAT' | 'PIT'
           const isSaving = saving === taxType
+            const draft = draftRates[taxType]
+          const isDirty = draft !== null
+          const displayRate = draft ?? cfg.rate
           return (
             <Card key={key}>
               <div className="flex items-center justify-between mb-4">
@@ -142,21 +160,39 @@ export default function TaxConfigPage() {
                     step="0.001"
                     min="0"
                     max="1"
-                    value={cfg.rate}
-                    onChange={e => {
-                      const v = parseFloat(e.target.value)
-                      if (!isNaN(v) && v >= 0 && v <= 1) handleRateChange(taxType, cfg, v)
-                    }}
-                    className="w-24 px-3 py-2 text-sm border border-gray-300 rounded-md text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={displayRate}
+                    onChange={e => handleDraftChange(taxType, e.target.value)}
+                    className={`w-24 px-3 py-2 text-sm border rounded-md text-right focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isDirty ? 'border-amber-400 bg-amber-50' : 'border-gray-300'
+                    }`}
                     disabled={isSaving}
                   />
-                  <span className="text-sm text-gray-500">({(cfg.rate * 100).toFixed(1)}%)</span>
+                  <span className="text-sm text-gray-500">({(displayRate * 100).toFixed(1)}%)</span>
                 </div>
               </div>
 
-              <p className={`text-sm mt-3 ${cfg.isEnabled ? 'text-emerald-600' : 'text-gray-400'}`}>
-                {cfg.isEnabled ? 'Đang áp dụng' : 'Đã tắt — dùng thuế suất mặc định theo TT 40/2021'}
-              </p>
+              {isDirty && (
+                <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                  ⚠ Giá trị đã thay đổi nhưng chưa được lưu.
+                </p>
+              )}
+
+              <div className="flex items-center justify-between mt-3">
+                <p className={`text-sm ${cfg.isEnabled ? 'text-emerald-600' : 'text-gray-400'}`}>
+                  {cfg.isEnabled ? 'Đang áp dụng' : 'Đã tắt — dùng thuế suất mặc định theo TT 40/2021'}
+                </p>
+                {isDirty && (
+                  <Button
+                    size="sm"
+                    onClick={() => handleSave(taxType, cfg)}
+                    disabled={isSaving}
+                    className="gap-1.5"
+                  >
+                    {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                    Lưu
+                  </Button>
+                )}
+              </div>
             </Card>
           )
         })}

@@ -34,6 +34,7 @@ public class
             SupplierId = t.SupplierId == Guid.Empty ? null : t.SupplierId,
             SupplierName = t.Supplier?.Name,
             Sku = t.Product?.SkuGeneral ?? string.Empty,
+            Quantity = t.Quantity,
             UnitPrice = t.UnitPrice,
             TotalAmount = t.TotalPrice,
             TransactionType = t.TransactionType.ToString(),
