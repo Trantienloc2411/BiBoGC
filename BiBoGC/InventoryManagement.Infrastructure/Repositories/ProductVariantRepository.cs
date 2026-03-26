@@ -25,6 +25,14 @@ public class ProductVariantRepository : IProductVariantRepository
         return product;
     }
 
+    public Task<ProductVariant?> GetByBarcodeAsync(string barcode, CancellationToken cancellationToken = default)
+    {
+        return _context.ProductVariants
+            .Include(p => p.Product)
+            .Where(p => p.Barcode == barcode && p.IsActive && !p.IsDeleted)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<(IEnumerable<ProductVariant>, int TotalCount)> GetAllAsync(int pageNumber = 1, int pageSize = 10,
         string? searchTerm = null,
         CancellationToken cancellationToken = default)

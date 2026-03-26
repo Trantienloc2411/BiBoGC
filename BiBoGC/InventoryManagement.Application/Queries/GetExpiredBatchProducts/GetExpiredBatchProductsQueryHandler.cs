@@ -1,0 +1,49 @@
+using InventoryManagement.Application.DTOs;
+using InventoryManagement.Application.Interfaces;
+using InventoryManagement.Domain.Entities;
+using MediatR;
+
+namespace InventoryManagement.Application.Queries.GetExpiredBatchProducts;
+
+public class GetExpiredBatchProductsQueryHandler : IRequestHandler<GetExpiredBatchProductsQuery, IEnumerable<ProductDto>>
+{
+    private readonly IProductRepository _productRepository;
+
+    public GetExpiredBatchProductsQueryHandler(IProductRepository productRepository)
+    {
+        _productRepository = productRepository;
+    }
+
+    public async Task<IEnumerable<ProductDto>> Handle(GetExpiredBatchProductsQuery request, CancellationToken cancellationToken)
+    {
+        var products = await _productRepository.GetProductsWithExpiredBatchesAsync(cancellationToken);
+        return products.Select(MapToDto);
+    }
+
+    private static ProductDto MapToDto(Product product)
+    {
+        return new ProductDto
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Sku = product.SkuGeneral.Value,
+            Price = product.BasePrice.Value,
+            Currency = "VND",
+            Description = product.Description,
+            Status = product.Status.ToString(),
+            CategoryName = product.Category?.Name,
+            LowStockThreshold = product.LowStockThreshold,
+            RequiresBatchTracking = product.RequiresBatchTracking,
+            TotalStock = product.TotalStock,
+            AvailableStock = product.GetAvailableStock(),
+            ExpiredStock = product.GetExpiredBatches().Sum(b => b.Quantity),
+            ExpiringSoonStock = product.GetExpiringSoonBatches().Sum(b => b.Quantity),
+            CreatedAt = product.CreatedAt,
+            UpdatedAt = product.UpdatedAt,
+            RecentBatches = product.Batches
+                .OrderByDescending(b => b.CreatedAt)
+                .Take(5)
+                .Select(ProductBatchDto.FromEntity)
+        };
+    }
+}

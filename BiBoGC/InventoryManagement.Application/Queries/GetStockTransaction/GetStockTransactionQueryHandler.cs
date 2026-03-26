@@ -32,6 +32,7 @@ public class GetStockTransactionQueryHandler : IRequestHandler<GetStockTransacti
             SupplierId = transaction.SupplierId == Guid.Empty ? null : transaction.SupplierId,
             SupplierName = transaction.Supplier?.Name,
             Sku = transaction.Product?.SkuGeneral ?? string.Empty,
+            Quantity = transaction.Quantity,
             UnitPrice = transaction.UnitPrice,
             TotalAmount = transaction.TotalPrice,
             TransactionType = transaction.TransactionType.ToString(),

@@ -46,21 +46,18 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-lg mb-4 shadow-lg">
-            <Store className="text-white" size={32} />
+          <div className="inline-flex items-center justify-center w-18 h-18 bg-blue-600 rounded-lg mb-4 shadow-lg">
+            <Store className="text-white" size={36} />
           </div>
           <h1 className="text-2xl font-bold text-gray-800">BiBo&apos;s Admin</h1>
-          <p className="text-gray-500 text-sm mt-1">Đăng nhập để quản lý cửa hàng</p>
+          <p className="text-gray-500 text-sm mt-1.5">Đăng nhập để quản lý cửa hàng</p>
         </div>
 
-        {/* Form */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Username */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-7">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Tài khoản
               </label>
               <input
@@ -74,9 +71,8 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Mật khẩu
               </label>
               <div className="relative">
@@ -93,19 +89,17 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(v => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
 
-            {/* Error message */}
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-md px-4 py-3 text-sm text-red-600">
-                ⚠ {error}
+                {error}
               </div>
             )}
 
-            {/* Submit */}
             <Button type="submit" size="lg" loading={loading}>
               {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </Button>

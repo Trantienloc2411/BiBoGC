@@ -1,4 +1,5 @@
 ﻿using InventoryManagement.Domain.Entities;
+using InventoryManagement.Domain.Enums;
 
 namespace InventoryManagement.Application.Interfaces;
 
@@ -34,6 +35,7 @@ public interface IProductRepository
         int pageNumber = 1,
         int pageSize = 10,
         string? searchTerm = null,
+        ProductStatuses? status = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -79,6 +81,16 @@ public interface IProductRepository
     /// <param name="daysUntilExpiry">Days until expiry threshold</param>
     /// <param name="cancellationToken">Cancellation token</param>
     Task<IEnumerable<Product>> GetProductsWithExpiringSoonBatchesAsync(int daysUntilExpiry = 30, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get products that have expired batches
+    /// </summary>
+    Task<IEnumerable<Product>> GetProductsWithExpiredBatchesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get products where AvailableStock is below their own LowStockThreshold
+    /// </summary>
+    Task<IEnumerable<Product>> GetProductsWithLowStockAsync(CancellationToken cancellationToken = default);
     /// <summary>
     /// Save change to the database
     /// 

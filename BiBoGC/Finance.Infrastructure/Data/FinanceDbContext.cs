@@ -11,6 +11,7 @@ public class FinanceDbContext : DbContext
     }
 
     public DbSet<Expense> Expenses => Set<Expense>();
+    public DbSet<TaxConfiguration> TaxConfigurations => Set<TaxConfiguration>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

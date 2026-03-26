@@ -6,23 +6,28 @@ import { monthYear, formatCurrency } from '@/lib/utils'
 import { ApiResponse, MonthlyFinancialReportDto } from '@/types'
 import { Card } from '@/components/ui/Card'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { ExportMenu, pdfIcon } from '@/components/ui/ExportMenu'
 
 interface Row { label: string; value: number; color?: string; bold?: boolean }
 
 export function FinancialReport() {
   const now = monthYear()
-  const [year, setYear]   = useState(now.year)
-  const [month, setMonth] = useState(now.month)
-  const [data, setData]   = useState<MonthlyFinancialReportDto | null>(null)
+  const [year, setYear]       = useState(now.year)
+  const [month, setMonth]     = useState(now.month)
+  const [data, setData]       = useState<MonthlyFinancialReportDto | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError]     = useState('')
 
   useEffect(() => {
     setLoading(true)
+    setError('')
     api.get(`/api/finance/reports/financial/monthly?year=${year}&month=${month}`)
-      .then(r => r.ok ? r.json() : null)
-      .then((json: ApiResponse<MonthlyFinancialReportDto> | null) => {
-        if (json) setData(json.data)
+      .then(r => {
+        if (!r.ok) throw new Error()
+        return r.json()
       })
+      .then((json: ApiResponse<MonthlyFinancialReportDto>) => setData(json.data))
+      .catch(() => setError('Không thể tải báo cáo. Vui lòng thử lại.'))
       .finally(() => setLoading(false))
   }, [year, month])
 
@@ -35,61 +40,61 @@ export function FinancialReport() {
   ] : []
 
   return (
-    <div className="space-y-3">
-      {/* Month / year picker */}
-      <Card className="flex gap-3 items-end">
-        <div className="flex-1">
-          <label className="text-xs text-gray-400 mb-1 block">Tháng</label>
-          <select
-            value={month}
-            onChange={e => setMonth(Number(e.target.value))}
-            className="w-full text-sm text-gray-700 focus:outline-none bg-transparent"
-          >
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i + 1} value={i + 1}>Tháng {i + 1}</option>
-            ))}
-          </select>
-        </div>
-        <div className="flex-1">
-          <label className="text-xs text-gray-400 mb-1 block">Năm</label>
-          <select
-            value={year}
-            onChange={e => setYear(Number(e.target.value))}
-            className="w-full text-sm text-gray-700 focus:outline-none bg-transparent"
-          >
-            {[2024, 2025, 2026].map(y => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
-        </div>
-      </Card>
+    <div className="space-y-4">
+      <div className="flex gap-3 items-end">
+        <Card className="flex gap-4 items-end flex-1">
+          <div className="flex-1">
+            <label className="text-xs text-gray-400 mb-1.5 block">Tháng</label>
+            <select value={month} onChange={e => setMonth(Number(e.target.value))}
+              className="w-full text-sm text-gray-700 focus:outline-none bg-transparent">
+              {Array.from({ length: 12 }, (_, i) => (
+                <option key={i + 1} value={i + 1}>Tháng {i + 1}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1">
+            <label className="text-xs text-gray-400 mb-1.5 block">Năm</label>
+            <select value={year} onChange={e => setYear(Number(e.target.value))}
+              className="w-full text-sm text-gray-700 focus:outline-none bg-transparent">
+              {[2024, 2025, 2026].map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+        </Card>
+        <ExportMenu options={[
+          { label: 'PDF', icon: pdfIcon(), path: `/api/finance/reports/financial/monthly/export/pdf?year=${year}&month=${month}`, filename: `bao-cao-tai-chinh-${month}-${year}.pdf` },
+        ]} />
+      </div>
 
-      {loading ? <LoadingSpinner /> : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {/* P&L table */}
+      {error ? (
+        <Card className="text-center py-8">
+          <p className="text-sm text-red-500">{error}</p>
+          <button onClick={() => { setMonth(month) }} className="mt-3 text-sm text-blue-600 underline">Thử lại</button>
+        </Card>
+      ) : loading ? <LoadingSpinner /> : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="md:col-span-2">
-            <h3 className="font-semibold text-gray-700 mb-3 text-sm">
+            <h3 className="font-semibold text-gray-700 mb-4 text-base">
               Báo cáo lãi/lỗ — Tháng {month}/{year}
             </h3>
-            <ul className="divide-y divide-gray-50">
+            <ul className="divide-y divide-gray-100">
               {rows.map((row, i) => (
-                <li key={i} className={`flex justify-between py-2.5 ${row.bold ? 'border-t-2 border-gray-200 mt-1' : ''}`}>
+                <li key={i} className={`flex justify-between py-3.5 ${row.bold ? 'border-t-2 border-gray-200 mt-1' : ''}`}>
                   <span className={`text-sm ${row.bold ? 'font-semibold text-gray-800' : 'text-gray-500'}`}>
                     {row.label}
                   </span>
-                  <span className={`text-sm font-semibold ${row.color ?? 'text-gray-800'}`}>
+                  <span className={`text-base font-semibold ${row.color ?? 'text-gray-800'}`}>
                     {formatCurrency(row.value)}
                   </span>
                 </li>
               ))}
             </ul>
           </Card>
-
-          {/* Profit margin */}
           {data && (
             <Card className="flex flex-col items-center justify-center">
-              <p className="text-xs text-gray-400 mb-1">Biên lợi nhuận ròng</p>
-              <p className={`text-4xl font-bold ${data.profitMarginPercent >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              <p className="text-sm text-gray-400 mb-2">Biên lợi nhuận ròng</p>
+              <p className={`text-5xl font-bold ${data.profitMarginPercent >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                 {data.profitMarginPercent.toFixed(1)}%
               </p>
             </Card>

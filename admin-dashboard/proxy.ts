@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 const PUBLIC_PATHS = ['/login']
 const API_PATHS    = ['/api/']
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Always allow API routes and Next.js internals

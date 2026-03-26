@@ -1,5 +1,6 @@
 ﻿using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Domain.Entities;
+using InventoryManagement.Domain.Enums;
 using InventoryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,7 @@ public class ProductRepository : IProductRepository
         return await _context.Products
             .Include(p => p.Batches.Where(b => !b.IsDeleted))
             .Include(p => p.Variants.Where(v => !v.IsDeleted))
+            .Include(p => p.Category)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
@@ -36,12 +38,14 @@ public class ProductRepository : IProductRepository
         int pageNumber = 1,
         int pageSize = 10,
         string? searchTerm = null,
+        ProductStatuses? status = null,
         CancellationToken cancellationToken = default)
     {
         // Load all products with batches
         var allProducts = await _context.Products
             .Include(p => p.Batches.Where(b => !b.IsDeleted))
             .Include(p => p.Variants.Where(v => !v.IsDeleted))
+            .Include(p => p.Category)
             .ToListAsync(cancellationToken);
 
         IEnumerable<Product> filteredProducts = allProducts;
@@ -55,6 +59,9 @@ public class ProductRepository : IProductRepository
                 p.Variants.Any(v => v.SkuUnique.Value.ToLower().Contains(search)) ||
                 p.Description.ToLower().Contains(search));
         }
+
+        if (status.HasValue)
+            filteredProducts = filteredProducts.Where(p => p.Status == status.Value);
 
         // Get total count
         var totalCount = filteredProducts.Count();
@@ -121,11 +128,32 @@ public class ProductRepository : IProductRepository
 
         return await _context.Products
             .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .Include(p => p.Category)
             .Where(p => p.Batches.Any(b =>
                 !b.IsDeleted &&
                 b.ExpirationDate <= expiryThreshold &&
                 b.ExpirationDate > DateTime.UtcNow))
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Product>> GetProductsWithExpiredBatchesAsync(CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+        return await _context.Products
+            .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .Include(p => p.Category)
+            .Where(p => p.Batches.Any(b => !b.IsDeleted && b.ExpirationDate < now))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Product>> GetProductsWithLowStockAsync(CancellationToken cancellationToken = default)
+    {
+        var products = await _context.Products
+            .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .Include(p => p.Category)
+            .ToListAsync(cancellationToken);
+
+        return products.Where(p => p.LowStockThreshold.HasValue && p.GetAvailableStock() < p.LowStockThreshold.Value);
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)

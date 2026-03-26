@@ -19,6 +19,11 @@
         <Project Path="Finance.Domain/Finance.Domain.csproj" />
         <Project Path="Finance.Infrastructure/Finance.Infrastructure.csproj" />
     </Folder>
+    <Folder Name="/src/Modules/Notification/">
+        <Project Path="Notification.Application/Notification.Application.csproj" />
+        <Project Path="Notification.Domain/Notification.Domain.csproj" />
+        <Project Path="Notification.Infrastructure/Notification.Infrastructure.csproj" />
+    </Folder>
     <Folder Name="/src/Modules/SaleManagement/">
         <Project Path="Sale.Application/Sale.Application.csproj" Id="a1f8be13-85fa-4c7c-90b5-377469cce4f0" />
         <Project Path="Sale.Domain/Sale.Domain.csproj" Id="c9ce60c6-b2e3-4689-afe9-87bfbfa5d459" />
@@ -28,6 +33,10 @@
         <Project Path="Shared.Application/Shared.Application.csproj" />
         <Project Path="Shared.Contracts/Shared.Contracts.csproj" Id="4c1117e9-0776-4ec5-8f4b-2f14edc6b735" />
         <Project Path="Shared.Domain/Shared.Domain.csproj" />
+    </Folder>
+    <Folder Name="/Tests/">
+        <Project Path="Tests/BiBoGC.Tests.Integration/BiBoGC.Tests.Integration.csproj"/>
+        <Project Path="Tests/BiBoGC.Tests.Unit/BiBoGC.Tests.Unit.csproj"/>
     </Folder>
     <Project Path="BiBoGC.AppHost/BiBoGC.AppHost.csproj" />
     <Project Path="BiBoGC.ServiceDefaults/BiBoGC.ServiceDefaults.csproj" />

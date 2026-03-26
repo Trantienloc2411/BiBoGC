@@ -26,7 +26,19 @@ export function monthYear(date = new Date()): { year: number; month: number } {
 }
 
 export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('vi-VN', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-  })
+  const d = new Date(iso)
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = d.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
+export function formatDateTime(iso: string): string {
+  const d = new Date(iso)
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = d.getFullYear()
+  const hour = String(d.getHours()).padStart(2, '0')
+  const minute = String(d.getMinutes()).padStart(2, '0')
+  return `${hour}:${minute} ${day}/${month}/${year}`
 }

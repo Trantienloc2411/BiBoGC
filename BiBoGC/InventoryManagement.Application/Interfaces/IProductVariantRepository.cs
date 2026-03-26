@@ -8,6 +8,8 @@ public interface IProductVariantRepository
 {
     Task<ProductVariant?> GetProductVariantBySkuUniqueAsync(Sku sku, CancellationToken cancellationToken = default);
 
+    Task<ProductVariant?> GetByBarcodeAsync(string barcode, CancellationToken cancellationToken = default);
+
     Task<(IEnumerable<ProductVariant>, int TotalCount)> GetAllAsync(
         int pageNumber = 1,
         int pageSize = 10,
@@ -29,6 +31,6 @@ public interface IProductVariantRepository
     Task<bool> SkuExistsAsync(Guid productId, Sku sku, Guid? excludeVariantId = null,
         CancellationToken cancellationToken = default);
 
-    Task<bool> DoesVariantExistAsync(Guid productId, Guid? excludedVariantId,  int quantityBaseOnUnit, Units unit,
+    Task<bool> DoesVariantExistAsync(Guid productId, Guid? excludedVariantId, int quantityBaseOnUnit, Units unit,
         CancellationToken cancellationToken = default);
 }

@@ -23,6 +23,18 @@ public class GetCategoryQueryHandler : IRequestHandler<GetCategoryQuery, Result<
         }
         else
         {
+            var subCategoriesListFetch = await _categoryRepository.GetSubCategoriesAsync(request.Id, cancellationToken);
+            var mappingSubCategoryDto = subCategoriesListFetch.Select(subCat => new CategoryDto
+            {
+                Id = subCat.Id,
+                Name = subCat.Name,
+                Description = subCat.Description,
+                ParentCategoryId = subCat.ParentCategoryId,
+                ParentCategoryName = subCat.ParentCategory?.Name,
+                DisplayOrder = subCat.DisplayOrder,
+                IsActive = subCat.IsActive,
+                ProductCount = subCat.Items.Count
+            });
             var categoryDto = new CategoryDto
             {
                 Id = category.Id,
@@ -33,16 +45,16 @@ public class GetCategoryQueryHandler : IRequestHandler<GetCategoryQuery, Result<
                 DisplayOrder = category.DisplayOrder,
                 IsActive = category.IsActive,
                 ProductCount = category.Items.Count,
-                SubCategories = category.SubCategories.Select(subCat => new CategoryDto
+                SubCategories = mappingSubCategoryDto.Select(subCat => new CategoryDto
                 {
                     Id = subCat.Id,
                     Name = subCat.Name,
                     Description = subCat.Description,
                     ParentCategoryId = subCat.ParentCategoryId,
-                    ParentCategoryName = subCat.ParentCategory?.Name,
+                    ParentCategoryName = subCat.ParentCategoryName,
                     DisplayOrder = subCat.DisplayOrder,
                     IsActive = subCat.IsActive,
-                    ProductCount = subCat.Items.Count
+                    ProductCount = subCat.ProductCount
                 }).ToList()
             };
             return Result<CategoryDto>.Success(categoryDto);

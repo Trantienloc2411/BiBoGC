@@ -20,7 +20,7 @@ public class GetSalesOrdersQueryHandler
         GetSalesOrdersQuery request,
         CancellationToken cancellationToken)
     {
-        var (orders, totalCount) = await _orderRepository.GetAllAsync(
+        var (orders, totalCount, invoiceNumbers) = await _orderRepository.GetAllAsync(
             page: request.Page,
             pageSize: request.PageSize,
             status: request.Status,
@@ -30,7 +30,13 @@ public class GetSalesOrdersQueryHandler
             ct: cancellationToken
         );
 
-        var dtos = orders.Select(SalesOrderMapper.MapToDto);
+        var dtos = orders.Select(o =>
+        {
+            var dto = SalesOrderMapper.MapToDto(o);
+            if (o.InvoiceId.HasValue && invoiceNumbers.TryGetValue(o.InvoiceId.Value, out var num))
+                dto.InvoiceNumber = num;
+            return dto;
+        });
 
         var pagedResult = new PagedResult<SalesOrderDto>
         {
