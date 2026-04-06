@@ -2,21 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class SummaryCard extends StatelessWidget {
-  final double totalRevenue;
-  final int orderCount;
-  final double growthPercentage;
+  /// Null while loading.
+  final double? totalRevenue;
+  final int? orderCount;
+  final double? growthPercentage;
 
   const SummaryCard({
     super.key,
-    required this.totalRevenue,
-    required this.orderCount,
-    required this.growthPercentage,
+    this.totalRevenue,
+    this.orderCount,
+    this.growthPercentage,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
+    final isLoading = totalRevenue == null;
 
     return Container(
       width: double.infinity,
@@ -66,53 +68,78 @@ class SummaryCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  currencyFormat.format(totalRevenue),
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                isLoading
+                    ? _Shimmer(width: 160, height: 28)
+                    : Text(
+                        currencyFormat.format(totalRevenue),
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                '$orderCount đơn hàng',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    growthPercentage >= 0
-                        ? Icons.trending_up
-                        : Icons.trending_down,
-                    color: growthPercentage >= 0
-                        ? Colors.greenAccent
-                        : Colors.redAccent,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${growthPercentage.abs()}%',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: growthPercentage >= 0
-                          ? Colors.greenAccent
-                          : Colors.redAccent,
-                      fontWeight: FontWeight.bold,
+              isLoading
+                  ? _Shimmer(width: 80, height: 16)
+                  : Text(
+                      '${orderCount ?? 0} đơn hàng',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+              const SizedBox(height: 4),
+              isLoading
+                  ? _Shimmer(width: 50, height: 16)
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          (growthPercentage ?? 0) >= 0
+                              ? Icons.trending_up
+                              : Icons.trending_down,
+                          color: (growthPercentage ?? 0) >= 0
+                              ? Colors.greenAccent
+                              : Colors.redAccent,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${(growthPercentage ?? 0).abs().toStringAsFixed(1)}%',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: (growthPercentage ?? 0) >= 0
+                                ? Colors.greenAccent
+                                : Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Simple white shimmer placeholder shown while data loads.
+class _Shimmer extends StatelessWidget {
+  final double width;
+  final double height;
+  const _Shimmer({required this.width, required this.height});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(60),
+        borderRadius: BorderRadius.circular(6),
       ),
     );
   }

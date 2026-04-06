@@ -30,7 +30,7 @@ function emitError(detail: ApiErrorDetail) {
 async function extractErrorMessage(res: Response): Promise<string | undefined> {
   try {
     const json = await res.clone().json()
-    return json?.message ?? json?.title ?? json?.errors?.[0] ?? undefined
+    return json?.detail ?? json?.message ?? json?.title ?? json?.errors?.[0] ?? undefined
   } catch {
     return undefined
   }
@@ -194,7 +194,7 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   })
   if (!res.ok) {
     const json = await res.json().catch(() => ({}))
-    throw new Error(json?.message ?? json?.errors?.[0] ?? `POST ${path} failed: ${res.status}`)
+    throw new Error(json?.detail ?? json?.message ?? json?.title ?? json?.errors?.[0] ?? `POST ${path} failed: ${res.status}`)
   }
   const json = await res.json()
   return (json.data ?? json) as T
@@ -207,7 +207,7 @@ export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
   })
   if (!res.ok) {
     const json = await res.json().catch(() => ({}))
-    throw new Error(json?.message ?? json?.errors?.[0] ?? `PUT ${path} failed: ${res.status}`)
+    throw new Error(json?.detail ?? json?.message ?? json?.title ?? json?.errors?.[0] ?? `PUT ${path} failed: ${res.status}`)
   }
   const json = await res.json()
   return (json.data ?? json) as T
@@ -217,7 +217,7 @@ export async function apiDelete(path: string): Promise<void> {
   const res = await apiFetch(path, { method: 'DELETE' })
   if (!res.ok) {
     const json = await res.json().catch(() => ({}))
-    throw new Error(json?.message ?? `DELETE ${path} failed: ${res.status}`)
+    throw new Error(json?.detail ?? json?.message ?? json?.title ?? `DELETE ${path} failed: ${res.status}`)
   }
 }
 

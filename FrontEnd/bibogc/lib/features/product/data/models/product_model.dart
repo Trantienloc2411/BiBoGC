@@ -103,21 +103,16 @@ class ProductVariantModel {
   });
 
   factory ProductVariantModel.fromJson(Map<String, dynamic> json) {
-    final skuUnique = json['skuUnique'] as Map<String, dynamic>?;
-    final salePriceObj = json['salePrice'] as Map<String, dynamic>?;
-    final costPriceObj = json['costPrice'] as Map<String, dynamic>?;
     return ProductVariantModel(
       id: json['id'] as String,
       productId: json['productId'] as String,
-      sku: skuUnique?['value'] as String? ?? '',
+      sku: json['sku'] as String? ?? '',
       barcode: json['barcode'] as String?,
       name: json['variantName'] as String? ?? json['name'] as String? ?? '',
       unit: json['unitName'] as String? ?? json['unit']?.toString() ?? '',
       quantityBaseUnit: (json['quantityBaseUnit'] as num?)?.toInt() ?? 1,
-      salePrice: (salePriceObj?['value'] as num?)?.toDouble() ??
-          (json['salePrice'] as num?)?.toDouble() ?? 0,
-      costPrice: (costPriceObj?['value'] as num?)?.toDouble() ??
-          (json['costPrice'] as num?)?.toDouble(),
+      salePrice: (json['salePrice'] as num?)?.toDouble() ?? 0,
+      costPrice: (json['costPrice'] as num?)?.toDouble(),
       stockQuantity: (json['stockQuantity'] as num?)?.toInt(),
       nearestExpiryDate: json['nearestExpiryDate'] == null
           ? null
@@ -130,13 +125,13 @@ class ProductVariantModel {
   Map<String, dynamic> toJson() => {
     'id': id,
     'productId': productId,
-    'skuUnique': {'value': sku},
+    'sku': sku,
     'barcode': barcode,
     'variantName': name,
     'unitName': unit,
     'quantityBaseUnit': quantityBaseUnit,
-    'salePrice': {'value': salePrice},
-    'costPrice': costPrice != null ? {'value': costPrice} : null,
+    'salePrice': salePrice,
+    'costPrice': costPrice,
     'stockQuantity': stockQuantity,
     'nearestExpiryDate': nearestExpiryDate?.toIso8601String(),
     'batchNumber': batchNumber,

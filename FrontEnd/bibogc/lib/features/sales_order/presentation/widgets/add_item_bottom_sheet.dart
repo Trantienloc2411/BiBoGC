@@ -1,6 +1,9 @@
 import 'package:bibogc/core/di/injection.dart';
+import 'package:bibogc/core/network/dio_client.dart';
 import 'package:bibogc/core/utils/dialog_utils.dart';
 import 'package:bibogc/core/widgets/app_button.dart';
+import 'package:bibogc/core/widgets/barcode_scanner_sheet.dart';
+import 'package:bibogc/features/product/data/models/product_model.dart';
 import 'package:bibogc/features/product/domain/entities/product.dart';
 import 'package:bibogc/features/product/presentation/bloc/product_bloc.dart';
 import 'package:bibogc/features/sales_order/presentation/bloc/sales_order_bloc.dart';
@@ -21,6 +24,7 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
   ProductVariant? _selectedVariant;
   int _quantity = 1;
   int _step = 0;
+  bool _scanLoading = false;
   late final TextEditingController _quantityController;
 
   @override
@@ -33,6 +37,67 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
   void dispose() {
     _quantityController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openBarcodeScanner(BuildContext context) async {
+    // Capture context-dependent objects before any async gap
+    final productBloc = context.read<ProductBloc>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    final scanned = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.black,
+      builder: (_) => const BarcodeScannerSheet(),
+    );
+
+    if (scanned == null || !mounted) return;
+
+    setState(() => _scanLoading = true);
+    try {
+      final dio = getIt<DioClient>().dio;
+
+      // Look up the variant by barcode
+      final variantResponse = await dio.get(
+        '/api/products/variants/by-barcode',
+        queryParameters: {'code': scanned},
+      );
+      final variantModel = ProductVariantModel.fromJson(
+        variantResponse.data as Map<String, dynamic>,
+      );
+
+      // Fetch the full product for stock info
+      final productResponse = await dio.get(
+        '/api/products/${variantModel.productId}',
+      );
+      final productModel = ProductModel.fromJson(
+        productResponse.data as Map<String, dynamic>,
+      );
+
+      final product = productModel.toEntity();
+      final variant = variantModel.toEntity();
+
+      if (!mounted) return;
+
+      // Load all variants for this product (for the chip list in step 2)
+      productBloc.add(ProductVariantsRequested(product.id));
+
+      setState(() {
+        _selectedProduct = product;
+        _selectedVariant = variant;
+        _quantity = 1;
+        _quantityController.text = '1';
+        _step = 1;
+        _scanLoading = false;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() => _scanLoading = false);
+        messenger.showSnackBar(
+          SnackBar(content: Text('Không tìm thấy sản phẩm với mã vạch: $scanned')),
+        );
+      }
+    }
   }
 
   void _setQuantity(int value) {
@@ -102,6 +167,21 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
                     ),
                   ),
                   const Spacer(),
+                  if (_step == 0)
+                    _scanLoading
+                        ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : IconButton(
+                            icon: const Icon(Icons.qr_code_scanner),
+                            tooltip: 'Quét mã vạch',
+                            onPressed: () => _openBarcodeScanner(context),
+                          ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),

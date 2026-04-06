@@ -10,8 +10,7 @@ class AppRoutes {
   static const home = '/home';
 
   static const products = '/products';
-  static const suppliers = '/suppliers';
-  static String supplierDetail(String id) => '$suppliers/$id';
+  static String productDetail(String id) => '$products/$id';
 
   static const salesOrders = '/sales-orders';
   static String salesOrderDetail(String id) => '$salesOrders/$id';
@@ -19,7 +18,8 @@ class AppRoutes {
   static const invoices = '/invoices';
   static String invoiceDetail(String id) => '$invoices/$id';
 
-  static const importStock = '/inventory/import';
+  static const suppliers = '/suppliers';
+  static String supplierDetail(String id) => '$suppliers/$id';
 
   const AppRoutes._();
 }

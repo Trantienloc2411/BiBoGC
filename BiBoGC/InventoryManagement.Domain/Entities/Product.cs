@@ -24,7 +24,8 @@ public class Product : BaseEntity
         bool requiresBatchTracking,
         Units baseUnits,
         Money basePrice,
-        int? lowStockThreshold)
+        int? lowStockThreshold,
+        Guid? categoryId = null)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         BasePrice = basePrice ?? throw new ArgumentNullException(nameof(basePrice));
@@ -34,6 +35,7 @@ public class Product : BaseEntity
         Status = ProductStatuses.Active;
         RequiresBatchTracking = requiresBatchTracking;
         LowStockThreshold = lowStockThreshold;
+        CategoryId = categoryId;
 
 
         RaiseDomainEvent(new ProductCreatedEvent(Id, name));

@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Pagination } from '@/components/ui/Pagination'
 import { FormDialog, FormField, FormError, inputClass, selectClass } from '@/components/ui/FormDialog'
+import { CategoryPicker } from '@/components/ui/CategoryPicker'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/ui/Toast'
 import { Search, Eye, Plus, Pencil, Trash2, X, AlertTriangle } from 'lucide-react'
@@ -85,6 +86,8 @@ export default function ProductsPage() {
     categoryId: '', supplierId: '', status: 0,
   })
 
+  const [pickerKey, setPickerKey] = useState(0)
+
   const [deleteTarget, setDeleteTarget] = useState<ProductDto | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -141,6 +144,7 @@ export default function ProductsPage() {
   function openCreate() {
     setCreateForm({ name: '', description: '', sku: '', requiresBatchTracking: false, price: 0, categoryId: '', supplierId: '' })
     setFormError('')
+    setPickerKey(k => k + 1)
     setShowCreate(true)
   }
 
@@ -168,6 +172,7 @@ export default function ProductsPage() {
         description: createForm.description || undefined,
         requiresBatchTracking: createForm.requiresBatchTracking,
         price: createForm.price,
+        categoryId: createForm.categoryId || undefined,
       }
       await productApi.create(body)
       success('Thêm sản phẩm thành công')
@@ -333,6 +338,13 @@ export default function ProductsPage() {
         </FormField>
         <FormField label="SKU" required>
           <input className={inputClass} value={createForm.sku} onChange={e => setCreateForm(f => ({ ...f, sku: e.target.value }))} placeholder="VD: SP001" />
+        </FormField>
+        <FormField label="Danh mục">
+          <CategoryPicker
+            key={pickerKey}
+            value={createForm.categoryId || null}
+            onChange={id => setCreateForm(f => ({ ...f, categoryId: id ?? '' }))}
+          />
         </FormField>
         <FormField label="Giá bán">
           <input type="number" className={inputClass} value={createForm.price || ''} onChange={e => setCreateForm(f => ({ ...f, price: Number(e.target.value) }))} />

@@ -9,6 +9,7 @@ public class ProductDto
     public string Currency { get; set; } = "USD";
     public string Description { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
+    public Guid? CategoryId { get; set; }
     public string? CategoryName { get; set; }
     public int? LowStockThreshold { get; set; }
     public bool RequiresBatchTracking { get; set; }

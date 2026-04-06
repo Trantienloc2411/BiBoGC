@@ -1,11 +1,10 @@
-import 'package:bibogc/core/utils/dialog_utils.dart';
-import 'package:bibogc/features/inventory/presentation/pages/stock_import_page.dart';
-import 'package:bibogc/features/product/domain/entities/product.dart';
 import 'package:bibogc/features/product/presentation/bloc/product_bloc.dart';
 import 'package:bibogc/features/product/presentation/widgets/product_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/config/app_routes.dart';
 import '../../../../core/di/injection.dart';
 
 class ProductsPage extends StatelessWidget {
@@ -30,16 +29,6 @@ class ProductsView extends StatelessWidget {
         leading: BackButton(onPressed: () => Navigator.of(context).pop()),
         title: const Text('Sản phẩm'),
         centerTitle: true,
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Navigate to product create screen.
-          DialogUtils.showSuccessDialog(
-            context,
-            message: 'Flow tạo sản phẩm sẽ được triển khai sau.',
-          );
-        },
-        child: const Icon(Icons.add),
       ),
       body: Column(
         children: [
@@ -72,10 +61,8 @@ class ProductsView extends StatelessWidget {
                     final product = state.products[index];
                     return ProductCard(
                       product: product,
-                      onTap: () => _openProductDetail(context, product),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.inventory_2_outlined),
-                        onPressed: () => _openImportStock(context, product),
+                      onTap: () => context.push(
+                        AppRoutes.productDetail(product.id),
                       ),
                     );
                   },
@@ -103,63 +90,4 @@ class ProductsView extends StatelessWidget {
     );
   }
 
-  void _openProductDetail(BuildContext context, Product product) {
-    // For now just show a bottom sheet preview using the existing card.
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          expand: false,
-          builder: (_, scrollController) {
-            return SingleChildScrollView(
-              controller: scrollController,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          product.name,
-                          style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.of(ctx).pop(),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  if (product.description.isNotEmpty) ...[
-                    Text(
-                      product.description,
-                      style: Theme.of(ctx).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  ProductCard(product: product),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _openImportStock(BuildContext context, Product product) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => StockImportPage(initialProduct: product),
-      ),
-    );
-  }
 }

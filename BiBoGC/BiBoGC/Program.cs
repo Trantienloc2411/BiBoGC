@@ -274,9 +274,9 @@ public class Program
 
         // Use exception handling middleware
         app.UseExceptionHandling();
-
-        app.UseHttpsRedirection();
         app.UseCors("AllowAll");
+        app.UseHttpsRedirection();
+        
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseAuditLog();
