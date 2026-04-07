@@ -293,6 +293,8 @@ public class Program
         // Suppress 404 noise for browser favicon requests
         app.MapGet("/favicon.ico", () => Results.NoContent());
 
+        app.MapHealthChecks("/heath");
+
         app.Run();
     }
 }
