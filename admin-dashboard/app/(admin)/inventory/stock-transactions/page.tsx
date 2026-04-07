@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { stockTransactionApi, productApi } from '@/lib/api'
-import type { StockTransactionDtoV2, AdjustStockRequestV2, ProductDto } from '@/types'
+import type { StockTransactionDtoV2, AdjustStockRequestV2, ProductDto, ProductBatchDtoV2 } from '@/types'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
