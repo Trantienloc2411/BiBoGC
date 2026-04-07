@@ -39,6 +39,7 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<Pr
             Currency = "VND",
             Description = product.Description,
             Status = product.Status.ToString(),
+            CategoryId = product.CategoryId,
             CategoryName = product.Category?.Name,
             LowStockThreshold = product.LowStockThreshold,
             RequiresBatchTracking = product.RequiresBatchTracking,

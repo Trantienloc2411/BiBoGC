@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Receipt, BarChart2, ShieldCheck, Settings2,
   LogOut, Store, Menu, X, ShoppingCart, FileText, ChevronDown,
-  Package, FolderTree, Truck, ArrowLeftRight, Bell,
+  Package, FolderTree, Truck, ArrowLeftRight, Bell, PackagePlus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -14,19 +14,24 @@ import { NotificationBell } from '@/components/layout/NotificationBell'
 
 type IconType = React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>
 type NavChild = { href: string; label: string; icon: IconType }
-type NavItem = { href: string; label: string; icon: IconType; children?: NavChild[] }
+type NavItem = { href: string; label: string; icon: IconType; groupOnly?: boolean; children?: NavChild[] }
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   {
-    href: '/orders', label: 'Đơn hàng', icon: ShoppingCart,
-    children: [{ href: '/invoices', label: 'Hoá đơn', icon: FileText }],
+    href: '/orders', label: 'Đơn hàng', icon: ShoppingCart, groupOnly: true,
+    children: [
+      { href: '/orders', label: 'Đơn hàng', icon: ShoppingCart },
+      { href: '/invoices', label: 'Hoá đơn', icon: FileText },
+    ],
   },
   {
-    href: '/inventory/products', label: 'Kho hàng', icon: Package,
+    href: '/inventory', label: 'Kho hàng', icon: Package, groupOnly: true,
     children: [
+      { href: '/inventory/products', label: 'Sản phẩm', icon: Package },
       { href: '/inventory/categories', label: 'Danh mục', icon: FolderTree },
       { href: '/inventory/suppliers', label: 'Nhà cung cấp', icon: Truck },
+      { href: '/inventory/import', label: 'Nhập hàng', icon: PackagePlus },
       { href: '/inventory/stock-transactions', label: 'Giao dịch kho', icon: ArrowLeftRight },
       { href: '/inventory/alerts', label: 'Cảnh báo', icon: Bell },
     ],
@@ -38,7 +43,6 @@ const NAV_ITEMS: NavItem[] = [
 ]
 
 function isGroupActive(item: NavItem, pathname: string) {
-  if (pathname.startsWith(item.href)) return true
   return item.children?.some(c => pathname.startsWith(c.href)) ?? false
 }
 
@@ -67,7 +71,7 @@ export function Sidebar() {
   }
 
   function isActive(href: string) {
-    if (href === '/dashboard') return pathname === href
+    if (href === '/dashboard' || href === '/orders') return pathname === href
     return pathname.startsWith(href)
   }
 
@@ -101,34 +105,24 @@ export function Sidebar() {
           if (!item.children) return renderLink(item)
 
           const groupActive = isGroupActive(item, pathname)
-          const parentActive = isActive(item.href) && !item.children.some(c => pathname.startsWith(c.href))
           const expanded = openGroups[item.href] ?? false
           const Icon = item.icon
 
           return (
             <div key={item.href}>
-              <div className="flex items-center">
-                <Link href={item.href}
-                  onClick={() => { setMobileOpen(false); if (!expanded) setOpenGroups(g => ({ ...g, [item.href]: true })) }}
-                  className={cn(
-                    'flex-1 flex items-center gap-3 px-3 py-2.5 rounded-md rounded-r-none text-sm font-medium transition-colors',
-                    parentActive ? 'bg-blue-600 text-white shadow-sm'
-                      : groupActive ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800',
-                  )}>
-                  <Icon size={20} strokeWidth={parentActive ? 2.4 : 1.8} />
-                  {item.label}
-                </Link>
-                <button onClick={() => toggleGroup(item.href)}
-                  className={cn(
-                    'px-2 py-2.5 rounded-md rounded-l-none transition-colors',
-                    parentActive ? 'bg-blue-600 text-white/80 hover:text-white shadow-sm'
-                      : groupActive ? 'bg-blue-50 text-blue-500 hover:text-blue-700'
-                      : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100',
-                  )}>
-                  <ChevronDown size={16} className={cn('transition-transform', expanded && 'rotate-180')} />
-                </button>
-              </div>
+              <button
+                onClick={() => toggleGroup(item.href)}
+                className={cn(
+                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors',
+                  groupActive
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800',
+                )}
+              >
+                <Icon size={20} strokeWidth={groupActive ? 2.4 : 1.8} />
+                <span className="flex-1 text-left">{item.label}</span>
+                <ChevronDown size={16} className={cn('transition-transform shrink-0', expanded && 'rotate-180')} />
+              </button>
               {expanded && (
                 <div className="mt-1 space-y-0.5">
                   {item.children.map(child => renderLink(child, true))}

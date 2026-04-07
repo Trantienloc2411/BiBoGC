@@ -42,12 +42,12 @@ public class UpdateProductVariantCommandHandler(IProductVariantRepository produc
         return new ProductVariantDto
         {
             Id = productVariant.Id,
-            SkuUnique = productVariant.SkuUnique,
+            Sku = productVariant.SkuUnique.Value,
             VariantName = productVariant.VariantName,
             Unit = productVariant.Unit,
             QuantityBaseUnit = productVariant.QuantityBaseUnit,
-            SalePrice = productVariant.SalePrice,
-            CostPrice = productVariant.CostPrice,
+            SalePrice = productVariant.SalePrice.Value,
+            CostPrice = productVariant.CostPrice?.Value,
             Barcode = productVariant.Barcode,
             DisplayOrder = productVariant.DisplayOrder,
             CreatedAt = productVariant.CreatedAt,

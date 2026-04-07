@@ -10,7 +10,9 @@ class EnvConfig {
   static const _baseUrls = {
     //Environment.development: 'https://10.0.2.2:7079', // Android emulator → host machine
     // Environment.development: 'http://localhost:7079', // iOS simulator
-    Environment.development: 'https://c611-171-250-163-175.ngrok-free.app', // Physical device via PC hotspot
+    //run with development command: flutter run --dart-define=ENV=development
+    Environment.development:
+        'https://10.0.2.2:7079', // Physical device via PC hotspot
     Environment.deployment: 'https://bibo-s-gcs-test.onrender.com',
   };
 

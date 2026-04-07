@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { stockTransactionApi, productApi } from '@/lib/api'
-import type { StockTransactionDtoV2, AdjustStockRequestV2, ProductDto } from '@/types'
+import type { StockTransactionDtoV2, AdjustStockRequestV2, ProductDto, ProductBatchDtoV2 } from '@/types'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
@@ -45,7 +45,6 @@ export default function StockTransactionsPage() {
   const [productSearch, setProductSearch] = useState('')
 
   const [showAdjust, setShowAdjust] = useState(false)
-  const [products, setProducts] = useState<ProductDto[]>([])
   const [adjustLoading, setAdjustLoading] = useState(false)
   const [adjustError, setAdjustError] = useState('')
   const [adjustForm, setAdjustForm] = useState<AdjustStockRequestV2>({
@@ -54,6 +53,19 @@ export default function StockTransactionsPage() {
     quantity: 0,
     unitPrice: 0,
   })
+
+  // Product search combobox state
+  const [productQuery, setProductQuery] = useState('')
+  const [productResults, setProductResults] = useState<ProductDto[]>([])
+  const [productSearching, setProductSearching] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<ProductDto | null>(null)
+  const [showProductDropdown, setShowProductDropdown] = useState(false)
+  const productSearchRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Batch state
+  const [batches, setBatches] = useState<ProductBatchDtoV2[]>([])
+  const [batchesLoading, setBatchesLoading] = useState(false)
+  const [selectedBatch, setSelectedBatch] = useState<ProductBatchDtoV2 | null>(null)
 
   const load = useCallback(async (p: number) => {
     setLoading(true)
@@ -77,15 +89,61 @@ export default function StockTransactionsPage() {
   useEffect(() => { setPage(1); load(1) }, [filterType, fromDate, toDate, productSearch]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { load(page) }, [page, load])
 
-  async function openAdjust() {
+  async function searchProducts(q: string) {
+    setProductSearching(true)
+    try {
+      const data = await productApi.list({ pageSize: 10, searchTerm: q || undefined })
+      setProductResults(data.items)
+    } catch { /* ignore */ } finally {
+      setProductSearching(false)
+    }
+  }
+
+  function handleProductQueryChange(val: string) {
+    setProductQuery(val)
+    setSelectedProduct(null)
+    setAdjustForm(f => ({ ...f, productId: '', productBatchId: undefined }))
+    setSelectedBatch(null)
+    setBatches([])
+    setShowProductDropdown(true)
+    if (productSearchRef.current) clearTimeout(productSearchRef.current)
+    productSearchRef.current = setTimeout(() => searchProducts(val), 300)
+  }
+
+  async function selectProduct(p: ProductDto) {
+    setAdjustForm(f => ({ ...f, productId: p.id, productBatchId: undefined }))
+    setProductQuery(p.name)
+    setSelectedProduct(p)
+    setShowProductDropdown(false)
+    setSelectedBatch(null)
+    setBatches([])
+    if (p.requiresBatchTracking) {
+      setBatchesLoading(true)
+      try {
+        const data = await productApi.getBatches(p.id, { pageSize: 100 })
+        // Sort newest manufacturing date first
+        const sorted = [...data.items].sort((a, b) => {
+          const da = a.manufacturingDate ? new Date(a.manufacturingDate).getTime() : 0
+          const db = b.manufacturingDate ? new Date(b.manufacturingDate).getTime() : 0
+          return db - da
+        })
+        setBatches(sorted)
+      } catch { /* ignore */ } finally {
+        setBatchesLoading(false)
+      }
+    }
+  }
+
+  function openAdjust() {
     setAdjustForm({ productId: '', isIncrease: true, quantity: 0, unitPrice: 0 })
     setAdjustError('')
-    if (products.length === 0) {
-      try {
-        const data = await productApi.list({ pageSize: 200 })
-        setProducts(data.items)
-      } catch { /* ignore */ }
-    }
+    setProductQuery('')
+    setSelectedProduct(null)
+    setProductResults([])
+    setShowProductDropdown(false)
+    setBatches([])
+    setSelectedBatch(null)
+    searchProducts('')
     setShowAdjust(true)
   }
 
@@ -93,6 +151,9 @@ export default function StockTransactionsPage() {
     e.preventDefault(); setAdjustError('')
     if (!adjustForm.productId) { setAdjustError('Vui lòng chọn sản phẩm.'); return }
     if (adjustForm.quantity <= 0) { setAdjustError('Số lượng phải lớn hơn 0.'); return }
+    if (!adjustForm.isIncrease && selectedBatch && adjustForm.quantity > selectedBatch.quantity) {
+      setAdjustError(`Số lượng giảm (${adjustForm.quantity}) vượt quá tồn lô hàng (${selectedBatch.quantity}).`); return
+    }
     setAdjustLoading(true)
     try {
       await stockTransactionApi.adjust(adjustForm)
@@ -199,11 +260,61 @@ export default function StockTransactionsPage() {
 
       <FormDialog open={showAdjust} title="Điều chỉnh tồn kho" submitLabel="Xác nhận" loading={adjustLoading} onSubmit={handleAdjust} onCancel={() => setShowAdjust(false)}>
         <FormField label="Sản phẩm" required>
-          <select className={selectClass} value={adjustForm.productId} onChange={e => setAdjustForm(f => ({ ...f, productId: e.target.value }))}>
-            <option value="">— Chọn sản phẩm —</option>
-            {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
-          </select>
+          <div className="relative">
+            <input
+              className={inputClass}
+              placeholder="Tìm tên sản phẩm..."
+              value={productQuery}
+              autoComplete="off"
+              onChange={e => handleProductQueryChange(e.target.value)}
+              onFocus={() => { if (!selectedProduct) setShowProductDropdown(true) }}
+              onBlur={() => setTimeout(() => setShowProductDropdown(false), 150)}
+            />
+            {showProductDropdown && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                {productSearching ? (
+                  <div className="px-3 py-2 text-sm text-gray-400">Đang tìm...</div>
+                ) : productResults.length === 0 ? (
+                  <div className="px-3 py-2 text-sm text-gray-400">Không tìm thấy sản phẩm</div>
+                ) : productResults.map(p => (
+                  <button key={p.id} type="button"
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 flex flex-col"
+                    onMouseDown={() => selectProduct(p)}>
+                    <span className="font-medium text-gray-800">{p.name}</span>
+                    <span className="text-xs text-gray-400 font-mono">{p.sku}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </FormField>
+        {selectedProduct?.requiresBatchTracking && (
+          <FormField label="Lô hàng">
+            {batchesLoading ? (
+              <p className="text-sm text-gray-400 py-2">Đang tải lô hàng...</p>
+            ) : batches.length === 0 ? (
+              <p className="text-sm text-gray-400 py-2">Sản phẩm này chưa có lô hàng nào</p>
+            ) : (
+              <select
+                className={selectClass}
+                value={adjustForm.productBatchId ?? ''}
+                onChange={e => {
+                  const id = e.target.value
+                  const batch = batches.find(b => b.id === id) ?? null
+                  setSelectedBatch(batch)
+                  setAdjustForm(f => ({ ...f, productBatchId: id || undefined }))
+                }}
+              >
+                <option value="">— Không chọn lô —</option>
+                {batches.map(b => (
+                  <option key={b.id} value={b.id}>
+                    {b.batchNumber} — còn {b.quantity} sản phẩm
+                  </option>
+                ))}
+              </select>
+            )}
+          </FormField>
+        )}
         <FormField label="Loại điều chỉnh" required>
           <select className={selectClass} value={adjustForm.isIncrease ? '1' : '0'}
             onChange={e => setAdjustForm(f => ({ ...f, isIncrease: e.target.value === '1' }))}>

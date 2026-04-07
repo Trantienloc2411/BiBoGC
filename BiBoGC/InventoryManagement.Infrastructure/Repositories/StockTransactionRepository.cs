@@ -1,5 +1,6 @@
 ﻿using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Domain.Entities;
+using InventoryManagement.Domain.Enums;
 using InventoryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,44 +23,59 @@ public class StockTransactionRepository : IStockTransactionRepository
         return stockTransaction;
     }
 
-    public async Task<(IEnumerable<StockTransaction>, int totalCount)> GetAllAsync(int pageNumber = 1,
-        int pageSize = 10, string? keyword = null, CancellationToken cancellationToken = default)
+    public async Task<(IEnumerable<StockTransaction>, int totalCount)> GetAllAsync(
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? keyword = null,
+        Guid? productId = null,
+        StockTransactionType? transactionType = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        string? sortBy = "TransactionDate",
+        bool sortDescending = true,
+        CancellationToken cancellationToken = default)
     {
-        var allTransactions = await _context.StockTransactions.Where(st => !st.IsDeleted)
+        var query = _context.StockTransactions
+            .Where(st => !st.IsDeleted)
             .Include(st => st.Product)
             .Include(st => st.ProductBatch)
             .Include(st => st.Supplier)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+            query = query.Where(st =>
+                st.Product.Name.Contains(keyword) ||
+                (st.Supplier != null && st.Supplier.Name.Contains(keyword)) ||
+                (st.ProductBatch != null && st.ProductBatch.BatchNumber.Contains(keyword)));
+
+        if (productId.HasValue)
+            query = query.Where(st => st.ProductId == productId.Value);
+
+        if (transactionType.HasValue)
+            query = query.Where(st => st.TransactionType == transactionType.Value);
+
+        if (fromDate.HasValue)
+            query = query.Where(st => st.TransactionDate >= fromDate.Value);
+
+        if (toDate.HasValue)
+            query = query.Where(st => st.TransactionDate <= toDate.Value);
+
+        query = sortBy?.ToLower() switch
+        {
+            "quantity"        => sortDescending ? query.OrderByDescending(st => st.Quantity)        : query.OrderBy(st => st.Quantity),
+            "unitprice"       => sortDescending ? query.OrderByDescending(st => st.UnitPrice)       : query.OrderBy(st => st.UnitPrice),
+            "transactiontype" => sortDescending ? query.OrderByDescending(st => st.TransactionType) : query.OrderBy(st => st.TransactionType),
+            _                 => sortDescending ? query.OrderByDescending(st => st.TransactionDate) : query.OrderBy(st => st.TransactionDate),
+        };
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var transactions = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        IEnumerable<StockTransaction> stockTransactions;
-
-        if (keyword is null)
-        {
-            stockTransactions = allTransactions
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-            var totalCount = allTransactions.Count;
-            return (stockTransactions, totalCount);
-        }
-        else
-        {
-            stockTransactions = allTransactions
-                .Where(st => st.Product.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                             (st?.Supplier?.ContactPerson != null &&
-                              st.Supplier.ContactPerson.Contains(keyword, StringComparison.OrdinalIgnoreCase)) ||
-                             (st?.ProductBatch?.BatchNumber != null &&
-                              st.ProductBatch.BatchNumber.Contains(keyword, StringComparison.OrdinalIgnoreCase)));
-
-            var totalCount = stockTransactions.Count();
-
-            var pagedTransactions = stockTransactions
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            return (pagedTransactions, totalCount);
-        }
+        return (transactions, totalCount);
     }
 
     public async Task<StockTransaction?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

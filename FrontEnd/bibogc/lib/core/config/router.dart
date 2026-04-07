@@ -6,12 +6,9 @@ import '../di/injection.dart';
 import '../../features/auth/presentation/pages/welcome_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
-import '../../features/suppliers/presentation/bloc/supplier_bloc.dart';
-import '../../features/suppliers/presentation/pages/suppliers_page.dart';
-import '../../features/suppliers/presentation/pages/supplier_detail_page.dart';
 import '../../features/product/presentation/bloc/product_bloc.dart';
+import '../../features/product/presentation/pages/product_detail_page.dart';
 import '../../features/product/presentation/pages/products_page.dart';
-import '../../features/inventory/presentation/pages/stock_import_page.dart';
 import '../../features/sales_order/presentation/bloc/sales_order_bloc.dart';
 import '../../features/sales_order/presentation/pages/sales_orders_page.dart';
 import '../../features/sales_order/presentation/pages/sales_order_detail_page.dart';
@@ -43,29 +40,11 @@ GoRouter createAppRouter({String initialLocation = AppRoutes.welcome}) {
           create: (_) => getIt<ProductBloc>()..add(const ProductsStarted()),
           child: const ProductsView(),
         ),
-      ),
-      GoRoute(
-        path: AppRoutes.importStock,
-        builder: (context, state) => StockImportPage(),
-      ),
-      ShellRoute(
-        builder: (context, state, child) {
-          return BlocProvider(
-            create: (_) => getIt<SupplierBloc>()..add(SuppliersStarted()),
-            child: child,
-          );
-        },
         routes: [
           GoRoute(
-            path: AppRoutes.suppliers,
-            builder: (context, state) => const SuppliersPage(),
-            routes: [
-              GoRoute(
-                path: ':id',
-                builder: (context, state) =>
-                    SupplierDetailPage(id: state.pathParameters['id']!),
-              ),
-            ],
+            path: ':id',
+            builder: (context, state) =>
+                ProductDetailPage(id: state.pathParameters['id']!),
           ),
         ],
       ),

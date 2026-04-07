@@ -59,13 +59,13 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
         final order = state.selectedOrder;
         if (order == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Chi tiết đơn hàng')),
+            appBar: AppBar(leading: const BackButton(), title: const Text('Chi tiết đơn hàng')),
             body: const Center(child: Text('Không tìm thấy đơn hàng')),
           );
         }
 
         return Scaffold(
-          appBar: AppBar(title: Text(order.orderNumber), centerTitle: true),
+          appBar: AppBar(leading: const BackButton(), title: Text(order.orderNumber), centerTitle: true),
           body: _buildBody(context, state, order),
         );
       },

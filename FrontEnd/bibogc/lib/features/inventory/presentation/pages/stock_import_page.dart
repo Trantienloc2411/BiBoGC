@@ -685,6 +685,7 @@ class _StockImportViewState extends State<StockImportView> {
       ),
       builder: (ctx) {
         final theme = Theme.of(ctx);
+        final searchController = TextEditingController();
         return MultiBlocProvider(
           providers: [
             BlocProvider.value(value: productBloc),
@@ -692,7 +693,12 @@ class _StockImportViewState extends State<StockImportView> {
           ],
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -703,20 +709,35 @@ class _StockImportViewState extends State<StockImportView> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: searchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'Tìm sản phẩm...',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      isDense: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      productBloc.add(ProductsSearchChanged(value));
+                    },
+                  ),
                   const SizedBox(height: 8),
                   SizedBox(
-                    height: 360,
+                    height: 320,
                     child: BlocBuilder<ProductBloc, ProductState>(
                       builder: (context, state) {
-                        if (state.products.isEmpty &&
-                            state.status == ProductStatus.loading) {
+                        if (state.status == ProductStatus.loading) {
                           return const Center(
                             child: CircularProgressIndicator(),
                           );
                         }
                         if (state.products.isEmpty) {
                           return const Center(
-                            child: Text('Chưa có sản phẩm nào'),
+                            child: Text('Không tìm thấy sản phẩm'),
                           );
                         }
                         return ListView.builder(

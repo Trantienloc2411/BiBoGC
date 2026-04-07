@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/config/app_routes.dart';
 import '../../../../core/config/router.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/network/dio_client.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
+import '../../../invoice/presentation/bloc/invoice_bloc.dart';
+import '../../../sales_order/presentation/bloc/sales_order_bloc.dart';
 import '../../presentation/widgets/home_app_bar.dart';
 import '../../presentation/widgets/quick_actions_grid.dart';
 import '../../presentation/widgets/recent_activity_list.dart';
@@ -16,64 +20,85 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
-  bool _isFabExpanded = false;
-  late AnimationController _animationController;
-  late Animation<double> _rotateAnimation;
+class _HomePageState extends State<HomePage> {
+  // Own the bloc instances so we can refresh them without needing context.read
+  late final SalesOrderBloc _salesOrderBloc;
+  late final InvoiceBloc _invoiceBloc;
+
+  // Daily summary state
+  double? _totalRevenue;
+  int? _orderCount;
+  double? _growthPercentage;
+
+  // Route change tracking
+  GoRouterDelegate? _routerDelegate;
+  bool _hasPushedAway = false;
 
   @override
   void initState() {
     super.initState();
-    _initAnimations();
+    _salesOrderBloc = getIt<SalesOrderBloc>()..add(const SalesOrdersStarted());
+    _invoiceBloc = getIt<InvoiceBloc>()..add(const InvoicesStarted());
+    _loadDailySummary();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Re-initialize if null (safeguard for Hot Reload)
-    // Note: late variables can't be null-checked easily without a wrapper,
-    // but moving init to a helper allows us to call it if needed.
-    // Actually, for Hot Reload adding new 'late' fields, the only fix is Hot Restart.
-    // However, we can try to wrap initialization in a way that avoids the crash if we make them nullable.
-  }
-
-  void _initAnimations() {
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _rotateAnimation = Tween<double>(begin: 0.0, end: 0.5).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
+    // Subscribe to router delegate changes once
+    if (_routerDelegate == null) {
+      _routerDelegate = GoRouter.of(context).routerDelegate;
+      _routerDelegate!.addListener(_onRouteChanged);
+    }
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _routerDelegate?.removeListener(_onRouteChanged);
+    _salesOrderBloc.close();
+    _invoiceBloc.close();
     super.dispose();
   }
 
-  void _toggleFab() {
-    setState(() {
-      _isFabExpanded = !_isFabExpanded;
-      if (_isFabExpanded) {
-        _animationController.forward();
-      } else {
-        _animationController.reverse();
+  void _onRouteChanged() {
+    if (_routerDelegate == null) return;
+    // Defer to the next frame so currentConfiguration reflects the settled route.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _routerDelegate == null) return;
+      final path = _routerDelegate!.currentConfiguration.uri.path;
+      if (path == AppRoutes.home && _hasPushedAway) {
+        _hasPushedAway = false;
+        _refreshData();
+      } else if (path.isNotEmpty && path != AppRoutes.home) {
+        _hasPushedAway = true;
       }
     });
   }
 
-  void _handleFabAction(String action) {
-    _toggleFab();
-    switch (action) {
-      case 'orders':
-        context.push(AppRoutes.salesOrders);
-        break;
-      case 'import':
-        context.push(AppRoutes.importStock);
-        break;
+  void _refreshData() {
+    _salesOrderBloc.add(const SalesOrdersStarted());
+    _invoiceBloc.add(const InvoicesStarted());
+    _loadDailySummary();
+  }
+
+  Future<void> _loadDailySummary() async {
+    try {
+      final response =
+          await getIt<DioClient>().dio.get('/api/finance/reports/sales/daily');
+      final data = response.data as Map<String, dynamic>;
+      final payload = (data['data'] ?? data) as Map<String, dynamic>;
+      if (mounted) {
+        setState(() {
+          _totalRevenue =
+              (payload['totalRevenue'] as num?)?.toDouble() ?? 0;
+          _orderCount =
+              (payload['transactionCount'] as num?)?.toInt() ?? 0;
+          _growthPercentage =
+              (payload['revenueChangePercent'] as num?)?.toDouble() ?? 0;
+        });
+      }
+    } catch (_) {
+      // Leave nulls — SummaryCard shows shimmer
     }
   }
 
@@ -84,50 +109,60 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth > 800) {
-            return _buildTabletLayout();
-          }
-          return _buildMobileLayout();
-        },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: _salesOrderBloc),
+        BlocProvider.value(value: _invoiceBloc),
+      ],
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F5F5),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth > 800) {
+              return _buildTabletLayout(context);
+            }
+            return _buildMobileLayout(context);
+          },
+        ),
+        floatingActionButton: _buildFab(context),
       ),
-      floatingActionButton: _buildExpandableFab(),
     );
   }
 
-  Widget _buildMobileLayout() {
+  Widget _buildMobileLayout(BuildContext context) {
     return SafeArea(
-      child: SingleChildScrollView(
-        child: Column(
+      child: RefreshIndicator(
+        onRefresh: () async => _refreshData(),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
           children: [
             HomeAppBar(username: 'Chủ Cửa Hàng', onLogout: _handleLogout),
             Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
                   SummaryCard(
-                    totalRevenue: 1250000,
-                    orderCount: 12,
-                    growthPercentage: 8,
+                    totalRevenue: _totalRevenue,
+                    orderCount: _orderCount,
+                    growthPercentage: _growthPercentage,
                   ),
-                  SizedBox(height: 24),
-                  QuickActionsGrid(),
-                  SizedBox(height: 24),
-                  RecentActivityList(),
-                  SizedBox(height: 80), // Space for FAB
+                  const SizedBox(height: 24),
+                  const QuickActionsGrid(),
+                  const SizedBox(height: 24),
+                  const RecentActivityList(),
+                  const SizedBox(height: 80),
                 ],
               ),
             ),
           ],
         ),
       ),
+      ),
     );
   }
 
-  Widget _buildTabletLayout() {
+  Widget _buildTabletLayout(BuildContext context) {
     return Row(
       children: [
         NavigationRail(
@@ -137,14 +172,11 @@ class _HomePageState extends State<HomePage>
               case 0:
                 context.go(AppRoutes.home);
                 break;
-              // case 1: // Inventory
-              //   context.go('/inventory');
-              //   break;
-              // case 2: // Orders
-              //   context.go('/orders');
-              //   break;
-              case 3:
-                context.push(AppRoutes.suppliers);
+              case 1:
+                context.push(AppRoutes.salesOrders);
+                break;
+              case 2:
+                context.push(AppRoutes.invoices);
                 break;
             }
           },
@@ -155,16 +187,12 @@ class _HomePageState extends State<HomePage>
               label: Text('Trang chủ'),
             ),
             NavigationRailDestination(
-              icon: Icon(Icons.inventory),
-              label: Text('Kho'),
-            ),
-            NavigationRailDestination(
               icon: Icon(Icons.receipt_long),
               label: Text('Đơn hàng'),
             ),
             NavigationRailDestination(
-              icon: Icon(Icons.people),
-              label: Text('Đối tác'),
+              icon: Icon(Icons.description),
+              label: Text('Hóa đơn'),
             ),
           ],
         ),
@@ -182,14 +210,14 @@ class _HomePageState extends State<HomePage>
                       Expanded(
                         flex: 3,
                         child: Column(
-                          children: const [
+                          children: [
                             SummaryCard(
-                              totalRevenue: 1250000,
-                              orderCount: 12,
-                              growthPercentage: 8,
+                              totalRevenue: _totalRevenue,
+                              orderCount: _orderCount,
+                              growthPercentage: _growthPercentage,
                             ),
-                            SizedBox(height: 24),
-                            QuickActionsGrid(),
+                            const SizedBox(height: 24),
+                            const QuickActionsGrid(),
                           ],
                         ),
                       ),
@@ -206,70 +234,11 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _buildExpandableFab() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        if (_isFabExpanded) ...[
-          _buildFabOption(
-            icon: Icons.move_to_inbox,
-            label: 'Nhập kho',
-            onTap: () => _handleFabAction('import'),
-          ),
-          const SizedBox(height: 16),
-          _buildFabOption(
-            icon: Icons.add_shopping_cart,
-            label: 'Tạo đơn hàng',
-            onTap: () => _handleFabAction('orders'),
-          ),
-          const SizedBox(height: 16),
-        ],
-        FloatingActionButton(
-          onPressed: _toggleFab,
-          child: RotationTransition(
-            turns: _rotateAnimation,
-            child: const Icon(Icons.add),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFabOption({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(26),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-        const SizedBox(width: 16),
-        FloatingActionButton.small(
-          onPressed: onTap,
-          backgroundColor: Colors.white,
-          foregroundColor: Theme.of(context).colorScheme.primary,
-          child: Icon(icon),
-        ),
-      ],
+  Widget _buildFab(BuildContext context) {
+    return FloatingActionButton.extended(
+      onPressed: () => context.push(AppRoutes.salesOrders),
+      icon: const Icon(Icons.add_shopping_cart),
+      label: const Text('Tạo đơn hàng'),
     );
   }
 }
