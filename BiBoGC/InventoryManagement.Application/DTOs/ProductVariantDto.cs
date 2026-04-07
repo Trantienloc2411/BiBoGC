@@ -1,6 +1,5 @@
 ﻿using InventoryManagement.Domain.Entities;
 using InventoryManagement.Domain.Enums;
-using InventoryManagement.Domain.ValueObjects;
 
 namespace InventoryManagement.Application.DTOs;
 
@@ -8,7 +7,7 @@ public class ProductVariantDto
 {
     public Guid Id { get; set; }
 
-    public Sku SkuUnique { get; set; }
+    public string Sku { get; set; } = string.Empty;
 
     public string? Barcode { get; set; }
 
@@ -19,13 +18,13 @@ public class ProductVariantDto
     public string? VariantName { get; set; }
 
     public Units Unit { get; set; }
-    public string UnitName { get; set; }
+    public string UnitName { get; set; } = string.Empty;
 
     public int QuantityBaseUnit { get; set; }
 
-    public Money SalePrice { get; set; }
+    public decimal SalePrice { get; set; }
 
-    public Money? CostPrice { get; set; }
+    public decimal? CostPrice { get; set; }
 
     public int DisplayOrder { get; set; }
 
@@ -38,15 +37,15 @@ public class ProductVariantDto
         return new ProductVariantDto
         {
             Id = productVariant.Id,
-            SkuUnique = productVariant.SkuUnique,
+            Sku = productVariant.SkuUnique.Value,
             Barcode = productVariant.Barcode,
             ProductId = productVariant.ProductId,
             VariantName = productVariant.VariantName,
             Unit = productVariant.Unit,
             UnitName = productVariant.Unit.ToString(),
             QuantityBaseUnit = productVariant.QuantityBaseUnit,
-            SalePrice = productVariant.SalePrice,
-            CostPrice = productVariant.CostPrice,
+            SalePrice = productVariant.SalePrice.Value,
+            CostPrice = productVariant.CostPrice?.Value,
             DisplayOrder = productVariant.DisplayOrder,
             CreatedAt = productVariant.CreatedAt
         };

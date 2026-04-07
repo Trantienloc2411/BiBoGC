@@ -1,7 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:bibogc/core/common/paged_result.dart';
 import 'package:bibogc/core/constants/api_constants.dart';
 import 'package:bibogc/core/network/dio_client.dart';
 import 'package:bibogc/features/invoice/data/models/invoice_model.dart';
+import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
 abstract class InvoiceRemoteDataSource {
@@ -13,6 +16,8 @@ abstract class InvoiceRemoteDataSource {
   });
 
   Future<InvoiceModel> getInvoiceById(String id);
+
+  Future<Uint8List> exportInvoicePdf(String id);
 }
 
 @LazySingleton(as: InvoiceRemoteDataSource)
@@ -51,5 +56,14 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
   Future<InvoiceModel> getInvoiceById(String id) async {
     final response = await _dioClient.dio.get('${ApiConstants.invoices}/$id');
     return InvoiceModel.fromJson(response.data['data'] as Map<String, dynamic>);
+  }
+
+  @override
+  Future<Uint8List> exportInvoicePdf(String id) async {
+    final response = await _dioClient.dio.get(
+      '${ApiConstants.invoices}/$id/export/pdf',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return Uint8List.fromList(response.data as List<int>);
   }
 }

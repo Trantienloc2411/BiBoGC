@@ -10,10 +10,11 @@ namespace BiBoGC.Tests.Unit.Application;
 public class CreateProductCommandHandlerTests
 {
     private readonly Mock<IProductRepository> _repoMock = new();
+    private readonly Mock<ICategoryRepository> _categoryMock = new();
 
     private CreateProductCommandHandler CreateHandler()
     {
-        return new CreateProductCommandHandler(_repoMock.Object);
+        return new CreateProductCommandHandler(_repoMock.Object, _categoryMock.Object);
     }
 
     private static CreateProductCommand ValidCommand(string sku = "SKU-001")

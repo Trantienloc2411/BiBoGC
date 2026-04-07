@@ -50,4 +50,5 @@ public record CreateProductCommand : IRequest<Result<ProductDto>>
 
     public Units BaseUnits { get; init; }
     public int LowStockThreshold { get; init; }
+    public Guid? CategoryId { get; init; }
 }

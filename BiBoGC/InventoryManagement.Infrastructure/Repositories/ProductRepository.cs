@@ -84,7 +84,7 @@ public class ProductRepository : IProductRepository
         // Load products and check in memory because of Value Object conversion
         var products = await _context.Products.Include(v => v.Variants.Where(v => !v.IsDeleted))
             .ToListAsync(cancellationToken);
-        var query = products.Where(p => p.Variants.Any(v => v.SkuUnique.Value == normalizedSku));
+        var query = products.Where(p => p.Variants.Any(v => v.SkuUnique.Value == normalizedSku) || p.SkuGeneral.Value.CompareTo(normalizedSku) == 0);
 
         if (excludeProductId.HasValue) query = query.Where(p => p.Id != excludeProductId.Value);
 

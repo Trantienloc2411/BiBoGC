@@ -1,8 +1,11 @@
+import 'package:bibogc/core/di/injection.dart';
+import 'package:bibogc/features/invoice/data/datasources/invoice_remote_data_source.dart';
 import 'package:bibogc/features/invoice/domain/entities/invoice.dart';
 import 'package:bibogc/features/invoice/presentation/bloc/invoice_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
 
 /// Full-page version (used from InvoicesPage).
 /// Also exposes [InvoiceDetailContent] as a widget reusable in a bottom sheet.
@@ -47,7 +50,11 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
         }
 
         return Scaffold(
-          appBar: AppBar(title: Text(invoice.invoiceNumber), centerTitle: true),
+          appBar: AppBar(
+            leading: const BackButton(),
+            title: Text(invoice.invoiceNumber),
+            centerTitle: true,
+          ),
           body: InvoiceDetailContent(invoice: invoice),
         );
       },
@@ -56,13 +63,41 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
 }
 
 /// Reusable content widget – used both in the page and as a bottom sheet from SalesOrderDetailPage.
-class InvoiceDetailContent extends StatelessWidget {
+class InvoiceDetailContent extends StatefulWidget {
   final Invoice invoice;
 
   const InvoiceDetailContent({super.key, required this.invoice});
 
   @override
+  State<InvoiceDetailContent> createState() => _InvoiceDetailContentState();
+}
+
+class _InvoiceDetailContentState extends State<InvoiceDetailContent> {
+  bool _isPrinting = false;
+
+  Future<void> _handlePrint() async {
+    setState(() => _isPrinting = true);
+    try {
+      final bytes = await getIt<InvoiceRemoteDataSource>()
+          .exportInvoicePdf(widget.invoice.id);
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename: '${widget.invoice.invoiceNumber}.pdf',
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không thể xuất hóa đơn. Vui lòng thử lại.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isPrinting = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final invoice = widget.invoice;
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm', 'vi_VN');
     final theme = Theme.of(context);
@@ -313,18 +348,19 @@ class InvoiceDetailContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Share/Print placeholder
-          OutlinedButton.icon(
-            icon: const Icon(Icons.share),
-            label: const Text('Chia sẻ / In'),
-            onPressed: () {
-              // TODO: Implement share/print functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Tính năng chia sẻ sẽ được triển khai sau'),
-                ),
-              );
-            },
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              icon: _isPrinting
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.print),
+              label: Text(_isPrinting ? 'Đang xuất...' : 'In / Chia sẻ hóa đơn'),
+              onPressed: _isPrinting ? null : _handlePrint,
+            ),
           ),
           const SizedBox(height: 32),
         ],

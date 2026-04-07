@@ -1,6 +1,7 @@
 using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Domain.Entities;
+using InventoryManagement.Domain.Enums;
 using MediatR;
 using Shared.Application.Common;
 using Shared.Application.Interfaces;
@@ -56,8 +57,8 @@ public class
 
         var transaction = new StockTransaction(
             request.ProductId,
-            request.ProductBatchId ?? Guid.Empty,
-            request.SupplierId ?? Guid.Empty,
+            request.ProductBatchId,
+            request.SupplierId,
             request.TransactionType,
             request.Quantity,
             request.UnitPrice,
@@ -65,15 +66,22 @@ public class
             request.Notes
         );
 
-        // Update batch quantity if batch is specified
-        if (batch is not null)
+        // Update product TotalStock and batch quantity
+        if (transaction.IsInboundTransaction())
         {
-            if (transaction.IsInboundTransaction())
-                batch.IncreaseQuantity(request.Quantity);
-            else if (transaction.IsOutboundTransaction()) batch.DecreaseQuantity(request.Quantity);
-
-            await _productRepository.UpdateAsync(product, cancellationToken);
+            product.IncreaseStock(request.Quantity);
+            // Purchase = initial receipt; batch quantity is already set correctly by AddBatch.
+            // AdjustmentIn and Return act on existing batches, so they still need IncreaseQuantity.
+            if (transaction.TransactionType != StockTransactionType.Purchase)
+                batch?.IncreaseQuantity(request.Quantity);
         }
+        else if (transaction.IsOutboundTransaction())
+        {
+            product.DecreaseStock(request.Quantity);
+            batch?.DecreaseQuantity(request.Quantity);
+        }
+
+        await _productRepository.UpdateAsync(product, cancellationToken);
 
         var createdTransaction = await _stockTransactionRepository.AddAsync(transaction, cancellationToken);
 

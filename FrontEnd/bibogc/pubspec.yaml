@@ -49,6 +49,8 @@ dependencies:
   # Keep `json_annotation` aligned with the version resolved by Flutter/Dart SDK.
   # (json_serializable requires >= 4.9.0)
   json_annotation: ^4.9.0
+  mobile_scanner: ^6.0.2
+  printing: ^5.14.2
 
 dev_dependencies:
   flutter_test:

@@ -15,10 +15,12 @@ namespace InventoryManagement.Application.Commands.CreateProduct;
 public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Result<ProductDto>>
 {
     private readonly IProductRepository _productRepository;
+    private readonly ICategoryRepository _categoryRepository;
 
-    public CreateProductCommandHandler(IProductRepository productRepository)
+    public CreateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository)
     {
         _productRepository = productRepository;
+        _categoryRepository = categoryRepository;
     }
 
     public async Task<Result<ProductDto>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
@@ -26,6 +28,14 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         // Check if SKU already exists
         if (await _productRepository.SkuExistsAsync(request.Sku, cancellationToken: cancellationToken))
             return Result<ProductDto>.Failure($"SKU '{request.Sku}' đã tồn tại trong hệ thống.");
+
+        // Validate CategoryId if provided
+        if (request.CategoryId.HasValue)
+        {
+            var category = await _categoryRepository.GetByIdAsync(request.CategoryId.Value, cancellationToken);
+            if (category is null)
+                return Result<ProductDto>.Failure($"Danh mục với ID '{request.CategoryId}' không tồn tại.");
+        }
 
         // Create domain entity
         var product = new Product(
@@ -36,7 +46,8 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             description: request.Description,
             status: ProductStatuses.Active,
             requiresBatchTracking: request.RequiresBatchTracking,
-            lowStockThreshold: request.LowStockThreshold
+            lowStockThreshold: request.LowStockThreshold,
+            categoryId: request.CategoryId
         );
 
         // Add a default variant (1 base unit) automatically
@@ -71,6 +82,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             Currency = "VND",
             Description = product.Description,
             Status = product.Status.ToString(),
+            CategoryId = product.CategoryId,
             RequiresBatchTracking = product.RequiresBatchTracking,
             TotalStock = product.TotalStock,
             AvailableStock = product.GetAvailableStock(),

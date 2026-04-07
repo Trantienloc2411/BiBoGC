@@ -274,9 +274,9 @@ public class Program
 
         // Use exception handling middleware
         app.UseExceptionHandling();
-
-        app.UseHttpsRedirection();
         app.UseCors("AllowAll");
+        app.UseHttpsRedirection();
+        
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseAuditLog();
@@ -292,6 +292,8 @@ public class Program
 
         // Suppress 404 noise for browser favicon requests
         app.MapGet("/favicon.ico", () => Results.NoContent());
+
+        app.MapHealthChecks("/heath");
 
         app.Run();
     }

@@ -926,7 +926,23 @@ public static class DataSeeder
             transactions.Add(damage);
         }
 
+        // Update product TotalStock based on the seeded transactions
+        var productDict = products.ToDictionary(p => p.Id);
+        foreach (var transaction in transactions)
+        {
+            if (!productDict.TryGetValue(transaction.ProductId, out var product))
+                continue;
+            if (transaction.IsInboundTransaction())
+                product.IncreaseStock(transaction.Quantity);
+            else if (transaction.IsOutboundTransaction())
+                product.DecreaseStock(transaction.Quantity);
+        }
+
         context.StockTransactions.AddRange(transactions);
+        await context.SaveChangesAsync();
+
+        // Persist updated TotalStock values back to the Products table
+        context.Products.UpdateRange(products.Where(p => p.RequiresBatchTracking));
         await context.SaveChangesAsync();
 
         logger.LogInformation("Seeded {Count} stock transactions.", transactions.Count);

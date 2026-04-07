@@ -36,13 +36,13 @@ public class GetProductVariantsQueryHandler(IProductVariantRepository productVar
         {
             Id = productVariant.Id,
             Barcode = productVariant.Barcode,
-            CostPrice = productVariant.CostPrice,
+            CostPrice = productVariant.CostPrice?.Value,
             CreatedAt = productVariant.CreatedAt,
             ProductName = productVariant.Product!.Name ?? string.Empty,
             ProductId = productVariant.Product.Id,
             QuantityBaseUnit = productVariant.QuantityBaseUnit,
-            SalePrice = productVariant.SalePrice,
-            SkuUnique = productVariant.SkuUnique,
+            SalePrice = productVariant.SalePrice.Value,
+            Sku = productVariant.SkuUnique.Value,
             VariantName = productVariant.VariantName,
             Unit = productVariant.Unit
         };

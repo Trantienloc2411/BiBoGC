@@ -64,8 +64,6 @@ export default function OrderDetailPage() {
             setOrder(refreshJson.data ?? refreshJson)
           }
         }
-      } else {
-        showError('Không thể tạo hoá đơn', 'Vui lòng thử lại.')
       }
     } catch {
       showError('Lỗi kết nối')

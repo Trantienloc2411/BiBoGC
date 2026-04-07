@@ -18,10 +18,16 @@ public class
         CancellationToken cancellationToken)
     {
         var (transactions, totalCount) = await _stockTransactionRepository.GetAllAsync(
-            request.PageNumber,
-            request.PageSize,
-            request.SearchTerm,
-            cancellationToken
+            pageNumber: request.PageNumber,
+            pageSize: request.PageSize,
+            keyword: request.SearchTerm,
+            productId: request.ProductId,
+            transactionType: request.TransactionType,
+            fromDate: request.FromDate,
+            toDate: request.ToDate,
+            sortBy: request.SortBy,
+            sortDescending: request.SortDescending,
+            cancellationToken: cancellationToken
         );
 
         var dtos = transactions.Select(t => new StockTransactionDto

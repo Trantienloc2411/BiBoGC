@@ -55,13 +55,13 @@ public class CreateProductVariantCommandHandler(
         return new ProductVariantDto
         {
             Id = productVariant.Id,
-            SkuUnique = productVariant.SkuUnique,
+            Sku = productVariant.SkuUnique.Value,
             VariantName = productVariant.VariantName,
             QuantityBaseUnit = productVariant.QuantityBaseUnit,
-            SalePrice = productVariant.SalePrice,
+            SalePrice = productVariant.SalePrice.Value,
             Unit = productVariant.Unit,
             Barcode = productVariant.Barcode,
-            CostPrice = productVariant.CostPrice,
+            CostPrice = productVariant.CostPrice?.Value,
             DisplayOrder = productVariant.DisplayOrder,
             ProductId = productVariant.ProductId,
             ProductName = productVariant.Product?.Name ?? string.Empty
