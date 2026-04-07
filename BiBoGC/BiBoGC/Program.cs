@@ -276,7 +276,7 @@ public class Program
         app.UseExceptionHandling();
         app.UseCors("AllowAll");
         app.UseHttpsRedirection();
-        
+
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseAuditLog();
@@ -293,7 +293,7 @@ public class Program
         // Suppress 404 noise for browser favicon requests
         app.MapGet("/favicon.ico", () => Results.NoContent());
 
-        app.MapHealthChecks("/heath");
+        app.MapHealthChecks("/health");
 
         app.Run();
     }
