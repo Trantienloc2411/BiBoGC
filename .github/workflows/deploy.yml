@@ -30,6 +30,7 @@ jobs:
             User ${{ secrets.SERVER_USER }}
             Port ${{ secrets.SERVER_SSH_PORT }}
             IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
             StrictHostKeyChecking no
             ProxyCommand cloudflared access ssh --hostname %h
           EOF
