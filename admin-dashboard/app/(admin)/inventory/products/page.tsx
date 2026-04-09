@@ -17,8 +17,10 @@ import { FormDialog, FormField, FormError, inputClass, selectClass } from '@/com
 import { CategoryPicker } from '@/components/ui/CategoryPicker'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/ui/Toast'
-import { Search, Eye, Plus, Pencil, Trash2, X, AlertTriangle } from 'lucide-react'
+import { Search, Eye, Plus, Pencil, Trash2, X, AlertTriangle, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useExportFile } from '@/hooks/useExportFile'
+import { exportExistingProducts } from '@/lib/exportService'
 
 const PAGE_SIZE = 20
 
@@ -54,6 +56,7 @@ type EditForm = {
 
 export default function ProductsPage() {
   const { success, error: showError } = useToast()
+  const { exportFile: handleExportProducts, loading: exportLoading } = useExportFile(exportExistingProducts)
 
   const [products, setProducts] = useState<ProductDto[]>([])
   const [totalCount, setTotalCount] = useState(0)
@@ -220,7 +223,20 @@ export default function ProductsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-bold text-gray-800">Sản phẩm</h1>
-        <Button size="sm" onClick={openCreate} className="gap-1.5"><Plus size={15} /> Thêm sản phẩm</Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleExportProducts}
+            loading={exportLoading}
+            disabled={exportLoading}
+            className="gap-1.5"
+          >
+            <Download size={15} />
+            {exportLoading ? 'Đang xuất...' : 'Xuất sản phẩm'}
+          </Button>
+          <Button size="sm" onClick={openCreate} className="gap-1.5"><Plus size={15} /> Thêm sản phẩm</Button>
+        </div>
       </div>
 
       <Card className="flex flex-wrap gap-3 items-end">

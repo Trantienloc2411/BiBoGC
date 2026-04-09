@@ -1,119 +1,146 @@
 using ClosedXML.Excel;
 using Finance.Application.Interfaces;
+using Shared.Application.Common;
+using System.IO.Compression;
+using System.Reflection;
 
 namespace Finance.Infrastructure.Services;
 
+/// <summary>
+/// Fills the S2a-HKD.xlsx template (Sổ chi tiết doanh thu) with invoice data.
+/// Template capacity: 20 data rows (rows 12–31). Splits into multiple files when exceeded.
+/// </summary>
 public class TaxReportExportService : ITaxReportExportService
 {
-    public byte[] GenerateTaxReportExcel(
-        int year,
-        int? month,
-        string storeTaxCode,
+    private const int DataStartRow = 12;
+    private const int DataEndRow = 31;
+    private const int MaxRowsPerFile = DataEndRow - DataStartRow + 1; // 20
+
+    private const int TotalRow = 32;
+    private const int GtgtRow = 33;
+    private const int TncnRow = 34;
+    private const int TotalGtgtDueRow = 35;
+    private const int TotalTncnDueRow = 36;
+    private const int DateRow = 37;
+
+    private const decimal GtgtRate = 0.01m;  // 1% per TT 40/2021/TT-BTC
+    private const decimal TncnRate = 0.005m; // 0.5% per TT 40/2021/TT-BTC
+
+    private static readonly string TemplateResourceName =
+        "Finance.Infrastructure.Templates.S2a-HKD.xlsx";
+
+    public ExportFileResult GenerateTaxReportExcel(
+        int fromMonth, int fromYear,
+        int toMonth, int toYear,
         List<InvoiceLineItem> invoices)
     {
-        using var workbook = new XLWorkbook();
-        var ws = workbook.Worksheets.Add("Bảng kê hoá đơn");
+        var chunks = invoices
+            .Select((item, i) => (item, i))
+            .GroupBy(x => x.i / MaxRowsPerFile)
+            .Select(g => g.Select(x => x.item).ToList())
+            .ToList();
 
-        // ── Title ──────────────────────────────────────────────────────────
-        var periodLabel = month.HasValue
-            ? $"Tháng {month:D2}/{year}"
-            : $"Năm {year}";
-
-        ws.Cell("A1").Value = "BẢNG KÊ HOÁ ĐƠN BÁN RA";
-        ws.Cell("A1").Style.Font.Bold = true;
-        ws.Cell("A1").Style.Font.FontSize = 14;
-        ws.Range("A1:J1").Merge();
-
-        ws.Cell("A2").Value = $"Kỳ kê khai: {periodLabel}";
-        ws.Cell("A3").Value = $"Mã số thuế: {storeTaxCode}";
-        ws.Cell("A4").Value = $"Ngày xuất: {DateTime.Now:dd/MM/yyyy HH:mm}";
-
-        // ── Headers (row 6) ────────────────────────────────────────────────
-        var headerRow = 6;
-        var headers = new[]
+        if (chunks.Count == 1)
         {
-            "STT", "Số hoá đơn", "Ngày HĐ", "Tên khách hàng",
-            "Doanh thu chưa thuế (đ)", "Giảm giá (đ)", "Thuế suất (%)",
-            "Tiền thuế (đ)", "Tổng tiền thanh toán (đ)", "Ghi chú"
-        };
-
-        for (var col = 1; col <= headers.Length; col++)
-        {
-            var cell = ws.Cell(headerRow, col);
-            cell.Value = headers[col - 1];
-            cell.Style.Font.Bold = true;
-            cell.Style.Fill.BackgroundColor = XLColor.LightGray;
-            cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            var data = GenerateSingleFile(chunks[0], fromMonth, fromYear, toMonth, toYear, fileIndex: 1);
+            return new ExportFileResult(data, IsZip: false);
         }
 
-        // ── Data rows ──────────────────────────────────────────────────────
-        var dataStartRow = headerRow + 1;
-        var idx = 1;
-
-        foreach (var inv in invoices)
+        // Multiple files → ZIP
+        using var zipStream = new MemoryStream();
+        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
         {
-            var row = dataStartRow + idx - 1;
-            var taxRate = inv.SubTotal > 0
-                ? Math.Round(inv.TaxAmount / inv.SubTotal * 100, 0)
-                : 0;
+            for (int i = 0; i < chunks.Count; i++)
+            {
+                var fileBytes = GenerateSingleFile(
+                    chunks[i], fromMonth, fromYear, toMonth, toYear, fileIndex: i + 1);
 
-            ws.Cell(row, 1).Value = idx++;
-            ws.Cell(row, 2).Value = inv.InvoiceNumber;
-            ws.Cell(row, 3).Value = inv.InvoiceDate.ToString("dd/MM/yyyy");
-            ws.Cell(row, 4).Value = inv.CustomerName ?? "Khách lẻ";
-            ws.Cell(row, 5).Value = inv.SubTotal;
-            ws.Cell(row, 6).Value = inv.DiscountAmount;
-            ws.Cell(row, 7).Value = (double)taxRate;
-            ws.Cell(row, 8).Value = inv.TaxAmount;
-            ws.Cell(row, 9).Value = inv.GrandTotal;
-            ws.Cell(row, 10).Value = "";
-
-            // Number format
-            foreach (var numCol in new[] { 5, 6, 8, 9 })
-                ws.Cell(row, numCol).Style.NumberFormat.Format = "#,##0";
-
-            ws.Cell(row, 7).Style.NumberFormat.Format = "0";
+                var entryName = $"S2a-HKD_{fromYear}_T{fromMonth:D2}-T{toMonth:D2}_part{i + 1}.xlsx";
+                var entry = archive.CreateEntry(entryName, CompressionLevel.Optimal);
+                using var entryStream = entry.Open();
+                entryStream.Write(fileBytes, 0, fileBytes.Length);
+            }
         }
 
-        // ── Totals row ─────────────────────────────────────────────────────
-        var totalRow = dataStartRow + invoices.Count;
-        ws.Cell(totalRow, 1).Value = "TỔNG CỘNG";
-        ws.Cell(totalRow, 1).Style.Font.Bold = true;
-        ws.Range(totalRow, 1, totalRow, 4).Merge();
+        return new ExportFileResult(zipStream.ToArray(), IsZip: true);
+    }
 
-        ws.Cell(totalRow, 5).FormulaA1 = $"=SUM(E{dataStartRow}:E{totalRow - 1})";
-        ws.Cell(totalRow, 6).FormulaA1 = $"=SUM(F{dataStartRow}:F{totalRow - 1})";
-        ws.Cell(totalRow, 8).FormulaA1 = $"=SUM(H{dataStartRow}:H{totalRow - 1})";
-        ws.Cell(totalRow, 9).FormulaA1 = $"=SUM(I{dataStartRow}:I{totalRow - 1})";
+    private byte[] GenerateSingleFile(
+        List<InvoiceLineItem> chunk,
+        int fromMonth, int fromYear,
+        int toMonth, int toYear,
+        int fileIndex)
+    {
+        using var templateStream = LoadTemplate();
+        using var workbook = new XLWorkbook(templateStream);
+        var ws = workbook.Worksheet(1);
 
-        foreach (var numCol in new[] { 5, 6, 8, 9 })
+        // Replace period placeholders in A6
+        ReplaceCellPlaceholders(ws.Cell("A6"), new Dictionary<string, string>
         {
-            ws.Cell(totalRow, numCol).Style.NumberFormat.Format = "#,##0";
-            ws.Cell(totalRow, numCol).Style.Font.Bold = true;
+            ["{{FROM MONTH}}"] = fromMonth.ToString("D2"),
+            ["{{FROM YEAR}}"]  = fromYear.ToString(),
+            ["{{TO MONTH}}"]   = toMonth.ToString("D2"),
+            ["{{TO YEAR}}"]    = toYear.ToString()
+        });
+
+        // Fill data rows
+        decimal totalRevenue = 0;
+        decimal totalTax = 0;
+
+        for (int i = 0; i < chunk.Count; i++)
+        {
+            var inv = chunk[i];
+            int row = DataStartRow + i;
+
+            ws.Cell(row, 1).Value = inv.InvoiceNumber;
+            ws.Cell(row, 2).Value = inv.InvoiceDate.ToLocalTime().ToString("dd/MM/yyyy");
+            ws.Cell(row, 3).Value = inv.CustomerName ?? "Khách lẻ";
+            ws.Cell(row, 4).Value = (double)inv.GrandTotal;
+
+            totalRevenue += inv.GrandTotal;
+            totalTax     += inv.TaxAmount;
         }
 
-        // ── Borders for data range ─────────────────────────────────────────
-        ws.Range(headerRow, 1, totalRow, headers.Length)
-            .Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-        ws.Range(headerRow, 1, totalRow, headers.Length)
-            .Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
+        // Summary rows
+        ws.Cell(TotalRow, 4).Value     = (double)totalRevenue;
+        ws.Cell(GtgtRow, 4).Value      = (double)totalTax;
+        ws.Cell(TncnRow, 4).Value      = 0;
+        ws.Cell(TotalGtgtDueRow, 4).Value = (double)Math.Round(totalRevenue * GtgtRate, 0);
+        ws.Cell(TotalTncnDueRow, 4).Value = (double)Math.Round(totalRevenue * TncnRate, 0);
 
-        // ── Column widths ──────────────────────────────────────────────────
-        ws.Column(1).Width = 5;
-        ws.Column(2).Width = 18;
-        ws.Column(3).Width = 12;
-        ws.Column(4).Width = 25;
-        ws.Column(5).Width = 22;
-        ws.Column(6).Width = 15;
-        ws.Column(7).Width = 12;
-        ws.Column(8).Width = 18;
-        ws.Column(9).Width = 22;
-        ws.Column(10).Width = 15;
+        // Replace date placeholders in D37
+        var now = DateTime.Now;
+        ReplaceCellPlaceholders(ws.Cell(DateRow, 4), new Dictionary<string, string>
+        {
+            ["{{DATECURRENT}}"]  = now.Day.ToString(),
+            ["{{MONTHCURRENT}}"] = now.Month.ToString(),
+            ["{{YEARCURRENT}}"]  = now.Year.ToString()
+        });
 
-        // ── Output ─────────────────────────────────────────────────────────
-        using var stream = new MemoryStream();
-        workbook.SaveAs(stream);
-        return stream.ToArray();
+        using var output = new MemoryStream();
+        workbook.SaveAs(output);
+        return output.ToArray();
+    }
+
+    private static void ReplaceCellPlaceholders(IXLCell cell, Dictionary<string, string> replacements)
+    {
+        var text = cell.GetString();
+        foreach (var (placeholder, value) in replacements)
+            text = text.Replace(placeholder, value);
+        cell.Value = text;
+    }
+
+    private static MemoryStream LoadTemplate()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        using var stream = assembly.GetManifestResourceStream(TemplateResourceName)
+            ?? throw new InvalidOperationException(
+                $"Template không tìm thấy: {TemplateResourceName}");
+
+        var ms = new MemoryStream();
+        stream.CopyTo(ms);
+        ms.Position = 0;
+        return ms;
     }
 }

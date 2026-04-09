@@ -5,6 +5,7 @@ using Finance.Application.DTOs;
 using Finance.Application.Queries.ExportDailySalesReportPdf;
 using Finance.Application.Queries.ExportTaxDeclaration;
 using Finance.Application.Queries.ExportTaxReport;
+using Shared.Application.Common;
 using Finance.Application.Queries.ExportFinancialReportPdf;
 using Finance.Application.Queries.ExportMonthlySalesReportPdf;
 using Finance.Application.Queries.GetAnnualRevenueReport;
@@ -325,11 +326,20 @@ public class FinanceController : ControllerBase
         if (!result.IsSuccess)
             return BadRequest(ApiResponse<object>.Error(result.Errors.FirstOrDefault() ?? "Lỗi không xác định"));
 
-        var fileName = month.HasValue
-            ? $"tax-report-{targetYear}-{month:D2}.xlsx"
-            : $"tax-report-{targetYear}.xlsx";
+        var export = result.Value!;
+        if (export.IsZip)
+        {
+            var zipName = month.HasValue
+                ? $"S2a-HKD-{targetYear}-T{month:D2}.zip"
+                : $"S2a-HKD-{targetYear}.zip";
+            return File(export.Data, "application/zip", zipName);
+        }
 
-        return File(result.Value!,
+        var fileName = month.HasValue
+            ? $"S2a-HKD-{targetYear}-T{month:D2}.xlsx"
+            : $"S2a-HKD-{targetYear}.xlsx";
+
+        return File(export.Data,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             fileName);
     }

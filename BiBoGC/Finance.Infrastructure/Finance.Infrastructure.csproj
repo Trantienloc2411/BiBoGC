@@ -32,6 +32,7 @@
 
     <ItemGroup>
         <EmbeddedResource Include="Templates\Khai-thue-ho-kinh-doanh-template.docx"/>
+        <EmbeddedResource Include="Templates\S2a-HKD.xlsx"/>
     </ItemGroup>
 
 </Project>

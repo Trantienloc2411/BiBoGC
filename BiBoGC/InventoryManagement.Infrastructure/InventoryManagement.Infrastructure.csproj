@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <!-- Entity Framework Core - Stable version to match dotnet-ef tool -->
+        <PackageReference Include="ClosedXML" Version="0.105.0"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.2"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.2"/>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0"/>
@@ -24,6 +25,10 @@
 
     <ItemGroup>
         <Folder Include="Data\Migrations\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="Templates\ProductExists.xlsx"/>
     </ItemGroup>
 
 </Project>

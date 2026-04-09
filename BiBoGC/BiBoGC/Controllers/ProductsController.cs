@@ -16,6 +16,7 @@ using InventoryManagement.Application.Queries.GetExpiredBatchProducts;
 using InventoryManagement.Application.Queries.GetExpiringSoonProducts;
 using InventoryManagement.Application.Queries.GetLowStockProducts;
 using InventoryManagement.Application.Queries.GetProductVariantsByProductId;
+using InventoryManagement.Application.Queries.ExportExistingProducts;
 using InventoryManagement.Application.Queries.GetVariantByBarcode;
 using InventoryManagement.Domain.Enums;
 using MediatR;
@@ -760,6 +761,28 @@ public class ProductsController : ControllerBase
             });
 
         return Ok(result.Value);
+    }
+
+    // ─── Export ─────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Xuất toàn bộ hàng tồn kho hiện tại vào mẫu Biên bản kiểm kê hàng tồn kho (ProductExists.xlsx).
+    /// Trả về file Excel (≤6 sản phẩm) hoặc file ZIP khi vượt dung lượng template.
+    /// </summary>
+    [HttpGet("export-existing")]
+    [Authorize(Roles = "Administrator")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ExportExistingProducts(CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new ExportExistingProductsQuery(), ct);
+
+        var export = result.Value!;
+        if (export.IsZip)
+            return File(export.Data, "application/zip", "ProductExists.zip");
+
+        return File(export.Data,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "ProductExists.xlsx");
     }
 }
 

@@ -2788,6 +2788,32 @@
                 "description": "Tim bien the san pham bang ma vach (barcode). Tra ve ProductVariantDto. Auth: Administrator, Seller."
               },
               "response": []
+            },
+            {
+              "name": "Xuất hàng tồn kho hiện tại (Excel/ZIP)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/products/export-existing",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "products",
+                    "export-existing"
+                  ]
+                },
+                "description": "Xuất toàn bộ hàng tồn kho vào mẫu Biên bản kiểm kê hàng tồn kho (ProductExists.xlsx).\nTrả về file Excel nếu ≤6 sản phẩm, hoặc file ZIP nếu vượt dung lượng template.\nYêu cầu quyền Administrator."
+              },
+              "response": []
             }
           ]
         },
@@ -6943,7 +6969,7 @@
                 },
                 {
                   "id": "a5c1c954-24da-4df6-9666-854d866d4aad",
-                  "name": "Xuat bang ke hoa don VAT (Excel)",
+                  "name": "Xuất sổ chi tiết doanh thu S2a-HKD (Excel/ZIP)",
                   "request": {
                     "method": "GET",
                     "header": [
@@ -6978,7 +7004,7 @@
                         }
                       ]
                     },
-                    "description": "Xuat bang ke hoa don VAT dang Excel (.xlsx) de nop thue. Bo month de lay ca nam. Auth: Administrator."
+                    "description": "Xuất Sổ chi tiết doanh thu bán hàng hóa theo mẫu S2a-HKD.xlsx.\n- ?year=2026&month=3 → tháng 3/2026\n- ?year=2026         → cả năm 2026\nTrả về file Excel nếu ≤20 hoá đơn, hoặc file ZIP khi vượt dung lượng template.\nYêu cầu quyền Administrator."
                   },
                   "response": []
                 },

@@ -4,7 +4,7 @@ using Shared.Application.Common;
 
 namespace Finance.Application.Queries.ExportTaxReport;
 
-public class ExportTaxReportQueryHandler : IRequestHandler<ExportTaxReportQuery, Result<byte[]>>
+public class ExportTaxReportQueryHandler : IRequestHandler<ExportTaxReportQuery, Result<ExportFileResult>>
 {
     private readonly ITaxReportExportService _exportService;
     private readonly IInvoiceDataReader _invoiceDataReader;
@@ -20,9 +20,8 @@ public class ExportTaxReportQueryHandler : IRequestHandler<ExportTaxReportQuery,
         _taxConfigRepository = taxConfigRepository;
     }
 
-    public async Task<Result<byte[]>> Handle(ExportTaxReportQuery request, CancellationToken cancellationToken)
+    public async Task<Result<ExportFileResult>> Handle(ExportTaxReportQuery request, CancellationToken cancellationToken)
     {
-        // Determine date range
         DateTime utcFrom, utcTo;
         if (request.Month.HasValue)
         {
@@ -35,20 +34,19 @@ public class ExportTaxReportQueryHandler : IRequestHandler<ExportTaxReportQuery,
             utcTo = new DateTime(request.Year, 12, 31, 23, 59, 59, 999, DateTimeKind.Utc);
         }
 
-        // Get store tax code from config
-        var taxConfig = await _taxConfigRepository.GetActiveAsync(cancellationToken);
-        var storeTaxCode = taxConfig is not null ? "Xem cấu hình cửa hàng" : "Chưa cấu hình";
-
-        // Fetch invoices
         var invoices = await _invoiceDataReader.GetInvoicesForTaxReportAsync(utcFrom, utcTo, cancellationToken);
 
-        // Validate
         if (invoices.Count == 0)
-            return Result<byte[]>.Failure("Không có hoá đơn nào trong kỳ kê khai này.");
+            return Result<ExportFileResult>.Failure("Không có hoá đơn nào trong kỳ kê khai này.");
 
-        var bytes = _exportService.GenerateTaxReportExcel(
-            request.Year, request.Month, storeTaxCode, invoices);
+        int fromMonth = request.Month ?? 1;
+        int toMonth = request.Month ?? 12;
 
-        return Result<byte[]>.Success(bytes);
+        var exportResult = _exportService.GenerateTaxReportExcel(
+            fromMonth, request.Year,
+            toMonth, request.Year,
+            invoices);
+
+        return Result<ExportFileResult>.Success(exportResult);
     }
 }
