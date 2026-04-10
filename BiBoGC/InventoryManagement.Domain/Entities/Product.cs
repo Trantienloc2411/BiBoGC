@@ -123,6 +123,32 @@ public class Product : BaseEntity
             .Sum(b => b.Quantity);
     }
 
+    /// <summary>
+    /// Deducts quantity from non-expired batches using FEFO (First Expired, First Out).
+    /// Used when a sale has no specific batch linked.
+    /// </summary>
+    public void DeductFromBatches(int quantity, DateTime? asOfDate = null)
+    {
+        var checkDate = asOfDate ?? DateTime.UtcNow;
+        var available = _batches
+            .Where(b => !b.IsExpired(checkDate) && b.Quantity > 0)
+            .OrderBy(b => b.ExpirationDate)
+            .ToList();
+
+        int remaining = quantity;
+        foreach (var batch in available)
+        {
+            if (remaining <= 0) break;
+            int deduct = Math.Min(batch.Quantity, remaining);
+            batch.DecreaseQuantity(deduct);
+            remaining -= deduct;
+        }
+
+        if (remaining > 0)
+            throw new InvalidOperationException(
+                $"Không đủ tồn kho trong các lô hàng. Còn thiếu: {remaining}.");
+    }
+
     public void SetCategory(Guid? categoryId)
     {
         CategoryId = categoryId;

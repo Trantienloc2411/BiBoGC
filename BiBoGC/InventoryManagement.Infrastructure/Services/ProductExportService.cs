@@ -32,19 +32,22 @@ public class ProductExportService : IProductExportService
 
     public async Task<ExportFileResult> ExportExistingProductsAsync(CancellationToken cancellationToken = default)
     {
-        var products = await _context.Products
+        var rawProducts = await _context.Products
             .AsNoTracking()
             .Include(p => p.Category)
+            .Include(p => p.Batches)
             .Where(p => !p.IsDeleted)
             .OrderBy(p => p.Name)
-            .Select(p => new ProductExportRow(
+            .ToListAsync(cancellationToken);
+
+        var products = rawProducts.Select(p => new ProductExportRow(
                 p.Name,
                 p.SkuGeneral.Value,
                 p.Category != null ? p.Category.Name : string.Empty,
-                p.TotalStock,
+                p.GetAvailableStock(),
                 p.BaseUnits,
                 p.BasePrice.Value))
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         var chunks = products
             .Select((item, i) => (item, i))
@@ -94,13 +97,13 @@ public class ProductExportService : IProductExportService
         {
             var product = chunk[i];
             int row = DataStartRow + i;
-            decimal lineTotal = product.TotalStock * product.SalePrice;
+            decimal lineTotal = product.AvailableStock * product.SalePrice;
 
             ws.Cell(row, 1).Value = i + 1;                          // STT
             ws.Cell(row, 2).Value = product.Sku;                    // Mã hàng hóa
             ws.Cell(row, 3).Value = product.Name;                   // Tên hàng hóa/Vật tư
             ws.Cell(row, 4).Value = GetUnitDisplayName(product.Unit); // Đơn vị tính
-            ws.Cell(row, 5).Value = product.TotalStock;             // Số lượng tồn kho
+            ws.Cell(row, 5).Value = product.AvailableStock;         // Số lượng tồn kho
             ws.Cell(row, 6).Value = (double)product.SalePrice;      // Đơn giá (VND)
             ws.Cell(row, 7).Value = (double)lineTotal;              // Thành tiền (VND)
             ws.Cell(row, 8).Value = product.CategoryName;           // Ghi chú (Category)
@@ -159,7 +162,7 @@ public class ProductExportService : IProductExportService
         string Name,
         string Sku,
         string CategoryName,
-        int TotalStock,
+        int AvailableStock,
         Units Unit,
         decimal SalePrice);
 }

@@ -44,9 +44,19 @@ const STATUS_VALUES: { value: number; label: string; key: ProductStatus }[] = [
   { value: 3, label: 'Ngừng kinh doanh', key: 'Discontinued' },
 ]
 
+const UNITS_OPTIONS: { value: number; label: string }[] = [
+  { value: 1, label: 'Cái' }, { value: 2, label: 'Hộp' }, { value: 3, label: 'Chai' },
+  { value: 4, label: 'Lon' }, { value: 5, label: 'Gói' }, { value: 6, label: 'Bịch' },
+  { value: 7, label: 'Lốc' }, { value: 8, label: 'Thùng' }, { value: 9, label: 'Cuộn' },
+  { value: 10, label: 'Vỉ' }, { value: 11, label: 'Cây' }, { value: 12, label: 'Thanh' },
+  { value: 13, label: 'Túi' }, { value: 14, label: 'Bộ' }, { value: 15, label: 'Đôi' },
+  { value: 16, label: 'Cân' }, { value: 21, label: 'Kg' }, { value: 22, label: 'Lạng' },
+  { value: 31, label: 'Lít' }, { value: 40, label: 'Quả' }, { value: 41, label: 'Trái' },
+]
+
 type CreateForm = {
   name: string; description: string; sku: string; requiresBatchTracking: boolean
-  price: number
+  price: number; baseUnits: number
   categoryId: string; supplierId: string
 }
 type EditForm = {
@@ -81,7 +91,7 @@ export default function ProductsPage() {
   const [formError, setFormError] = useState('')
   const [createForm, setCreateForm] = useState<CreateForm>({
     name: '', description: '', sku: '', requiresBatchTracking: false,
-    price: 0,
+    price: 0, baseUnits: 1,
     categoryId: '', supplierId: '',
   })
   const [editForm, setEditForm] = useState<EditForm>({
@@ -145,7 +155,7 @@ export default function ProductsPage() {
   }
 
   function openCreate() {
-    setCreateForm({ name: '', description: '', sku: '', requiresBatchTracking: false, price: 0, categoryId: '', supplierId: '' })
+    setCreateForm({ name: '', description: '', sku: '', requiresBatchTracking: false, price: 0, baseUnits: 1, categoryId: '', supplierId: '' })
     setFormError('')
     setPickerKey(k => k + 1)
     setShowCreate(true)
@@ -167,6 +177,7 @@ export default function ProductsPage() {
     e.preventDefault(); setFormError('')
     if (!createForm.name.trim()) { setFormError('Tên sản phẩm không được để trống.'); return }
     if (!createForm.sku.trim()) { setFormError('SKU không được để trống.'); return }
+    if (!createForm.baseUnits) { setFormError('Vui lòng chọn đơn vị tính.'); return }
     setFormLoading(true)
     try {
       const body: CreateProductRequestV2 = {
@@ -176,6 +187,7 @@ export default function ProductsPage() {
         requiresBatchTracking: createForm.requiresBatchTracking,
         price: createForm.price,
         categoryId: createForm.categoryId || undefined,
+        baseUnits: createForm.baseUnits,
       }
       await productApi.create(body)
       success('Thêm sản phẩm thành công')
@@ -354,6 +366,11 @@ export default function ProductsPage() {
         </FormField>
         <FormField label="SKU" required>
           <input className={inputClass} value={createForm.sku} onChange={e => setCreateForm(f => ({ ...f, sku: e.target.value }))} placeholder="VD: SP001" />
+        </FormField>
+        <FormField label="Đơn vị tính" required>
+          <select className={selectClass} value={createForm.baseUnits} onChange={e => setCreateForm(f => ({ ...f, baseUnits: Number(e.target.value) }))}>
+            {UNITS_OPTIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+          </select>
         </FormField>
         <FormField label="Danh mục">
           <CategoryPicker

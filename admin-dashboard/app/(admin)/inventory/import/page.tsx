@@ -12,9 +12,20 @@ import type {
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { FormField, FormError, inputClass, selectClass } from '@/components/ui/FormDialog'
+import { CategoryPicker } from '@/components/ui/CategoryPicker'
 import { useToast } from '@/components/ui/Toast'
 import { ArrowLeft, Check, Search, Plus, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+const UNITS_OPTIONS: { value: number; label: string }[] = [
+  { value: 1, label: 'Cái' }, { value: 2, label: 'Hộp' }, { value: 3, label: 'Chai' },
+  { value: 4, label: 'Lon' }, { value: 5, label: 'Gói' }, { value: 6, label: 'Bịch' },
+  { value: 7, label: 'Lốc' }, { value: 8, label: 'Thùng' }, { value: 9, label: 'Cuộn' },
+  { value: 10, label: 'Vỉ' }, { value: 11, label: 'Cây' }, { value: 12, label: 'Thanh' },
+  { value: 13, label: 'Túi' }, { value: 14, label: 'Bộ' }, { value: 15, label: 'Đôi' },
+  { value: 16, label: 'Cân' }, { value: 21, label: 'Kg' }, { value: 22, label: 'Lạng' },
+  { value: 31, label: 'Lít' }, { value: 40, label: 'Quả' }, { value: 41, label: 'Trái' },
+]
 
 type Step = 1 | 2 | 3
 type SupplierMode = 'search' | 'create'
@@ -77,7 +88,7 @@ export default function ImportProductPage() {
   const [productSearching, setProductSearching] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<ProductDto | null>(null)
   const [newProductForm, setNewProductForm] = useState<CreateProductRequestV2>({
-    name: '', sku: '', price: 0, requiresBatchTracking: true,
+    name: '', sku: '', price: 0, requiresBatchTracking: true, baseUnits: 1,
   })
   const [productError, setProductError] = useState('')
   const productTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -102,6 +113,7 @@ export default function ImportProductPage() {
     if (productMode === 'create') {
       if (!newProductForm.name.trim()) { setProductError('Tên sản phẩm không được trống.'); return }
       if (!newProductForm.sku.trim()) { setProductError('Mã SKU không được trống.'); return }
+      if (!newProductForm.baseUnits) { setProductError('Vui lòng chọn đơn vị tính.'); return }
     }
     setStep(3)
   }
@@ -450,15 +462,32 @@ export default function ImportProductPage() {
                   />
                 </FormField>
               </div>
-              <FormField label="Theo dõi theo lô hàng">
-                <select
-                  className={selectClass}
-                  value={newProductForm.requiresBatchTracking ? '1' : '0'}
-                  onChange={e => setNewProductForm(f => ({ ...f, requiresBatchTracking: e.target.value === '1' }))}
-                >
-                  <option value="1">Có — yêu cầu quản lý theo lô</option>
-                  <option value="0">Không</option>
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <FormField label="Đơn vị tính" required>
+                  <select
+                    className={selectClass}
+                    value={newProductForm.baseUnits}
+                    onChange={e => setNewProductForm(f => ({ ...f, baseUnits: Number(e.target.value) }))}
+                  >
+                    {UNITS_OPTIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+                  </select>
+                </FormField>
+                <FormField label="Theo dõi theo lô hàng">
+                  <select
+                    className={selectClass}
+                    value={newProductForm.requiresBatchTracking ? '1' : '0'}
+                    onChange={e => setNewProductForm(f => ({ ...f, requiresBatchTracking: e.target.value === '1' }))}
+                  >
+                    <option value="1">Có — yêu cầu quản lý theo lô</option>
+                    <option value="0">Không</option>
+                  </select>
+                </FormField>
+              </div>
+              <FormField label="Danh mục">
+                <CategoryPicker
+                  value={newProductForm.categoryId ?? null}
+                  onChange={id => setNewProductForm(f => ({ ...f, categoryId: id ?? undefined }))}
+                />
               </FormField>
             </div>
           )}
