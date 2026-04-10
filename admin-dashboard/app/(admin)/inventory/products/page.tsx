@@ -38,9 +38,9 @@ const STATUS_LABELS: Record<string, string> = {
   Discontinued: 'Ngừng kinh doanh',
 }
 const STATUS_VALUES: { value: number; label: string; key: ProductStatus }[] = [
-  { value: 0, label: 'Đang bán', key: 'Active' },
-  { value: 1, label: 'Ngừng bán', key: 'Inactive' },
-  { value: 2, label: 'Hết hàng', key: 'OutOfStock' },
+  { value: 1, label: 'Đang bán', key: 'Active' },
+  { value: 2, label: 'Ngừng bán', key: 'Inactive' },
+  { value: 4, label: 'Hết hàng', key: 'OutOfStock' },
   { value: 3, label: 'Ngừng kinh doanh', key: 'Discontinued' },
 ]
 

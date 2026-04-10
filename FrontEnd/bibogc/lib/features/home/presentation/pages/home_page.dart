@@ -131,33 +131,35 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildMobileLayout(BuildContext context) {
     return SafeArea(
-      child: RefreshIndicator(
-        onRefresh: () async => _refreshData(),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-          children: [
-            HomeAppBar(username: 'Chủ Cửa Hàng', onLogout: _handleLogout),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  SummaryCard(
-                    totalRevenue: _totalRevenue,
-                    orderCount: _orderCount,
-                    growthPercentage: _growthPercentage,
-                  ),
-                  const SizedBox(height: 24),
-                  const QuickActionsGrid(),
-                  const SizedBox(height: 24),
-                  const RecentActivityList(),
-                  const SizedBox(height: 80),
-                ],
+      child: Column(
+        children: [
+          HomeAppBar(username: 'Chủ Cửa Hàng', onLogout: _handleLogout),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Column(
+              children: [
+                SummaryCard(
+                  totalRevenue: _totalRevenue,
+                  orderCount: _orderCount,
+                  growthPercentage: _growthPercentage,
+                ),
+                const SizedBox(height: 24),
+                const QuickActionsGrid(),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async => _refreshData(),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                child: const RecentActivityList(),
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+        ],
       ),
     );
   }
@@ -202,7 +204,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               HomeAppBar(username: 'Chủ Cửa Hàng', onLogout: _handleLogout),
               Expanded(
-                child: SingleChildScrollView(
+                child: Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,7 +224,12 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       const SizedBox(width: 24),
-                      const Expanded(flex: 2, child: RecentActivityList()),
+                      const Expanded(
+                        flex: 2,
+                        child: SingleChildScrollView(
+                          child: RecentActivityList(),
+                        ),
+                      ),
                     ],
                   ),
                 ),

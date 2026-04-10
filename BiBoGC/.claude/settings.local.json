@@ -61,7 +61,8 @@
       "Bash(mkdir -p \"/c/Users/ttloc/OneDrive - Netcompany/Desktop/Learn/BiBoGC/BiBoGC/InventoryManagement.Infrastructure/Templates\")",
       "Bash(cp \"/c/Users/ttloc/OneDrive - Netcompany/Desktop/Learn/BiBoGC/DocumentationTemplate/ProductExists.xlsx\" \"/c/Users/ttloc/OneDrive - Netcompany/Desktop/Learn/BiBoGC/BiBoGC/InventoryManagement.Infrastructure/Templates/ProductExists.xlsx\")",
       "Bash(npx tsc:*)",
-      "Bash(cmd /c \"cd /d \\\\\"C:\\\\Users\\\\ttloc\\\\OneDrive - Netcompany\\\\Desktop\\\\Learn\\\\BiBoGC\\\\admin-dashboard\\\\\" && npx tsc --noEmit 2>&1\")"
+      "Bash(cmd /c \"cd /d \\\\\"C:\\\\Users\\\\ttloc\\\\OneDrive - Netcompany\\\\Desktop\\\\Learn\\\\BiBoGC\\\\admin-dashboard\\\\\" && npx tsc --noEmit 2>&1\")",
+      "Bash(cmd /c \"cd /d E:\\\\Github-Repository\\\\BiBo-s-GC\\\\admin-dashboard && npx tsc --noEmit 2>&1\")"
     ]
   }
 }

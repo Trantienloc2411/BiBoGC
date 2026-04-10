@@ -805,7 +805,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"price\": 15000\n}",
+                      "raw": "{\n  \"price\": 15000,\n  \"name\": \"Tên sản phẩm mới\",\n  \"description\": \"Mô tả mới\",\n  \"status\": 2\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -831,7 +831,7 @@
                         }
                       ]
                     },
-                    "description": "Cập nhật thông tin sản phẩm.\n\n**Lưu ý:** SKU không thể thay đổi sau khi tạo."
+                    "description": "Cập nhật thông tin sản phẩm.\n\n**Lưu ý:** SKU không thể thay đổi sau khi tạo.\n\n**Trạng thái (status):**\n- `1` = Active (Đang bán)\n- `2` = Inactive (Ngừng bán tạm thời)\n- `3` = Discontinued (Ngừng kinh doanh vĩnh viễn)\n- `4` = OutOfStock — **không thể đặt thủ công**, tự động khi tồn kho về 0\n\n**Lưu ý chuyển trạng thái:**\n- Sản phẩm đã `Discontinued` không thể kích hoạt lại.\n- Chỉ có thể chuyển sang `Active` từ `Inactive` hoặc `OutOfStock`."
                   },
                   "response": [
                     {
@@ -850,7 +850,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"price\": 15000\n}",
+                          "raw": "{\n  \"price\": 15000,\n  \"status\": 2\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",
@@ -890,6 +890,171 @@
                       "body": "{\n  \"id\": \"8329377d-08ff-57f6-a5ef-dbd8cdacc6d6\",\n  \"name\": \"string\",\n  \"sku\": \"string\",\n  \"price\": 2029.0447139960531,\n  \"description\": \"string\",\n  \"status\": \"string\",\n  \"requiresBatchTracking\": false,\n  \"totalStock\": 1223,\n  \"availableStock\": 7088,\n  \"expiredStock\": 323,\n  \"expiringSoonStock\": 5918,\n  \"categoryId\": \"78a4aece-78ec-91d4-e93f-14b193fa90e8\",\n  \"categoryName\": \"string\",\n  \"createdAt\": \"2007-06-30T21:59:08.011Z\",\n  \"updatedAt\": \"2016-07-31T06:08:48.246Z\",\n  \"batches\": [\n    {\n      \"id\": \"820e881d-4133-3696-5594-d71de1724b40\",\n      \"productId\": \"c15d2f6e-61f8-fc47-f59b-a196ad124169\",\n      \"batchNumber\": \"string\",\n      \"quantity\": 961,\n      \"manufacturingDate\": \"1980-01-11T21:26:59.797Z\",\n      \"expirationDate\": \"2018-01-08T06:16:08.102Z\",\n      \"costPrice\": 4885.2758560007305,\n      \"isExpired\": true,\n      \"daysUntilExpiration\": 1462,\n      \"isExpiringSoon\": false\n    },\n    {\n      \"id\": \"4f4146b1-2a41-b59f-c607-de8221379dd0\",\n      \"productId\": \"4e88ceca-0afa-ad6e-2c81-71d0edc7579f\",\n      \"batchNumber\": \"string\",\n      \"quantity\": 4860,\n      \"manufacturingDate\": \"1981-04-05T17:55:29.929Z\",\n      \"expirationDate\": \"1946-09-18T16:18:18.569Z\",\n      \"costPrice\": 439.1449375846368,\n      \"isExpired\": false,\n      \"daysUntilExpiration\": 5226,\n      \"isExpiringSoon\": true\n    }\n  ]\n}"
                     },
                     {
+                      "name": "Ngừng bán sản phẩm (Inactive)",
+                      "originalRequest": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"status\": 2\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/api/products/:id",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "api",
+                            "products",
+                            ":id"
+                          ],
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "46b70c27-ad2f-00e2-e872-bdf2949be90c",
+                              "description": "ID sản phẩm cần cập nhật"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"id\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n  \"name\": \"Sản phẩm A\",\n  \"sku\": \"SP001\",\n  \"price\": 15000,\n  \"description\": \"Mô tả sản phẩm\",\n  \"status\": \"Inactive\",\n  \"requiresBatchTracking\": false,\n  \"totalStock\": 100,\n  \"availableStock\": 100,\n  \"expiredStock\": 0,\n  \"expiringSoonStock\": 0\n}"
+                    },
+                    {
+                      "name": "Ngừng kinh doanh sản phẩm (Discontinued)",
+                      "originalRequest": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"status\": 3\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/api/products/:id",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "api",
+                            "products",
+                            ":id"
+                          ],
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "46b70c27-ad2f-00e2-e872-bdf2949be90c",
+                              "description": "ID sản phẩm cần cập nhật"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"id\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n  \"name\": \"Sản phẩm A\",\n  \"sku\": \"SP001\",\n  \"price\": 15000,\n  \"description\": \"Mô tả sản phẩm\",\n  \"status\": \"Discontinued\",\n  \"requiresBatchTracking\": false,\n  \"totalStock\": 100,\n  \"availableStock\": 100,\n  \"expiredStock\": 0,\n  \"expiringSoonStock\": 0\n}"
+                    },
+                    {
+                      "name": "Lỗi đặt OutOfStock thủ công",
+                      "originalRequest": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"status\": 4\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/api/products/:id",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "api",
+                            "products",
+                            ":id"
+                          ],
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "46b70c27-ad2f-00e2-e872-bdf2949be90c",
+                              "description": "ID sản phẩm cần cập nhật"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "Bad Request",
+                      "code": 400,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"title\": \"Lỗi cập nhật sản phẩm\",\n  \"status\": 400,\n  \"detail\": \"Không thể đặt thủ công trạng thái 'Hết hàng'. Trạng thái này được cập nhật tự động khi tồn kho về 0.\"\n}"
+                    },
+                    {
                       "name": "Lỗi validation",
                       "originalRequest": {
                         "method": "PUT",
@@ -905,7 +1070,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"price\": 15000\n}",
+                          "raw": "{\n  \"price\": 15000,\n  \"status\": 2\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",
@@ -960,7 +1125,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"price\": 15000\n}",
+                          "raw": "{\n  \"price\": 15000,\n  \"status\": 2\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",

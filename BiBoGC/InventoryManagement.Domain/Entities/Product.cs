@@ -219,10 +219,28 @@ public class Product : BaseEntity
         RaiseDomainEvent(new ProductPriceChangedEvent(Id, oldPrice.Value, newPrice.Value));
     }
 
+    public void SetInactive()
+    {
+        if (Status == ProductStatuses.Inactive)
+            throw new InvalidOperationException("Sản phẩm đã ở trạng thái ngừng bán.");
+
+        Status = ProductStatuses.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Reactivate()
+    {
+        if (Status == ProductStatuses.Discontinued)
+            throw new InvalidOperationException("Không thể kích hoạt lại sản phẩm đã ngừng kinh doanh.");
+
+        Status = ProductStatuses.Active;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void Discontinue()
     {
         if (Status == ProductStatuses.Discontinued)
-            throw new InvalidOperationException("Product is already discontinued.");
+            throw new InvalidOperationException("Sản phẩm đã ngừng kinh doanh.");
 
         Status = ProductStatuses.Discontinued;
         UpdatedAt = DateTime.UtcNow;
