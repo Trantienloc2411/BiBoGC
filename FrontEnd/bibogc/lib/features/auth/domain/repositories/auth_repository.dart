@@ -5,4 +5,5 @@ abstract class AuthRepository {
   Future<Either<Failure, void>> login(String username, String password);
   Future<void> logout();
   Future<bool> isLoggedIn();
+  Future<String?> getLastUsername();
 }

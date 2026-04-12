@@ -12,6 +12,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i558;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
+import 'package:local_auth/local_auth.dart' as _i152;
 import 'package:logger/logger.dart' as _i974;
 
 import '../../features/auth/data/datasources/auth_remote_datasource.dart'
@@ -58,6 +59,8 @@ import '../../features/suppliers/domain/repositories/supplier_repository.dart'
     as _i642;
 import '../../features/suppliers/presentation/bloc/supplier_bloc.dart' as _i720;
 import '../network/dio_client.dart' as _i667;
+import '../network/network_service.dart' as _i1025;
+import '../security/biometric_auth_service.dart' as _i694;
 import 'register_module.dart' as _i291;
 
 extension GetItInjectableX on _i174.GetIt {
@@ -72,11 +75,30 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i558.FlutterSecureStorage>(
       () => registerModule.secureStorage,
     );
+    gh.lazySingleton<_i152.LocalAuthentication>(
+      () => registerModule.localAuthentication,
+    );
+    gh.lazySingleton<_i1025.NetworkService>(
+      () => _i1025.NetworkService(
+        storage: gh<_i558.FlutterSecureStorage>(),
+        logger: gh<_i974.Logger>(),
+      ),
+    );
+    gh.lazySingleton<_i694.BiometricAuthService>(
+      () => _i694.BiometricAuthService(
+        localAuth: gh<_i152.LocalAuthentication>(),
+        logger: gh<_i974.Logger>(),
+      ),
+    );
     gh.lazySingleton<_i667.DioClient>(
       () => _i667.DioClient(
         storage: gh<_i558.FlutterSecureStorage>(),
         logger: gh<_i974.Logger>(),
+        networkService: gh<_i1025.NetworkService>(),
       ),
+    );
+    gh.lazySingleton<_i376.SalesOrderRemoteDataSource>(
+      () => _i376.SalesOrderRemoteDataSourceImpl(gh<_i667.DioClient>()),
     );
     gh.lazySingleton<_i161.AuthRemoteDataSource>(
       () => _i161.AuthRemoteDataSourceImpl(gh<_i667.DioClient>()),
@@ -112,11 +134,16 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i39.ProductRepository>(
       () => _i1040.ProductRepositoryImpl(gh<_i1.ProductRemoteDataSource>()),
     );
+    gh.lazySingleton<_i568.SalesOrderRepository>(
+      () => _i448.SalesOrderRepositoryImpl(
+        gh<_i376.SalesOrderRemoteDataSource>(),
+      ),
+    );
     gh.factory<_i720.SupplierBloc>(
       () => _i720.SupplierBloc(gh<_i642.SupplierRepository>()),
     );
-    gh.lazySingleton<_i376.SalesOrderRemoteDataSource>(
-      () => _i376.SalesOrderRemoteDataSourceImpl(gh<_i667.DioClient>()),
+    gh.factory<_i1060.SalesOrderBloc>(
+      () => _i1060.SalesOrderBloc(gh<_i568.SalesOrderRepository>()),
     );
     gh.factory<_i415.ProductBloc>(
       () => _i415.ProductBloc(gh<_i39.ProductRepository>()),
@@ -128,16 +155,8 @@ extension GetItInjectableX on _i174.GetIt {
       () =>
           _i572.InventoryRepositoryImpl(gh<_i248.InventoryRemoteDataSource>()),
     );
-    gh.lazySingleton<_i568.SalesOrderRepository>(
-      () => _i448.SalesOrderRepositoryImpl(
-        gh<_i376.SalesOrderRemoteDataSource>(),
-      ),
-    );
     gh.factory<_i916.StockImportBloc>(
       () => _i916.StockImportBloc(gh<_i422.InventoryRepository>()),
-    );
-    gh.factory<_i1060.SalesOrderBloc>(
-      () => _i1060.SalesOrderBloc(gh<_i568.SalesOrderRepository>()),
     );
     return this;
   }

@@ -1,5 +1,6 @@
 using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Interfaces;
+using InventoryManagement.Domain.Enums;
 using InventoryManagement.Domain.ValueObjects;
 using MediatR;
 using Shared.Application.Common;
@@ -27,8 +28,38 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         // Update price if provided
         if (request.Price.HasValue) product.UpdatePrice(new Money(request.Price.Value));
 
-        // Note: Name and Description updates would need domain methods
-        // For now, we'll save changes through repository
+        // Update status if provided
+        if (request.Status.HasValue)
+        {
+            var newStatus = (ProductStatuses)request.Status.Value;
+            if (newStatus != product.Status)
+            {
+                try
+                {
+                    switch (newStatus)
+                    {
+                        case ProductStatuses.Inactive:
+                            product.SetInactive();
+                            break;
+                        case ProductStatuses.Discontinued:
+                            product.Discontinue();
+                            break;
+                        case ProductStatuses.Active:
+                            product.Reactivate();
+                            break;
+                        case ProductStatuses.OutOfStock:
+                            return Result<ProductDto>.Failure("Không thể đặt thủ công trạng thái 'Hết hàng'. Trạng thái này được cập nhật tự động khi tồn kho về 0.");
+                        default:
+                            return Result<ProductDto>.Failure($"Trạng thái không hợp lệ: {request.Status.Value}.");
+                    }
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return Result<ProductDto>.Failure(ex.Message);
+                }
+            }
+        }
+
         await _productRepository.UpdateAsync(product, cancellationToken);
 
         // Map to DTO

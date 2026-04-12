@@ -1,6 +1,7 @@
 using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Infrastructure.Data;
 using InventoryManagement.Infrastructure.Repositories;
+using InventoryManagement.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -41,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
+        services.AddScoped<IProductExportService, ProductExportService>();
 
         return services;
     }
@@ -101,6 +103,7 @@ public static class DependencyInjection
         services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
+        services.AddScoped<IProductExportService, ProductExportService>();
 
         return services;
     }

@@ -16,5 +16,10 @@ public interface IInvoiceRepository
         DateTime? dateTo = null,
         CancellationToken ct = default);
 
+    Task<IEnumerable<Invoice>> GetAllForExportAsync(
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null,
+        CancellationToken ct = default);
+
     Task<Invoice> AddAsync(Invoice invoice, CancellationToken ct = default);
 }

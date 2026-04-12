@@ -171,9 +171,6 @@ export default function CategoriesPage() {
                     expandedIds={expandedIds} selected={selected}
                     onToggle={toggleExpand}
                     onSelect={selectCategory}
-                    onEdit={openEdit}
-                    onDelete={setDeleteTarget}
-                    onAddChild={(parentId) => openCreate(parentId)}
                   />
                 </div>
               )}
@@ -322,12 +319,9 @@ interface TreeProps {
   selected: CategoryDtoV2 | null
   onToggle: (id: string) => void
   onSelect: (c: CategoryDtoV2) => void
-  onEdit: (c: CategoryDtoV2) => void
-  onDelete: (c: CategoryDtoV2) => void
-  onAddChild: (parentId: string) => void
 }
 
-function CategoryTree({ cats, depth, expandedIds, selected, onToggle, onSelect, onEdit, onDelete, onAddChild }: TreeProps) {
+function CategoryTree({ cats, depth, expandedIds, selected, onToggle, onSelect }: TreeProps) {
   return (
     <>
       {cats.map(c => {
@@ -357,21 +351,10 @@ function CategoryTree({ cats, depth, expandedIds, selected, onToggle, onSelect, 
                   <span className="ml-auto text-xs text-gray-400 shrink-0">Ngưng</span>
                 )}
               </button>
-              <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 ml-1">
-                <Button size="sm" variant="ghost" onClick={() => onAddChild(c.id)} className="h-7 w-7 p-0 flex items-center justify-center" title="Thêm con">
-                  <Plus size={13} />
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => onEdit(c)} className="h-7 w-7 p-0 flex items-center justify-center">
-                  <Pencil size={13} />
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => onDelete(c)} className="h-7 w-7 p-0 flex items-center justify-center text-red-500">
-                  <Trash2 size={13} />
-                </Button>
-              </div>
             </div>
             {hasChildren && isExpanded && (
               <CategoryTree cats={c.subCategories} depth={depth + 1} expandedIds={expandedIds} selected={selected}
-                onToggle={onToggle} onSelect={onSelect} onEdit={onEdit} onDelete={onDelete} onAddChild={onAddChild} />
+                onToggle={onToggle} onSelect={onSelect} />
             )}
           </div>
         )

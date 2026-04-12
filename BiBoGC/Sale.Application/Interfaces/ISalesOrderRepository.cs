@@ -18,6 +18,11 @@ public interface ISalesOrderRepository
         string? search = null,
         CancellationToken ct = default);
 
+    Task<IEnumerable<SalesOrder>> GetCompletedWithoutInvoiceAsync(
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null,
+        CancellationToken ct = default);
+
     Task<SalesOrder> AddAsync(SalesOrder order, CancellationToken ct = default);
     Task UpdateAsync(SalesOrder order, CancellationToken ct = default);
     Task<bool> OrderNumberExistsAsync(string orderNumber, CancellationToken ct = default);

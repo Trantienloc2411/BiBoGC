@@ -121,30 +121,43 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
             cancellationToken);
 
         // --- Phase 2: Deduct stock in InventoryDb (after SaleDb commit) ---
-        // Order is now permanently Completed. If this phase fails, the caller receives a 500
-        // and can retry; the retry will hit order.Complete() which throws for an already-completed
-        // order, so double-completion is not possible.
-        foreach (var (product, variant, batch, quantityInBaseUnits, item) in stockDeductions)
+        try
         {
-            if (batch is not null)
-                batch.DecreaseQuantity(quantityInBaseUnits);
-            else
+            foreach (var (product, variant, batch, quantityInBaseUnits, item) in stockDeductions)
+            {
+                if (batch is not null)
+                    batch.DecreaseQuantity(quantityInBaseUnits);
+                else if (product.RequiresBatchTracking)
+                    product.DeductFromBatches(quantityInBaseUnits);
+
                 product.DecreaseStock(quantityInBaseUnits);
 
-            await _productRepository.UpdateAsync(product, cancellationToken);
+                await _productRepository.UpdateAsync(product, cancellationToken);
 
-            var stockTransaction = new StockTransaction(
-                productId: item.ProductId,
-                item.ProductBatchId,
-                null,
-                transactionType: StockTransactionType.Sale,
-                quantity: quantityInBaseUnits,
-                unitPrice: item.UnitPrice / variant.QuantityBaseUnit,
-                transactionDate: DateTime.UtcNow,
-                notes: $"Bán hàng - Đơn hàng: {order.OrderNumber}, Variant: {item.VariantName}"
-            );
+                var stockTransaction = new StockTransaction(
+                    productId: item.ProductId,
+                    item.ProductBatchId,
+                    null,
+                    transactionType: StockTransactionType.Sale,
+                    quantity: quantityInBaseUnits,
+                    unitPrice: item.UnitPrice / variant.QuantityBaseUnit,
+                    transactionDate: DateTime.UtcNow,
+                    notes: $"Bán hàng - Đơn hàng: {order.OrderNumber}, Variant: {item.VariantName}"
+                );
 
-            await _stockTransactionRepository.AddAsync(stockTransaction, cancellationToken);
+                await _stockTransactionRepository.AddAsync(stockTransaction, cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Stock deduction failed — revert the order back to Draft so it can be retried
+            order.RevertToDraft();
+            await _unitOfWork.ExecuteInTransactionAsync(
+                async () => await _orderRepository.UpdateAsync(order, cancellationToken),
+                cancellationToken);
+
+            return Result<SalesOrderDto>.Failure(
+                $"Trừ tồn kho thất bại: {ex.Message} — Đơn hàng đã được hoàn tác về trạng thái Nháp.");
         }
 
         var dto = SalesOrderMapper.MapToDto(order);

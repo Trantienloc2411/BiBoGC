@@ -509,6 +509,7 @@ export interface CreateProductRequestV2 {
   description?: string
   requiresBatchTracking: boolean
   categoryId?: string
+  baseUnits: number
 }
 
 /**

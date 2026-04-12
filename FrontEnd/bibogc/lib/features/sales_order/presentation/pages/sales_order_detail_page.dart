@@ -1,14 +1,14 @@
 import 'package:bibogc/core/utils/dialog_utils.dart';
-import 'package:bibogc/features/invoice/domain/entities/invoice.dart';
+import 'package:bibogc/core/config/app_routes.dart';
+import 'package:bibogc/core/events/home_refresh_bus.dart';
 import 'package:bibogc/features/sales_order/domain/entities/sales_order.dart';
 import 'package:bibogc/features/sales_order/presentation/bloc/sales_order_bloc.dart';
 import 'package:bibogc/features/sales_order/presentation/widgets/add_item_bottom_sheet.dart';
 import 'package:bibogc/features/sales_order/presentation/widgets/complete_order_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-
-import '../../../invoice/presentation/pages/invoice_detail_page.dart';
 
 class SalesOrderDetailPage extends StatefulWidget {
   final String id;
@@ -42,10 +42,17 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
             message: state.errorMessage ?? 'Thao tác thất bại',
           );
         }
-        // Show invoice on generation
+        // Keep user on this page so they can continue actions after export.
         if (state.actionStatus == SalesOrderStatus.success &&
             state.generatedInvoice != null) {
-          _showInvoiceDetail(context, state.generatedInvoice!);
+          DialogUtils.showSuccessDialog(
+            context,
+            message: 'Xuất hóa đơn thành công!',
+            onPressed: () {
+              HomeRefreshBus.trigger();
+              context.go(AppRoutes.home);
+            },
+          );
         }
       },
       builder: (context, state) {
@@ -65,7 +72,11 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
         }
 
         return Scaffold(
-          appBar: AppBar(leading: const BackButton(), title: Text(order.orderNumber), centerTitle: true),
+          appBar: AppBar(
+            leading: BackButton(onPressed: () => _handleBack(context)),
+            title: Text(order.orderNumber),
+            centerTitle: true,
+          ),
           body: _buildBody(context, state, order),
         );
       },
@@ -536,11 +547,7 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
         label: Text('Xem hóa đơn ${order.invoiceNumber}'),
         onPressed: order.invoiceId == null
             ? null
-            : () {
-                if (state.generatedInvoice != null) {
-                  _showInvoiceDetail(context, state.generatedInvoice!);
-                }
-              },
+            : () => context.push(AppRoutes.invoiceDetail(order.invoiceId!)),
       );
     }
 
@@ -557,6 +564,14 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
     }
 
     return const SizedBox.shrink();
+  }
+
+  void _handleBack(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+    context.go(AppRoutes.home);
   }
 
   void _applyDiscount(BuildContext context, SalesOrder order) {
@@ -643,16 +658,6 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
     );
   }
 
-  void _showInvoiceDetail(BuildContext context, Invoice invoice) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => InvoiceDetailContent(invoice: invoice),
-    );
-  }
 }
 
 class _StatusChip extends StatelessWidget {

@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/config/app_routes.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/security/biometric_auth_service.dart';
 import '../../../../core/utils/dialog_utils.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../domain/repositories/auth_repository.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -32,6 +34,32 @@ class _LoginFormState extends State<_LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authRepository = getIt<AuthRepository>();
+  final _biometricAuthService = getIt<BiometricAuthService>();
+  bool _biometricAvailable = false;
+  bool _checkingBiometric = false;
+  String? _lastUsername;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeLoginHints();
+  }
+
+  Future<void> _initializeLoginHints() async {
+    final lastUsername = await _authRepository.getLastUsername();
+    final biometricAvailable = await _biometricAuthService.isAvailable();
+    if (!mounted) return;
+    setState(() {
+      _lastUsername = (lastUsername != null && lastUsername.isNotEmpty)
+          ? lastUsername
+          : null;
+      _biometricAvailable = biometricAvailable;
+      if (_lastUsername != null && _usernameController.text.isEmpty) {
+        _usernameController.text = _lastUsername!;
+      }
+    });
+  }
 
   void _handleLogin(BuildContext context) {
     if (_formKey.currentState!.validate()) {
@@ -39,6 +67,42 @@ class _LoginFormState extends State<_LoginForm> {
         LoginRequested(_usernameController.text, _passwordController.text),
       );
     }
+  }
+
+  Future<void> _handleBiometricAuthorize() async {
+    setState(() => _checkingBiometric = true);
+    final ok = await _biometricAuthService.authenticate(
+      reason: 'Xac thuc de truy cap tai khoan POS',
+    );
+    if (!mounted) return;
+    setState(() => _checkingBiometric = false);
+    if (!ok) {
+      DialogUtils.showErrorDialog(
+        context,
+        title: 'Xac thuc that bai',
+        message: 'Khong the xac thuc sinh trac hoc. Vui long thu lai.',
+      );
+      return;
+    }
+    final isLoggedIn = await _authRepository.isLoggedIn();
+    if (!mounted) return;
+    if (isLoggedIn) {
+      context.go(AppRoutes.home);
+      return;
+    }
+    DialogUtils.showErrorDialog(
+      context,
+      title: 'Phien dang nhap khong ton tai',
+      message:
+          'Ban can dang nhap bang mat khau it nhat mot lan truoc khi dung sinh trac hoc.',
+    );
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -124,6 +188,20 @@ class _LoginFormState extends State<_LoginForm> {
                       isLoading: isLoading,
                       child: const Text("Đăng nhập"),
                     ),
+                    if (_biometricAvailable) ...[
+                      const SizedBox(height: 16),
+                      OutlinedButton.icon(
+                        onPressed: isLoading || _checkingBiometric
+                            ? null
+                            : _handleBiometricAuthorize,
+                        icon: const Icon(Icons.fingerprint),
+                        label: Text(
+                          _lastUsername == null
+                              ? 'Xac thuc bang van tay / Face ID'
+                              : 'Xac thuc cho $_lastUsername',
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

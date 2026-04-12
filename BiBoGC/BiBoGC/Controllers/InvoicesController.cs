@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sale.Application.DTOs;
 using Sale.Application.Queries.ExportInvoicePdf;
+using Sale.Application.Queries.ExportInvoicesZip;
 using Sale.Application.Queries.GetInvoice;
 using Sale.Application.Queries.GetInvoices;
 using Shared.Application.Common;
@@ -62,6 +63,32 @@ public class InvoicesController : ControllerBase
                 result.Errors.Skip(1)));
 
         return Ok(ApiResponse<InvoiceDto>.Ok(result.Value!));
+    }
+
+    /// <summary>
+    /// Xuất tất cả hóa đơn trong khoảng ngày dưới dạng ZIP (mỗi ngày một thư mục)
+    /// Nếu đơn hàng hoàn thành chưa có hóa đơn, tự động tạo hóa đơn trước khi xuất.
+    /// </summary>
+    [HttpGet("export/zip")]
+    [Authorize(Roles = "Administrator")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ExportInvoicesZip(
+        [FromQuery] DateTime? dateFrom = null,
+        [FromQuery] DateTime? dateTo = null,
+        CancellationToken ct = default)
+    {
+        var query = new ExportInvoicesZipQuery(dateFrom, dateTo);
+        var result = await _mediator.Send(query, ct);
+
+        if (!result.IsSuccess)
+            return BadRequest(ApiResponse<object>.Error(result.Errors.FirstOrDefault() ?? "Lỗi không xác định"));
+
+        var fromLabel = dateFrom.HasValue ? dateFrom.Value.ToString("dd-MM-yyyy") : "all";
+        var toLabel = dateTo.HasValue ? dateTo.Value.ToString("dd-MM-yyyy") : "all";
+        var fileName = $"hoa-don_{fromLabel}_den_{toLabel}.zip";
+
+        return File(result.Value!, "application/zip", fileName);
     }
 
     /// <summary>

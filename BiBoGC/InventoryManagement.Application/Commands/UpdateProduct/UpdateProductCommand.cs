@@ -32,4 +32,9 @@ public record UpdateProductCommand : IRequest<Result<ProductDto>>
     /// New product description (optional, max 1000 characters)
     /// </summary>
     public string? Description { get; init; }
+
+    /// <summary>
+    /// New product status (optional): 1=Active, 2=Inactive, 3=Discontinued, 4=OutOfStock
+    /// </summary>
+    public int? Status { get; init; }
 }

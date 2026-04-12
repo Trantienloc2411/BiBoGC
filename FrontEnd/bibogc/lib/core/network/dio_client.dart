@@ -7,30 +7,38 @@ import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import '../config/env_config.dart';
 import '../constants/api_constants.dart';
+import 'network_service.dart';
 
 @lazySingleton
 class DioClient {
+  static const _wanFailoverKey = '_wan_failover_attempted';
+
   final Dio _dio;
   final FlutterSecureStorage _storage;
   final Logger _logger;
+  final NetworkService _networkService;
 
   static final _logoutController = StreamController<String>.broadcast();
   Stream<String> get forceLogoutStream => _logoutController.stream;
 
-  DioClient({required FlutterSecureStorage storage, required Logger logger})
-    : _storage = storage,
-      _logger = logger,
-      _dio = Dio(
-        BaseOptions(
-          baseUrl: ApiConstants.baseUrl,
-          connectTimeout: const Duration(seconds: 15),
-          receiveTimeout: const Duration(seconds: 15),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        ),
-      ) {
+  DioClient({
+    required FlutterSecureStorage storage,
+    required Logger logger,
+    required NetworkService networkService,
+  }) : _storage = storage,
+       _logger = logger,
+       _networkService = networkService,
+       _dio = Dio(
+         BaseOptions(
+           baseUrl: EnvConfig.network.wanOrigin,
+           connectTimeout: const Duration(seconds: 15),
+           receiveTimeout: const Duration(seconds: 15),
+           headers: {
+             'Content-Type': 'application/json',
+             'Accept': 'application/json',
+           },
+         ),
+       ) {
     if (EnvConfig.isDevelopment) {
       (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
         final client = HttpClient();
@@ -41,7 +49,16 @@ class DioClient {
     _dio.interceptors.add(
       QueuedInterceptorsWrapper(
         onRequest: (options, handler) async {
-          _logger.i('Request: ${options.method} ${options.path}');
+          await _networkService.initialize();
+          options.baseUrl = _networkService.currentBaseUrl;
+          unawaited(
+            _networkService.revalidateInBackground(
+              reason: 'request ${options.method} ${options.path}',
+            ),
+          );
+          _logger.i(
+            'Request: ${options.method} ${options.path} [${options.baseUrl}]',
+          );
           try {
             final token = await _storage.read(key: 'auth_token');
             if (token != null) {
@@ -54,14 +71,15 @@ class DioClient {
         },
         onResponse: (response, handler) {
           _logger.i(
-            'Response: ${response.statusCode} ${response.statusMessage}',
+            'Response: ${response.statusCode} ${response.statusMessage} '
+            '[${response.requestOptions.baseUrl}]',
           );
           return handler.next(response);
         },
         onError: (DioException e, handler) async {
           _logger.e(
-            'Error: ${e.response?.statusCode} ${e.requestOptions.method} ${e.requestOptions.path}\n'
-            'Response body: ${e.response?.data}',
+            'Error: ${e.response?.statusCode} ${e.requestOptions.method} '
+            '${e.requestOptions.path}\nResponse body: ${e.response?.data}',
           );
           if (e.response?.statusCode == 401 &&
               e.requestOptions.extra['_retry'] != true) {
@@ -82,6 +100,17 @@ class DioClient {
             );
             return handler.reject(e);
           }
+
+          if (_shouldRetryOnWan(e)) {
+            try {
+              final response = await _retryRequestOverWan(e.requestOptions);
+              await _networkService.markLanAsUnavailable();
+              return handler.resolve(response);
+            } catch (retryError) {
+              _logger.w('WAN failover retry failed: $retryError');
+            }
+          }
+
           return handler.next(e);
         },
       ),
@@ -93,18 +122,8 @@ class DioClient {
     if (storedRefresh == null) return null;
 
     _logger.i('Attempting token refresh...');
-    final refreshDio = Dio(
-      BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      ),
-    );
-
-    final refreshResponse = await refreshDio.post(
-      ApiConstants.refreshToken,
+    final refreshResponse = await _postWithLanWanFallback(
+      path: ApiConstants.refreshToken,
       data: {'refreshToken': storedRefresh},
     );
 
@@ -130,17 +149,8 @@ class DioClient {
     try {
       final refreshToken = await _storage.read(key: 'refresh_token');
       if (refreshToken != null) {
-        final revokeDio = Dio(
-          BaseOptions(
-            baseUrl: ApiConstants.baseUrl,
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-          ),
-        );
-        await revokeDio.post(
-          ApiConstants.revoke,
+        await _postWithLanWanFallback(
+          path: ApiConstants.revoke,
           data: {'refreshToken': refreshToken},
         );
       }
@@ -150,6 +160,56 @@ class DioClient {
     await _storage.delete(key: 'auth_token');
     await _storage.delete(key: 'refresh_token');
     _logoutController.add(message);
+  }
+
+  bool _shouldRetryOnWan(DioException error) {
+    final attempted = error.requestOptions.extra[_wanFailoverKey] == true;
+    final canFailover = _networkService.shouldRetryOverWan(
+      requestContext: RequestContext(failoverAttempted: attempted),
+    );
+    return canFailover && _isConnectionFailure(error);
+  }
+
+  bool _isConnectionFailure(DioException error) {
+    if (error.response != null) return false;
+    return error.type == DioExceptionType.connectionError ||
+        error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.sendTimeout ||
+        error.type == DioExceptionType.receiveTimeout;
+  }
+
+  Future<Response<dynamic>> _retryRequestOverWan(RequestOptions source) async {
+    final headers = Map<String, dynamic>.from(source.headers);
+    final extra = Map<String, dynamic>.from(source.extra)
+      ..[_wanFailoverKey] = true;
+    final retriedRequest = source.copyWith(
+      baseUrl: EnvConfig.network.wanOrigin,
+      headers: headers,
+      extra: extra,
+    );
+    return _dio.fetch<dynamic>(retriedRequest);
+  }
+
+  Future<Response<dynamic>> _postWithLanWanFallback({
+    required String path,
+    required Map<String, dynamic> data,
+  }) async {
+    final options = BaseOptions(
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+    );
+    final primaryDio = Dio(options..baseUrl = _networkService.currentBaseUrl);
+    try {
+      return await primaryDio.post(path, data: data);
+    } on DioException catch (e) {
+      if (_networkService.isLanActive && _isConnectionFailure(e)) {
+        _logger.w('Primary auth endpoint failed on LAN, retrying on WAN...');
+        final fallbackDio = Dio(
+          BaseOptions(baseUrl: EnvConfig.network.wanOrigin, headers: options.headers),
+        );
+        return fallbackDio.post(path, data: data);
+      }
+      rethrow;
+    }
   }
 
   Dio get dio => _dio;
