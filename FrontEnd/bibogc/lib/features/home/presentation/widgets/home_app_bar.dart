@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/network/network_mode.dart';
+import '../../../../core/network/network_service.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String username;
@@ -9,6 +12,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final selectedMode = getIt<NetworkService>().selectedMode;
     return AppBar(
       backgroundColor: theme.colorScheme.primary,
       elevation: 0,
@@ -93,10 +97,33 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Chế độ mạng',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withAlpha(160),
+                    ),
+                  ),
                   const Divider(),
                 ],
               ),
             ),
+            CheckedPopupMenuItem(
+              value: 'network_auto',
+              checked: selectedMode == NetworkMode.auto,
+              child: const Text('Auto'),
+            ),
+            CheckedPopupMenuItem(
+              value: 'network_lan',
+              checked: selectedMode == NetworkMode.lan,
+              child: const Text('Local (LAN)'),
+            ),
+            CheckedPopupMenuItem(
+              value: 'network_wan',
+              checked: selectedMode == NetworkMode.wan,
+              child: const Text('Public (WAN)'),
+            ),
+            const PopupMenuDivider(),
             const PopupMenuItem(
               value: 'logout',
               child: Row(
@@ -111,10 +138,12 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ],
-          onSelected: (value) {
+          onSelected: (value) async {
             if (value == 'logout') {
               _showLogoutDialog(context);
+              return;
             }
+            await _handleNetworkModeSelection(context, value);
           },
         ),
         const SizedBox(width: 8),
@@ -151,6 +180,34 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: const Text('Đăng xuất'),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _handleNetworkModeSelection(
+    BuildContext context,
+    String value,
+  ) async {
+    final networkService = getIt<NetworkService>();
+    NetworkMode? mode;
+    switch (value) {
+      case 'network_auto':
+        mode = NetworkMode.auto;
+        break;
+      case 'network_lan':
+        mode = NetworkMode.lan;
+        break;
+      case 'network_wan':
+        mode = NetworkMode.wan;
+        break;
+    }
+    if (mode == null) return;
+    await networkService.setMode(mode);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Đã chuyển chế độ mạng: ${mode.label}'),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }

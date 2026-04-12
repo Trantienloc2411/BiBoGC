@@ -51,6 +51,7 @@ dependencies:
   json_annotation: ^4.9.0
   mobile_scanner: ^6.0.2
   printing: ^5.14.2
+  local_auth: ^3.0.1
 
 dev_dependencies:
   flutter_test:

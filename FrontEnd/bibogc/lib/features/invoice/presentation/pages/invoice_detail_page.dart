@@ -1,9 +1,11 @@
 import 'package:bibogc/core/di/injection.dart';
+import 'package:bibogc/core/config/app_routes.dart';
 import 'package:bibogc/features/invoice/data/datasources/invoice_remote_data_source.dart';
 import 'package:bibogc/features/invoice/domain/entities/invoice.dart';
 import 'package:bibogc/features/invoice/presentation/bloc/invoice_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 
@@ -51,7 +53,7 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
 
         return Scaffold(
           appBar: AppBar(
-            leading: const BackButton(),
+            leading: BackButton(onPressed: () => _handleBack(context)),
             title: Text(invoice.invoiceNumber),
             centerTitle: true,
           ),
@@ -59,6 +61,14 @@ class _InvoiceDetailPageState extends State<InvoiceDetailPage> {
         );
       },
     );
+  }
+
+  void _handleBack(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+    context.go(AppRoutes.home);
   }
 }
 

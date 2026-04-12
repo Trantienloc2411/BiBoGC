@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/config/app_routes.dart';
 import '../../../../core/config/router.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/events/home_refresh_bus.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../../invoice/presentation/bloc/invoice_bloc.dart';
@@ -32,7 +35,8 @@ class _HomePageState extends State<HomePage> {
 
   // Route change tracking
   GoRouterDelegate? _routerDelegate;
-  bool _hasPushedAway = false;
+  String _lastKnownPath = AppRoutes.home;
+  StreamSubscription<void>? _homeRefreshSub;
 
   @override
   void initState() {
@@ -40,6 +44,7 @@ class _HomePageState extends State<HomePage> {
     _salesOrderBloc = getIt<SalesOrderBloc>()..add(const SalesOrdersStarted());
     _invoiceBloc = getIt<InvoiceBloc>()..add(const InvoicesStarted());
     _loadDailySummary();
+    _homeRefreshSub = HomeRefreshBus.stream.listen((_) => _refreshData());
   }
 
   @override
@@ -55,6 +60,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _routerDelegate?.removeListener(_onRouteChanged);
+    _homeRefreshSub?.cancel();
     _salesOrderBloc.close();
     _invoiceBloc.close();
     super.dispose();
@@ -66,12 +72,12 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _routerDelegate == null) return;
       final path = _routerDelegate!.currentConfiguration.uri.path;
-      if (path == AppRoutes.home && _hasPushedAway) {
-        _hasPushedAway = false;
+      final isReturningToHome =
+          path == AppRoutes.home && _lastKnownPath != AppRoutes.home;
+      if (isReturningToHome) {
         _refreshData();
-      } else if (path.isNotEmpty && path != AppRoutes.home) {
-        _hasPushedAway = true;
       }
+      _lastKnownPath = path;
     });
   }
 

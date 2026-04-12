@@ -5,6 +5,7 @@ import 'core/config/router.dart';
 import 'core/config/theme.dart';
 import 'core/di/injection.dart';
 import 'core/network/dio_client.dart';
+import 'core/network/network_service.dart';
 
 class BiBoApp extends StatefulWidget {
   const BiBoApp({super.key});
@@ -13,13 +14,14 @@ class BiBoApp extends StatefulWidget {
   State<BiBoApp> createState() => _BiBoAppState();
 }
 
-class _BiBoAppState extends State<BiBoApp> {
+class _BiBoAppState extends State<BiBoApp> with WidgetsBindingObserver {
   late final StreamSubscription<String> _logoutSub;
   final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _logoutSub = getIt<DioClient>().forceLogoutStream.listen((message) {
       _scaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(
@@ -44,8 +46,16 @@ class _BiBoAppState extends State<BiBoApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _logoutSub.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(getIt<NetworkService>().onAppResumed());
+    }
   }
 
   @override
@@ -57,6 +67,12 @@ class _BiBoAppState extends State<BiBoApp> {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
       scaffoldMessengerKey: _scaffoldMessengerKey,
+      builder: (context, child) {
+        return SafeArea(
+          maintainBottomViewPadding: true,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       routerConfig: appRouter,
     );
   }
