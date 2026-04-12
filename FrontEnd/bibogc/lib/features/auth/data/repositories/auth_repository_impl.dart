@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -10,6 +12,8 @@ import '../datasources/auth_remote_datasource.dart';
 
 @LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
+  static const _usernameKey = 'last_username';
+
   final AuthRemoteDataSource _remoteDataSource;
   final FlutterSecureStorage _storage;
   final Logger _logger;
@@ -27,7 +31,22 @@ class AuthRepositoryImpl implements AuthRepository {
       final token = response['token'] ?? response['accessToken'];
 
       if (token != null) {
+        final roles = _extractRoles(response, token as String);
+        final hasAdministratorRole = roles.contains('administrator');
+        final hasSellerRole = roles.contains('seller');
+
+        if (hasAdministratorRole || !hasSellerRole) {
+          await _storage.delete(key: 'auth_token');
+          await _storage.delete(key: 'refresh_token');
+          return const Left(
+            ServerFailure(
+              'Chỉ tài khoản Seller được phép đăng nhập ứng dụng POS.',
+            ),
+          );
+        }
+
         await _storage.write(key: 'auth_token', value: token);
+        await _storage.write(key: _usernameKey, value: username.trim());
         // Also save refreshToken if available
         if (response['refreshToken'] != null) {
           await _storage.write(
@@ -81,5 +100,62 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<bool> isLoggedIn() async {
     final token = await _storage.read(key: 'auth_token');
     return token != null;
+  }
+
+  @override
+  Future<String?> getLastUsername() {
+    return _storage.read(key: _usernameKey);
+  }
+
+  Set<String> _extractRoles(Map<String, dynamic> response, String token) {
+    final roles = <String>{};
+
+    void addRoleValue(dynamic value) {
+      if (value == null) return;
+      if (value is String) {
+        final normalized = value.trim().toLowerCase();
+        if (normalized.isNotEmpty) roles.add(normalized);
+        return;
+      }
+      if (value is List) {
+        for (final role in value) {
+          addRoleValue(role);
+        }
+      }
+    }
+
+    addRoleValue(response['role']);
+    addRoleValue(response['roles']);
+    addRoleValue(response['userRole']);
+    addRoleValue(response['userRoles']);
+
+    final user = response['user'];
+    if (user is Map<String, dynamic>) {
+      addRoleValue(user['role']);
+      addRoleValue(user['roles']);
+    }
+
+    final claims = _decodeJwtPayload(token);
+    addRoleValue(claims['role']);
+    addRoleValue(claims['roles']);
+    addRoleValue(
+      claims['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+    );
+
+    return roles;
+  }
+
+  Map<String, dynamic> _decodeJwtPayload(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return const {};
+      final normalized = base64Url.normalize(parts[1]);
+      final payload = utf8.decode(base64Url.decode(normalized));
+      final decoded = jsonDecode(payload);
+      if (decoded is Map<String, dynamic>) return decoded;
+      return const {};
+    } catch (_) {
+      return const {};
+    }
   }
 }

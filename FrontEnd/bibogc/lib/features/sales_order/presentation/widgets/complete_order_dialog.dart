@@ -55,10 +55,10 @@ class _CompleteOrderDialogState extends State<CompleteOrderDialog> {
           curr.actionStatus != SalesOrderStatus.initial,
       listener: (context, state) {
         if (state.actionStatus == SalesOrderStatus.success) {
-          Navigator.of(context).pop(true);
           DialogUtils.showSuccessDialog(
             context,
-            message: 'Hoàn thành đơn hàng thành công!',
+            message: 'Hoàn thành đơn hàng thành công. Bạn có thể xuất hóa đơn.',
+            onPressed: () => Navigator.of(context).pop(true),
           );
         } else if (state.actionStatus == SalesOrderStatus.failure) {
           DialogUtils.showErrorDialog(

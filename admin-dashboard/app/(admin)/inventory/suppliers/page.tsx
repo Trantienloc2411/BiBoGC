@@ -181,15 +181,15 @@ export default function SuppliersPage() {
                         {s.contactName && <p className="text-xs text-gray-500 mt-0.5 truncate">{s.contactName}</p>}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       {!s.isActive && (
                         <span className="text-xs bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">Ngưng</span>
                       )}
-                      <Button size="sm" variant="ghost" onClick={() => openEdit(s)} className="h-8 w-8 p-0 flex items-center justify-center">
-                        <Pencil size={14} />
+                      <Button size="sm" variant="secondary" onClick={() => openEdit(s)} className="gap-1.5 px-3 py-1.5">
+                        <Pencil size={14} /> Sửa
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setDeleteTarget(s)} className="h-8 w-8 p-0 flex items-center justify-center text-red-500">
-                        <Trash2 size={14} />
+                      <Button size="sm" variant="danger" onClick={() => setDeleteTarget(s)} className="gap-1.5 px-3 py-1.5">
+                        <Trash2 size={14} /> Xoá
                       </Button>
                     </div>
                   </div>

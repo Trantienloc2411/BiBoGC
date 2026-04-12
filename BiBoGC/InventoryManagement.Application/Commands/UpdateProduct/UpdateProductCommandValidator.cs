@@ -30,5 +30,11 @@ public class UpdateProductCommandValidator : AbstractValidator<UpdateProductComm
             RuleFor(x => x.Description)
                 .MaximumLength(1000).WithMessage("Mô tả sản phẩm không được quá 1000 ký tự.");
         });
+
+        When(x => x.Status.HasValue, () =>
+        {
+            RuleFor(x => x.Status!.Value)
+                .Must(s => s >= 1 && s <= 4).WithMessage("Trạng thái sản phẩm phải là 1 (Đang bán), 2 (Ngừng bán), hoặc 3 (Ngừng kinh doanh).");
+        });
     }
 }

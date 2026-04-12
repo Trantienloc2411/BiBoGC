@@ -126,6 +126,27 @@ public class SalesOrderRepository : ISalesOrderRepository
         await _context.SaveChangesAsync(ct);
     }
 
+    public async Task<IEnumerable<SalesOrder>> GetCompletedWithoutInvoiceAsync(
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null,
+        CancellationToken ct = default)
+    {
+        var query = _context.SalesOrders
+            .Include(x => x.Items.Where(i => !i.IsDeleted))
+            .Where(x => x.Status == OrderStatus.Completed && x.InvoiceId == null)
+            .AsQueryable();
+
+        if (dateFrom.HasValue)
+            query = query.Where(x => x.OrderDate >= DateTime.SpecifyKind(dateFrom.Value, DateTimeKind.Utc));
+
+        if (dateTo.HasValue)
+            query = query.Where(x => x.OrderDate <= DateTime.SpecifyKind(dateTo.Value, DateTimeKind.Utc));
+
+        return await query
+            .OrderBy(x => x.OrderDate)
+            .ToListAsync(ct);
+    }
+
     public async Task<bool> OrderNumberExistsAsync(string orderNumber, CancellationToken ct = default)
     {
         return await _context.SalesOrders

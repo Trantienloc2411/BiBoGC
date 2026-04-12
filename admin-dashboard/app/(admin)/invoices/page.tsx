@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import { InvoiceDto, PagedResult } from '@/types'
@@ -9,8 +9,9 @@ import { Card } from '@/components/ui/Card'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Pagination } from '@/components/ui/Pagination'
 import { Button } from '@/components/ui/Button'
-import { Eye, Download, X } from 'lucide-react'
+import { Eye, Download, X, Archive } from 'lucide-react'
 import { downloadFile } from '@/lib/download'
+import { exportInvoicesZip } from '@/lib/exportService'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/ui/Toast'
 
@@ -22,6 +23,82 @@ const PAYMENT_LABELS: Record<string, string> = {
   QRPayment: 'QR Code',
 }
 
+// ─── Export progress overlay ─────────────────────────────────────────────────
+
+function ExportProgressOverlay({ visible }: { visible: boolean }) {
+  const [progress, setProgress] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    if (visible) {
+      setProgress(0)
+      // Simulate gradual progress: fast at first, slows near 90%
+      intervalRef.current = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 90) return prev
+          const increment = prev < 40 ? 4 : prev < 70 ? 2 : 0.5
+          return Math.min(prev + increment, 90)
+        })
+      }, 200)
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      setProgress(100)
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [visible])
+
+  if (!visible && progress !== 100) return null
+  if (!visible) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Archive size={20} className="text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-800">Đang xuất hóa đơn...</p>
+            <p className="text-xs text-gray-400 mt-0.5">Vui lòng không đóng trang này</p>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+          <div
+            className="h-2 bg-blue-500 rounded-full transition-all duration-200 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <p className="text-xs text-gray-400 mt-2 text-right">{Math.round(progress)}%</p>
+
+        <ul className="mt-4 space-y-1.5 text-xs text-gray-500">
+          <li className="flex items-center gap-2">
+            <span className={progress >= 20 ? 'text-green-500' : 'text-gray-300'}>✓</span>
+            Kiểm tra đơn hàng chưa có hóa đơn
+          </li>
+          <li className="flex items-center gap-2">
+            <span className={progress >= 45 ? 'text-green-500' : 'text-gray-300'}>✓</span>
+            Tạo hóa đơn tự động (nếu cần)
+          </li>
+          <li className="flex items-center gap-2">
+            <span className={progress >= 65 ? 'text-green-500' : 'text-gray-300'}>✓</span>
+            Tạo file PDF cho từng hóa đơn
+          </li>
+          <li className="flex items-center gap-2">
+            <span className={progress >= 85 ? 'text-green-500' : 'text-gray-300'}>✓</span>
+            Nén thành file ZIP theo ngày
+          </li>
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
+
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<InvoiceDto[]>([])
   const [total, setTotal] = useState(0)
@@ -32,7 +109,11 @@ export default function InvoicesPage() {
 
   const [pendingPdf, setPendingPdf] = useState<{ id: string; number: string } | null>(null)
   const [downloading, setDownloading] = useState(false)
-  const { error: showError } = useToast()
+
+  const [showZipConfirm, setShowZipConfirm] = useState(false)
+  const [exportingZip, setExportingZip] = useState(false)
+
+  const { success, error: showError } = useToast()
 
   const load = useCallback(async (p: number) => {
     setLoading(true)
@@ -82,11 +163,42 @@ export default function InvoicesPage() {
     }
   }
 
+  async function handleExportZip() {
+    setShowZipConfirm(false)
+    setExportingZip(true)
+    try {
+      await exportInvoicesZip(dateFrom, dateTo)
+      success('Xuất ZIP thành công', 'File đã được tải về máy của bạn.')
+    } catch (err) {
+      showError('Xuất ZIP thất bại', err instanceof Error ? err.message : undefined)
+    } finally {
+      setExportingZip(false)
+    }
+  }
+
   const totalPages = Math.ceil(total / PAGE_SIZE)
+
+  const zipConfirmDescription = (() => {
+    if (dateFrom && dateTo) return `Xuất tất cả hóa đơn từ ${dateFrom} đến ${dateTo} thành file ZIP?`
+    if (dateFrom) return `Xuất tất cả hóa đơn từ ${dateFrom} thành file ZIP?`
+    if (dateTo) return `Xuất tất cả hóa đơn đến ${dateTo} thành file ZIP?`
+    return 'Xuất tất cả hóa đơn thành file ZIP? (Không có bộ lọc ngày — có thể mất nhiều thời gian)'
+  })()
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-gray-800">Hoá đơn</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl font-bold text-gray-800">Hoá đơn</h1>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => setShowZipConfirm(true)}
+          className="gap-1.5"
+        >
+          <Archive size={15} />
+          Xuất ZIP
+        </Button>
+      </div>
 
       <Card className="flex flex-wrap gap-3 items-end">
         <div>
@@ -181,6 +293,7 @@ export default function InvoicesPage() {
         </>
       )}
 
+      {/* Single PDF download confirm */}
       <ConfirmDialog
         open={pendingPdf !== null}
         title="Xuất hoá đơn PDF?"
@@ -191,6 +304,21 @@ export default function InvoicesPage() {
         onConfirm={handleExportPdf}
         onCancel={() => setPendingPdf(null)}
       />
+
+      {/* ZIP export confirm */}
+      <ConfirmDialog
+        open={showZipConfirm}
+        title="Xuất hóa đơn ZIP?"
+        description={zipConfirmDescription}
+        icon={<div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center"><Archive size={24} className="text-blue-600" /></div>}
+        confirmLabel="Xuất ZIP"
+        loading={false}
+        onConfirm={handleExportZip}
+        onCancel={() => setShowZipConfirm(false)}
+      />
+
+      {/* Export progress overlay */}
+      <ExportProgressOverlay visible={exportingZip} />
     </div>
   )
 }

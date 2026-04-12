@@ -42,7 +42,6 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
   Future<void> _openBarcodeScanner(BuildContext context) async {
     // Capture context-dependent objects before any async gap
     final productBloc = context.read<ProductBloc>();
-    final messenger = ScaffoldMessenger.of(context);
 
     final scanned = await showModalBottomSheet<String>(
       context: context,
@@ -93,8 +92,11 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
     } catch (_) {
       if (mounted) {
         setState(() => _scanLoading = false);
-        messenger.showSnackBar(
-          SnackBar(content: Text('Không tìm thấy sản phẩm với mã vạch: $scanned')),
+        if (!context.mounted) return;
+        DialogUtils.showErrorDialog(
+          context,
+          title: 'Quét mã thất bại',
+          message: 'Không tìm thấy sản phẩm với mã vạch: $scanned',
         );
       }
     }
@@ -120,7 +122,9 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => getIt<ProductBloc>()..add(const ProductsStarted()),
-      child: _buildSheet(context),
+      child: Builder(
+        builder: (providerContext) => _buildSheet(providerContext),
+      ),
     );
   }
 

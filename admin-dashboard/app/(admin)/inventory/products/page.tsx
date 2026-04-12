@@ -17,8 +17,10 @@ import { FormDialog, FormField, FormError, inputClass, selectClass } from '@/com
 import { CategoryPicker } from '@/components/ui/CategoryPicker'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/ui/Toast'
-import { Search, Eye, Plus, Pencil, Trash2, X, AlertTriangle } from 'lucide-react'
+import { Search, Eye, Plus, Pencil, Trash2, X, AlertTriangle, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useExportFile } from '@/hooks/useExportFile'
+import { exportExistingProducts } from '@/lib/exportService'
 
 const PAGE_SIZE = 20
 
@@ -36,15 +38,25 @@ const STATUS_LABELS: Record<string, string> = {
   Discontinued: 'Ngừng kinh doanh',
 }
 const STATUS_VALUES: { value: number; label: string; key: ProductStatus }[] = [
-  { value: 0, label: 'Đang bán', key: 'Active' },
-  { value: 1, label: 'Ngừng bán', key: 'Inactive' },
-  { value: 2, label: 'Hết hàng', key: 'OutOfStock' },
+  { value: 1, label: 'Đang bán', key: 'Active' },
+  { value: 2, label: 'Ngừng bán', key: 'Inactive' },
+  { value: 4, label: 'Hết hàng', key: 'OutOfStock' },
   { value: 3, label: 'Ngừng kinh doanh', key: 'Discontinued' },
+]
+
+const UNITS_OPTIONS: { value: number; label: string }[] = [
+  { value: 1, label: 'Cái' }, { value: 2, label: 'Hộp' }, { value: 3, label: 'Chai' },
+  { value: 4, label: 'Lon' }, { value: 5, label: 'Gói' }, { value: 6, label: 'Bịch' },
+  { value: 7, label: 'Lốc' }, { value: 8, label: 'Thùng' }, { value: 9, label: 'Cuộn' },
+  { value: 10, label: 'Vỉ' }, { value: 11, label: 'Cây' }, { value: 12, label: 'Thanh' },
+  { value: 13, label: 'Túi' }, { value: 14, label: 'Bộ' }, { value: 15, label: 'Đôi' },
+  { value: 16, label: 'Cân' }, { value: 21, label: 'Kg' }, { value: 22, label: 'Lạng' },
+  { value: 31, label: 'Lít' }, { value: 40, label: 'Quả' }, { value: 41, label: 'Trái' },
 ]
 
 type CreateForm = {
   name: string; description: string; sku: string; requiresBatchTracking: boolean
-  price: number
+  price: number; baseUnits: number
   categoryId: string; supplierId: string
 }
 type EditForm = {
@@ -54,6 +66,7 @@ type EditForm = {
 
 export default function ProductsPage() {
   const { success, error: showError } = useToast()
+  const { exportFile: handleExportProducts, loading: exportLoading } = useExportFile(exportExistingProducts)
 
   const [products, setProducts] = useState<ProductDto[]>([])
   const [totalCount, setTotalCount] = useState(0)
@@ -78,7 +91,7 @@ export default function ProductsPage() {
   const [formError, setFormError] = useState('')
   const [createForm, setCreateForm] = useState<CreateForm>({
     name: '', description: '', sku: '', requiresBatchTracking: false,
-    price: 0,
+    price: 0, baseUnits: 1,
     categoryId: '', supplierId: '',
   })
   const [editForm, setEditForm] = useState<EditForm>({
@@ -142,7 +155,7 @@ export default function ProductsPage() {
   }
 
   function openCreate() {
-    setCreateForm({ name: '', description: '', sku: '', requiresBatchTracking: false, price: 0, categoryId: '', supplierId: '' })
+    setCreateForm({ name: '', description: '', sku: '', requiresBatchTracking: false, price: 0, baseUnits: 1, categoryId: '', supplierId: '' })
     setFormError('')
     setPickerKey(k => k + 1)
     setShowCreate(true)
@@ -164,6 +177,7 @@ export default function ProductsPage() {
     e.preventDefault(); setFormError('')
     if (!createForm.name.trim()) { setFormError('Tên sản phẩm không được để trống.'); return }
     if (!createForm.sku.trim()) { setFormError('SKU không được để trống.'); return }
+    if (!createForm.baseUnits) { setFormError('Vui lòng chọn đơn vị tính.'); return }
     setFormLoading(true)
     try {
       const body: CreateProductRequestV2 = {
@@ -173,6 +187,7 @@ export default function ProductsPage() {
         requiresBatchTracking: createForm.requiresBatchTracking,
         price: createForm.price,
         categoryId: createForm.categoryId || undefined,
+        baseUnits: createForm.baseUnits,
       }
       await productApi.create(body)
       success('Thêm sản phẩm thành công')
@@ -220,7 +235,20 @@ export default function ProductsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-bold text-gray-800">Sản phẩm</h1>
-        <Button size="sm" onClick={openCreate} className="gap-1.5"><Plus size={15} /> Thêm sản phẩm</Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleExportProducts}
+            loading={exportLoading}
+            disabled={exportLoading}
+            className="gap-1.5"
+          >
+            <Download size={15} />
+            {exportLoading ? 'Đang xuất...' : 'Xuất sản phẩm'}
+          </Button>
+          <Button size="sm" onClick={openCreate} className="gap-1.5"><Plus size={15} /> Thêm sản phẩm</Button>
+        </div>
       </div>
 
       <Card className="flex flex-wrap gap-3 items-end">
@@ -338,6 +366,11 @@ export default function ProductsPage() {
         </FormField>
         <FormField label="SKU" required>
           <input className={inputClass} value={createForm.sku} onChange={e => setCreateForm(f => ({ ...f, sku: e.target.value }))} placeholder="VD: SP001" />
+        </FormField>
+        <FormField label="Đơn vị tính" required>
+          <select className={selectClass} value={createForm.baseUnits} onChange={e => setCreateForm(f => ({ ...f, baseUnits: Number(e.target.value) }))}>
+            {UNITS_OPTIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+          </select>
         </FormField>
         <FormField label="Danh mục">
           <CategoryPicker

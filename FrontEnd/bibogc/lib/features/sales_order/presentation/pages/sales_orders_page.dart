@@ -56,7 +56,15 @@ class SalesOrdersPage extends StatelessWidget {
       ),
     ).then((newOrder) {
       if (newOrder != null && context.mounted) {
-        context.push(AppRoutes.salesOrderDetail(newOrder.id));
+        DialogUtils.showSuccessDialog(
+          context,
+          message: 'Tạo đơn hàng thành công!',
+          onPressed: () {
+            if (context.mounted) {
+              context.push(AppRoutes.salesOrderDetail(newOrder.id));
+            }
+          },
+        );
       }
     });
   }
@@ -101,7 +109,7 @@ class _FilterBar extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             itemCount: filters.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, index) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
               final filterValue = filters[index];
               final isSelected = state.filterStatus == filterValue;

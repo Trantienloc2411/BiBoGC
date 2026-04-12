@@ -55,7 +55,14 @@
       "Bash(echo $TEMP)",
       "Bash(echo $TMP)",
       "Read(//e/Github-Repository/BiBo-s-GC/BiBoGC/Tests/BiBoGC.Tests.Unit/**)",
-      "Bash(find \"E:\\\\Github-Repository\\\\BiBo-s-GC\\\\admin-dashboard\\\\app\\\\\\(admin\\)\" -type f -name \"page.tsx\")"
+      "Bash(find \"E:\\\\Github-Repository\\\\BiBo-s-GC\\\\admin-dashboard\\\\app\\\\\\(admin\\)\" -type f -name \"page.tsx\")",
+      "Bash(xargs cat:*)",
+      "Bash(cp \"/c/Users/ttloc/OneDrive - Netcompany/Desktop/Learn/BiBoGC/DocumentationTemplate/S2a-HKD.xlsx\" \"/c/Users/ttloc/OneDrive - Netcompany/Desktop/Learn/BiBoGC/BiBoGC/Finance.Infrastructure/Templates/S2a-HKD.xlsx\")",
+      "Bash(mkdir -p \"/c/Users/ttloc/OneDrive - Netcompany/Desktop/Learn/BiBoGC/BiBoGC/InventoryManagement.Infrastructure/Templates\")",
+      "Bash(cp \"/c/Users/ttloc/OneDrive - Netcompany/Desktop/Learn/BiBoGC/DocumentationTemplate/ProductExists.xlsx\" \"/c/Users/ttloc/OneDrive - Netcompany/Desktop/Learn/BiBoGC/BiBoGC/InventoryManagement.Infrastructure/Templates/ProductExists.xlsx\")",
+      "Bash(npx tsc:*)",
+      "Bash(cmd /c \"cd /d \\\\\"C:\\\\Users\\\\ttloc\\\\OneDrive - Netcompany\\\\Desktop\\\\Learn\\\\BiBoGC\\\\admin-dashboard\\\\\" && npx tsc --noEmit 2>&1\")",
+      "Bash(cmd /c \"cd /d E:\\\\Github-Repository\\\\BiBo-s-GC\\\\admin-dashboard && npx tsc --noEmit 2>&1\")"
     ]
   }
 }

@@ -70,6 +70,27 @@ public class InvoiceRepository : IInvoiceRepository
         return (items, totalCount);
     }
 
+    public async Task<IEnumerable<Invoice>> GetAllForExportAsync(
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null,
+        CancellationToken ct = default)
+    {
+        var query = _context.Invoices
+            .Include(x => x.Items)
+            .AsQueryable();
+
+        if (dateFrom.HasValue)
+            query = query.Where(x => x.InvoiceDate >= DateTime.SpecifyKind(dateFrom.Value, DateTimeKind.Utc));
+
+        if (dateTo.HasValue)
+            query = query.Where(x => x.InvoiceDate <= DateTime.SpecifyKind(dateTo.Value, DateTimeKind.Utc));
+
+        return await query
+            .OrderBy(x => x.InvoiceDate)
+            .AsNoTracking()
+            .ToListAsync(ct);
+    }
+
     public async Task<Invoice> AddAsync(Invoice invoice, CancellationToken ct = default)
     {
         await _context.Invoices.AddAsync(invoice, ct);

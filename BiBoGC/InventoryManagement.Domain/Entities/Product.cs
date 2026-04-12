@@ -123,6 +123,32 @@ public class Product : BaseEntity
             .Sum(b => b.Quantity);
     }
 
+    /// <summary>
+    /// Deducts quantity from non-expired batches using FEFO (First Expired, First Out).
+    /// Used when a sale has no specific batch linked.
+    /// </summary>
+    public void DeductFromBatches(int quantity, DateTime? asOfDate = null)
+    {
+        var checkDate = asOfDate ?? DateTime.UtcNow;
+        var available = _batches
+            .Where(b => !b.IsExpired(checkDate) && b.Quantity > 0)
+            .OrderBy(b => b.ExpirationDate)
+            .ToList();
+
+        int remaining = quantity;
+        foreach (var batch in available)
+        {
+            if (remaining <= 0) break;
+            int deduct = Math.Min(batch.Quantity, remaining);
+            batch.DecreaseQuantity(deduct);
+            remaining -= deduct;
+        }
+
+        if (remaining > 0)
+            throw new InvalidOperationException(
+                $"Không đủ tồn kho trong các lô hàng. Còn thiếu: {remaining}.");
+    }
+
     public void SetCategory(Guid? categoryId)
     {
         CategoryId = categoryId;
@@ -193,10 +219,28 @@ public class Product : BaseEntity
         RaiseDomainEvent(new ProductPriceChangedEvent(Id, oldPrice.Value, newPrice.Value));
     }
 
+    public void SetInactive()
+    {
+        if (Status == ProductStatuses.Inactive)
+            throw new InvalidOperationException("Sản phẩm đã ở trạng thái ngừng bán.");
+
+        Status = ProductStatuses.Inactive;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Reactivate()
+    {
+        if (Status == ProductStatuses.Discontinued)
+            throw new InvalidOperationException("Không thể kích hoạt lại sản phẩm đã ngừng kinh doanh.");
+
+        Status = ProductStatuses.Active;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void Discontinue()
     {
         if (Status == ProductStatuses.Discontinued)
-            throw new InvalidOperationException("Product is already discontinued.");
+            throw new InvalidOperationException("Sản phẩm đã ngừng kinh doanh.");
 
         Status = ProductStatuses.Discontinued;
         UpdatedAt = DateTime.UtcNow;

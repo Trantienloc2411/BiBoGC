@@ -254,6 +254,20 @@ public class SalesOrder : BaseEntity
     }
 
     /// <summary>
+    /// Hoàn tác đơn hàng về trạng thái Nháp khi trừ tồn kho thất bại sau khi hoàn thành.
+    /// </summary>
+    public void RevertToDraft()
+    {
+        if (Status != OrderStatus.Completed)
+            throw new InvalidOperationException("Chỉ có thể hoàn tác đơn hàng đã hoàn thành.");
+
+        Status = OrderStatus.Draft;
+        AmountPaid = 0;
+        TaxAmount = 0;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
     /// Hủy đơn hàng
     /// </summary>
     public void Cancel(string? reason = null)

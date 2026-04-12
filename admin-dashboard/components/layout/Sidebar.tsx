@@ -71,7 +71,7 @@ export function Sidebar() {
   }
 
   function isActive(href: string) {
-    if (href === '/dashboard' || href === '/orders') return pathname === href
+    if (href === '/dashboard' || href === '/orders' || href === '/reports') return pathname === href
     return pathname.startsWith(href)
   }
 

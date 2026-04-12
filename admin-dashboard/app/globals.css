@@ -9,3 +9,12 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* All interactive controls should show the pointer cursor */
+button:not(:disabled),
+[role="button"]:not(:disabled),
+a[href],
+select,
+label[for] {
+  cursor: pointer;
+}
