@@ -3,6 +3,8 @@ name: Build Flutter APK
 on:
   push:
     branches: ["main", "development"]
+    tags:
+      - "v*.*.*"
   pull_request:
     branches: ["main"]
   workflow_dispatch:
@@ -56,3 +58,22 @@ jobs:
           name: bibogc-release-apk
           path: FrontEnd/bibogc/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "BiBoGC ${{ github.ref_name }}"
+          tag_name: ${{ github.ref_name }}
+          body: |
+            ## BiBoGC Android Release ${{ github.ref_name }}
+
+            ### Download
+            Download the APK below and install it on your Android device.
+
+            > Enable **Install from unknown sources** in your device settings if prompted.
+          files: FrontEnd/bibogc/build/app/outputs/flutter-apk/app-release.apk
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
