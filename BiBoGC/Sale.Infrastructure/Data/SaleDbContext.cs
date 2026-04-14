@@ -15,6 +15,7 @@ public class SaleDbContext : DbContext
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<InvoiceItem> InvoiceItems => Set<InvoiceItem>();
     public DbSet<InvoiceNumberSequence> InvoiceNumberSequences => Set<InvoiceNumberSequence>();
+    public DbSet<OrderNumberSequence> OrderNumberSequences => Set<OrderNumberSequence>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

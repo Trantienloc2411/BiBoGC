@@ -1,29 +1,52 @@
+using Microsoft.EntityFrameworkCore;
 using Sale.Application.Interfaces;
+using Sale.Domain.Domain;
+using Sale.Infrastructure.Data;
 
 namespace Sale.Infrastructure.Services;
 
 public class OrderNumberGenerator : IOrderNumberGenerator
 {
-    private static int _dailySequence = 0;
-    private static string _lastDate = string.Empty;
-    private static readonly object _lock = new();
+    private readonly SaleDbContext _context;
 
-    public Task<string> GenerateNextAsync(CancellationToken ct = default)
+    public OrderNumberGenerator(SaleDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<string> GenerateNextAsync(CancellationToken ct = default)
     {
         var today = DateTime.UtcNow.ToString("yyyyMMdd");
 
-        lock (_lock)
+        var strategy = _context.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
         {
-            if (_lastDate != today)
+            await using var transaction = await _context.Database
+                .BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+
+            try
             {
-                _lastDate = today;
-                _dailySequence = 0;
+                var sequence = await _context.OrderNumberSequences
+                    .FirstOrDefaultAsync(s => s.Date == today, ct);
+
+                if (sequence is null)
+                {
+                    sequence = new OrderNumberSequence(today);
+                    _context.OrderNumberSequences.Add(sequence);
+                }
+
+                var newSequence = sequence.Increment();
+                await _context.SaveChangesAsync(ct);
+                await transaction.CommitAsync(ct);
+
+                return $"SO-{today}-{newSequence:D4}";
             }
-
-            _dailySequence++;
-            var orderNumber = $"SO-{today}-{_dailySequence:D4}";
-
-            return Task.FromResult(orderNumber);
-        }
+            catch
+            {
+                await transaction.RollbackAsync(ct);
+                throw;
+            }
+        });
     }
 }
