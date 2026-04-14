@@ -346,7 +346,12 @@ class SalesOrderBloc extends Bloc<SalesOrderEvent, SalesOrderState> {
     SalesOrderInvoiceGenerated event,
     Emitter<SalesOrderState> emit,
   ) async {
-    emit(state.copyWith(actionStatus: SalesOrderStatus.loading));
+    emit(
+      state.copyWith(
+        actionStatus: SalesOrderStatus.loading,
+        clearGeneratedInvoice: true,
+      ),
+    );
     final result = await _repository.generateInvoice(event.orderId);
     result.fold(
       (failure) => emit(
@@ -355,12 +360,50 @@ class SalesOrderBloc extends Bloc<SalesOrderEvent, SalesOrderState> {
           errorMessage: _mapFailure(failure),
         ),
       ),
-      (invoice) => emit(
-        state.copyWith(
-          actionStatus: SalesOrderStatus.success,
-          generatedInvoice: invoice,
-        ),
-      ),
+      (invoice) {
+        final updatedSelectedOrder = _copyOrderWithInvoice(
+          state.selectedOrder,
+          invoice,
+        );
+        final updatedOrders = state.orders
+            .map((order) => _copyOrderWithInvoice(order, invoice) ?? order)
+            .toList(growable: false);
+
+        emit(
+          state.copyWith(
+            actionStatus: SalesOrderStatus.success,
+            generatedInvoice: invoice,
+            selectedOrder: updatedSelectedOrder,
+            orders: updatedOrders,
+          ),
+        );
+      },
+    );
+  }
+
+  SalesOrder? _copyOrderWithInvoice(SalesOrder? order, Invoice invoice) {
+    if (order == null || order.id != invoice.salesOrderId) return order;
+    return SalesOrder(
+      id: order.id,
+      orderNumber: order.orderNumber,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      orderDate: order.orderDate,
+      subTotal: order.subTotal,
+      discountAmount: order.discountAmount,
+      taxAmount: order.taxAmount,
+      totalAmount: order.totalAmount,
+      amountPaid: order.amountPaid,
+      changeAmount: order.changeAmount,
+      paymentMethod: order.paymentMethod,
+      status: order.status,
+      notes: order.notes,
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      itemCount: order.itemCount,
+      items: order.items,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
     );
   }
 
