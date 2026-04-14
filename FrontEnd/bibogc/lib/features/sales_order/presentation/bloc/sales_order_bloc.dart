@@ -62,6 +62,11 @@ class SalesOrderBloc extends Bloc<SalesOrderEvent, SalesOrderState> {
         listStatus: SalesOrderStatus.loading,
         currentPage: 1,
         hasMore: false,
+        // Passing null via filterStatus is ignored by copyWith's ?? pattern,
+        // so use the explicit clear flags when the caller passes null.
+        clearFilterStatus: event.status == null,
+        clearFilterDateFrom: event.dateFrom == null,
+        clearFilterDateTo: event.dateTo == null,
       ),
     );
     await _loadOrders(emit, page: 1, append: false);
