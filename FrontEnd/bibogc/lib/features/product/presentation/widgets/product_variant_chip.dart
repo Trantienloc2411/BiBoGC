@@ -1,3 +1,4 @@
+import 'package:bibogc/core/utils/currency_utils.dart';
 import 'package:bibogc/features/product/domain/entities/product.dart';
 import 'package:flutter/material.dart';
 
@@ -33,7 +34,7 @@ class ProductVariantChip extends StatelessWidget {
           Row(
             children: [
               Text(
-                '${variant.salePrice.toStringAsFixed(0)}₫',
+                CurrencyUtils.formatCurrency(variant.salePrice),
                 style: textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.primary,

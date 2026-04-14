@@ -1,4 +1,5 @@
 import 'package:bibogc/core/di/injection.dart';
+import 'package:bibogc/core/utils/currency_utils.dart';
 import 'package:bibogc/core/network/dio_client.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -117,8 +118,6 @@ class _ProductDetailPageState extends State<ProductDetailPage>
     final price = (p['price'] as num?)?.toDouble() ?? 0;
     final isLowStock = p['isLowStock'] as bool? ?? false;
 
-    final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
-
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(),
@@ -177,7 +176,7 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          _StatCard(label: 'Giá bán', value: currencyFormat.format(price)),
+                          _StatCard(label: 'Giá bán', value: CurrencyUtils.formatCurrency(price)),
                           const SizedBox(width: 10),
                           _StatCard(label: 'Tổng tồn kho', value: '$totalStock'),
                           const SizedBox(width: 10),
@@ -422,7 +421,6 @@ class _VariantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
 
     final variantName = variant['variantName'] as String? ?? '—';
     final sku = variant['sku'] as String? ?? '';
@@ -476,7 +474,7 @@ class _VariantCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  currencyFormat.format(salePrice),
+                  CurrencyUtils.formatCurrency(salePrice),
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.primary,
@@ -492,7 +490,7 @@ class _VariantCard extends StatelessWidget {
                 _InfoRow(label: 'ĐVT', value: unitName),
                 _InfoRow(label: 'Quy đổi', value: '×$quantityBase'),
                 if (costPrice != null)
-                  _InfoRow(label: 'Giá vốn', value: currencyFormat.format(costPrice)),
+                  _InfoRow(label: 'Giá vốn', value: CurrencyUtils.formatCurrency(costPrice)),
                 if (barcode != null && barcode.isNotEmpty)
                   _InfoRow(label: 'Barcode', value: barcode),
               ],

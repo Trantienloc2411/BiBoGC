@@ -1,4 +1,5 @@
 import 'package:bibogc/core/di/injection.dart';
+import 'package:bibogc/core/utils/currency_utils.dart';
 import 'package:bibogc/core/config/app_routes.dart';
 import 'package:bibogc/features/invoice/data/datasources/invoice_remote_data_source.dart';
 import 'package:bibogc/features/invoice/domain/entities/invoice.dart';
@@ -108,7 +109,6 @@ class _InvoiceDetailContentState extends State<InvoiceDetailContent> {
   @override
   Widget build(BuildContext context) {
     final invoice = widget.invoice;
-    final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm', 'vi_VN');
     final theme = Theme.of(context);
 
@@ -287,7 +287,7 @@ class _InvoiceDetailContentState extends State<InvoiceDetailContent> {
                         SizedBox(
                           width: 70,
                           child: Text(
-                            currencyFormat.format(item.unitPrice),
+                            CurrencyUtils.formatCurrency(item.unitPrice),
                             textAlign: TextAlign.right,
                             style: const TextStyle(fontSize: 11),
                           ),
@@ -295,7 +295,7 @@ class _InvoiceDetailContentState extends State<InvoiceDetailContent> {
                         SizedBox(
                           width: 72,
                           child: Text(
-                            currencyFormat.format(item.lineTotal),
+                            CurrencyUtils.formatCurrency(item.lineTotal),
                             textAlign: TextAlign.right,
                             style: const TextStyle(
                               fontSize: 12,
@@ -318,35 +318,35 @@ class _InvoiceDetailContentState extends State<InvoiceDetailContent> {
               children: [
                 _TotalRow(
                   label: 'Tạm tính',
-                  value: currencyFormat.format(invoice.subTotal),
+                  value: CurrencyUtils.formatCurrency(invoice.subTotal),
                 ),
                 const SizedBox(height: 6),
                 _TotalRow(
                   label: 'Giảm giá',
-                  value: '- ${currencyFormat.format(invoice.discountAmount)}',
+                  value: '- ${CurrencyUtils.formatCurrency(invoice.discountAmount)}',
                   valueColor: Colors.green,
                 ),
                 const SizedBox(height: 6),
                 _TotalRow(
                   label: 'Thuế',
-                  value: currencyFormat.format(invoice.taxAmount),
+                  value: CurrencyUtils.formatCurrency(invoice.taxAmount),
                 ),
                 const Divider(height: 16),
                 _TotalRow(
                   label: 'Tổng cộng',
-                  value: currencyFormat.format(invoice.grandTotal),
+                  value: CurrencyUtils.formatCurrency(invoice.grandTotal),
                   bold: true,
                   valueColor: theme.colorScheme.primary,
                 ),
                 const SizedBox(height: 6),
                 _TotalRow(
                   label: 'Tiền nhận',
-                  value: currencyFormat.format(invoice.amountPaid),
+                  value: CurrencyUtils.formatCurrency(invoice.amountPaid),
                 ),
                 const SizedBox(height: 6),
                 _TotalRow(
                   label: 'Tiền thối',
-                  value: currencyFormat.format(invoice.changeAmount),
+                  value: CurrencyUtils.formatCurrency(invoice.changeAmount),
                   valueColor: Colors.green,
                 ),
                 const SizedBox(height: 6),

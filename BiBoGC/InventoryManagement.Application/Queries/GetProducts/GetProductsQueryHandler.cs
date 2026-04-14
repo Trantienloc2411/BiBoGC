@@ -24,6 +24,9 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Paginat
             request.PageSize,
             request.SearchTerm,
             request.Status,
+            request.CategoryId,
+            request.SupplierId,
+            request.IsLowStock,
             cancellationToken
         );
 

@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'core/bloc/theme_cubit.dart';
 import 'core/config/app_routes.dart';
 import 'core/config/router.dart';
 import 'core/config/theme.dart';
@@ -16,12 +18,16 @@ class BiBoApp extends StatefulWidget {
 
 class _BiBoAppState extends State<BiBoApp> with WidgetsBindingObserver {
   late final StreamSubscription<String> _logoutSub;
+  late final ThemeCubit _themeCubit;
   final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    _themeCubit = ThemeCubit()..loadSavedTheme();
+
     _logoutSub = getIt<DioClient>().forceLogoutStream.listen((message) {
       _scaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(
@@ -48,6 +54,7 @@ class _BiBoAppState extends State<BiBoApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _logoutSub.cancel();
+    _themeCubit.close();
     super.dispose();
   }
 
@@ -60,20 +67,30 @@ class _BiBoAppState extends State<BiBoApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: "BiBo's Grocery",
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      scaffoldMessengerKey: _scaffoldMessengerKey,
-      builder: (context, child) {
-        return SafeArea(
-          maintainBottomViewPadding: true,
-          child: child ?? const SizedBox.shrink(),
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      bloc: _themeCubit,
+      builder: (_, themeMode) {
+        return MaterialApp.router(
+          title: "BiBo's Grocery",
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeMode,
+          scaffoldMessengerKey: _scaffoldMessengerKey,
+          // Re-provide ThemeCubit inside the MaterialApp so all routes can
+          // access it via context.read<ThemeCubit>() / context.watch<ThemeCubit>()
+          builder: (context, child) {
+            return BlocProvider.value(
+              value: _themeCubit,
+              child: SafeArea(
+                maintainBottomViewPadding: true,
+                child: child ?? const SizedBox.shrink(),
+              ),
+            );
+          },
+          routerConfig: appRouter,
         );
       },
-      routerConfig: appRouter,
     );
   }
 }

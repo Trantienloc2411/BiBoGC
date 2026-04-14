@@ -4,6 +4,7 @@ using InventoryManagement.Application.Commands.UpdateCategory;
 using InventoryManagement.Application.DTOs;
 using InventoryManagement.Application.Queries.GetCategories;
 using InventoryManagement.Application.Queries.GetCategory;
+using InventoryManagement.Application.Queries.GetCategoryTree;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -58,6 +59,40 @@ public class CategoriesController : ControllerBase
             });
 
         return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Trả về toàn bộ cây danh mục từ tất cả root node (folder-tree).
+    /// </summary>
+    [HttpGet("tree")]
+    [ProducesResponseType(typeof(IEnumerable<CategoryDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCategoryTree([FromQuery] bool includeInactive = false)
+    {
+        var query = new GetCategoryTreeQuery { IncludeInactive = includeInactive };
+        var result = await _mediator.Send(query);
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Trả về cây danh mục bắt đầu từ một node cụ thể (node + toàn bộ con cháu).
+    /// </summary>
+    [HttpGet("{id:guid}/tree")]
+    [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCategoryTreeFromNode(Guid id, [FromQuery] bool includeInactive = false)
+    {
+        var query = new GetCategoryTreeQuery { RootId = id, IncludeInactive = includeInactive };
+        var result = await _mediator.Send(query);
+
+        if (!result.IsSuccess)
+            return NotFound(new ProblemDetails
+            {
+                Title = "Không tìm thấy danh mục",
+                Detail = result.Errors.FirstOrDefault(),
+                Status = StatusCodes.Status404NotFound
+            });
+
+        return Ok(result.Value!.First());
     }
 
     [HttpPost]

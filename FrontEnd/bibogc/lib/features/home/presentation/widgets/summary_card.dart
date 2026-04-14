@@ -1,5 +1,6 @@
+import 'package:bibogc/core/constants/app_colors.dart';
+import 'package:bibogc/core/utils/currency_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class SummaryCard extends StatelessWidget {
   /// Null while loading.
@@ -17,8 +18,10 @@ class SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
     final isLoading = totalRevenue == null;
+    // On the primary gradient background both states need light, high-contrast colours
+    final trendPositive = AppColors.successDark; // light green readable on blue
+    final trendNegative = AppColors.errorDark; // light red readable on blue
 
     return Container(
       width: double.infinity,
@@ -71,7 +74,7 @@ class SummaryCard extends StatelessWidget {
                 isLoading
                     ? _Shimmer(width: 160, height: 28)
                     : Text(
-                        currencyFormat.format(totalRevenue),
+                        CurrencyUtils.formatCurrency(totalRevenue!),
                         style: theme.textTheme.headlineMedium?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -102,8 +105,8 @@ class SummaryCard extends StatelessWidget {
                               ? Icons.trending_up
                               : Icons.trending_down,
                           color: (growthPercentage ?? 0) >= 0
-                              ? Colors.greenAccent
-                              : Colors.redAccent,
+                              ? trendPositive
+                              : trendNegative,
                           size: 16,
                         ),
                         const SizedBox(width: 4),
@@ -111,8 +114,8 @@ class SummaryCard extends StatelessWidget {
                           '${(growthPercentage ?? 0).abs().toStringAsFixed(1)}%',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: (growthPercentage ?? 0) >= 0
-                                ? Colors.greenAccent
-                                : Colors.redAccent,
+                                ? trendPositive
+                                : trendNegative,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

@@ -92,4 +92,14 @@ public class CategoryRepository : ICategoryRepository
         _context.Categories.Update(category);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<Dictionary<Guid, int>> GetProductCountsByCategoryAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Products
+            .Where(p => p.CategoryId != null)
+            .GroupBy(p => p.CategoryId!.Value)
+            .Select(g => new { CategoryId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.CategoryId, x => x.Count, cancellationToken);
+    }
 }

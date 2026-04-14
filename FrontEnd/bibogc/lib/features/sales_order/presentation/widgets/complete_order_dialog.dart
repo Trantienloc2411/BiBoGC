@@ -1,10 +1,11 @@
+import 'package:bibogc/core/utils/currency_utils.dart';
 import 'package:bibogc/core/utils/dialog_utils.dart';
+import 'package:bibogc/core/utils/thousands_separator_formatter.dart';
 import 'package:bibogc/core/widgets/app_button.dart';
 import 'package:bibogc/features/sales_order/domain/entities/sales_order.dart';
 import 'package:bibogc/features/sales_order/presentation/bloc/sales_order_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 class CompleteOrderDialog extends StatefulWidget {
   final SalesOrder order;
@@ -24,7 +25,7 @@ class _CompleteOrderDialogState extends State<CompleteOrderDialog> {
     super.initState();
     _amountPaid = widget.order.totalAmount;
     _amountController = TextEditingController(
-      text: widget.order.totalAmount.toStringAsFixed(0),
+      text: CurrencyUtils.formatNumber(widget.order.totalAmount),
     );
     _amountController.addListener(() {
       final value =
@@ -47,7 +48,6 @@ class _CompleteOrderDialogState extends State<CompleteOrderDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
 
     return BlocListener<SalesOrderBloc, SalesOrderState>(
       listenWhen: (prev, curr) =>
@@ -80,7 +80,7 @@ class _CompleteOrderDialogState extends State<CompleteOrderDialog> {
               children: [
                 _InfoRow(
                   label: 'Tổng cộng',
-                  value: currencyFormat.format(widget.order.totalAmount),
+                  value: CurrencyUtils.formatCurrency(widget.order.totalAmount),
                   valueStyle: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.primary,
@@ -89,12 +89,11 @@ class _CompleteOrderDialogState extends State<CompleteOrderDialog> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [ThousandsSeparatorFormatter()],
                   decoration: const InputDecoration(
                     labelText: 'Tiền nhận',
-                    suffixText: '₫',
+                    suffixText: 'đ',
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -108,7 +107,7 @@ class _CompleteOrderDialogState extends State<CompleteOrderDialog> {
                   ),
                   child: _InfoRow(
                     label: 'Tiền thối',
-                    value: currencyFormat.format(_changeAmount),
+                    value: CurrencyUtils.formatCurrency(_changeAmount),
                     valueStyle: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Colors.green.shade700,

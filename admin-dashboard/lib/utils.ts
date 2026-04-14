@@ -4,12 +4,14 @@ export function cn(...inputs: ClassValue[]) {
   return clsx(inputs)
 }
 
+/** Format a number with comma thousand separators, e.g. 1,000,000đ */
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    maximumFractionDigits: 0,
-  }).format(amount)
+  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(amount) + 'đ'
+}
+
+/** Format a number with comma thousand separators, e.g. 1,000,000 */
+export function formatNumber(value: number): string {
+  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value)
 }
 
 export function formatPercent(value: number): string {

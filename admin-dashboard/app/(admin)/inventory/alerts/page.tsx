@@ -10,6 +10,9 @@ import { Card } from '@/components/ui/Card'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Button } from '@/components/ui/Button'
 import { AlertTriangle, Clock, XCircle, Eye, ShieldAlert, CalendarX } from 'lucide-react'
+import { Pagination } from '@/components/ui/Pagination'
+
+const ALERT_PAGE_SIZE = 10
 
 const MAIN_TABS = [
   { id: 'low-stock', label: 'Sắp hết hàng', icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
@@ -30,14 +33,17 @@ export default function AlertsPage() {
   const [lowStock, setLowStock] = useState<ProductDto[]>([])
   const [lowStockTotal, setLowStockTotal] = useState(0)
   const [lowStockLoading, setLowStockLoading] = useState(true)
+  const [lowStockPage, setLowStockPage] = useState(1)
 
-  const [expired, setExpired] = useState<(ProductBatchDtoV2 & { productName: string })[]>([])
+  const [expired, setExpired] = useState<(ProductBatchDtoV2 & { productName: string; productId: string })[]>([])
   const [expiredTotal, setExpiredTotal] = useState(0)
   const [expiredLoading, setExpiredLoading] = useState(true)
+  const [expiredPage, setExpiredPage] = useState(1)
 
-  const [expiringSoon, setExpiringSoon] = useState<(ProductBatchDtoV2 & { productName: string })[]>([])
+  const [expiringSoon, setExpiringSoon] = useState<(ProductBatchDtoV2 & { productName: string; productId: string })[]>([])
   const [expiringSoonTotal, setExpiringSoonTotal] = useState(0)
   const [expiringSoonLoading, setExpiringSoonLoading] = useState(true)
+  const [expiringSoonPage, setExpiringSoonPage] = useState(1)
 
   const loadLowStock = useCallback(async () => {
     setLowStockLoading(true)
@@ -151,7 +157,7 @@ export default function AlertsPage() {
               {lowStock.length === 0 ? (
                 <Card><p className="text-center text-gray-400 py-8 text-sm">Không có sản phẩm sắp hết hàng</p></Card>
               ) : (
-                <Card className="p-0 overflow-hidden">
+                    <Card className="p-0 overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
@@ -166,7 +172,7 @@ export default function AlertsPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {lowStock.map(p => {
+                        {lowStock.slice((lowStockPage - 1) * ALERT_PAGE_SIZE, lowStockPage * ALERT_PAGE_SIZE).map(p => {
                           const pct = (p.lowStockThreshold ?? 0) > 0
                             ? Math.min(100, Math.round((p.availableStock / p.lowStockThreshold!) * 100))
                             : 0
@@ -196,6 +202,14 @@ export default function AlertsPage() {
                         })}
                       </tbody>
                     </table>
+                  </div>
+                  <div className="border-t border-gray-100">
+                    <Pagination
+                      page={lowStockPage}
+                      pageSize={ALERT_PAGE_SIZE}
+                      totalItems={lowStock.length}
+                      onPageChange={setLowStockPage}
+                    />
                   </div>
                 </Card>
               )}
@@ -244,7 +258,7 @@ export default function AlertsPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100">
-                            {expired.map((b, i) => (
+                            {expired.slice((expiredPage - 1) * ALERT_PAGE_SIZE, expiredPage * ALERT_PAGE_SIZE).map((b, i) => (
                               <tr key={`${b.productId}-${b.batchNumber}-${i}`} className="hover:bg-gray-50/50">
                                 <td className="px-4 py-3 font-medium text-gray-800">{b.productName}</td>
                                 <td className="px-4 py-3 text-gray-500">{b.batchNumber}</td>
@@ -264,6 +278,14 @@ export default function AlertsPage() {
                             ))}
                           </tbody>
                         </table>
+                      </div>
+                      <div className="border-t border-gray-100">
+                        <Pagination
+                          page={expiredPage}
+                          pageSize={ALERT_PAGE_SIZE}
+                          totalItems={expired.length}
+                          onPageChange={setExpiredPage}
+                        />
                       </div>
                     </Card>
                   )}
@@ -293,7 +315,7 @@ export default function AlertsPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100">
-                            {expiringSoon.map((b, i) => (
+                            {expiringSoon.slice((expiringSoonPage - 1) * ALERT_PAGE_SIZE, expiringSoonPage * ALERT_PAGE_SIZE).map((b, i) => (
                               <tr key={`${b.productId}-${b.batchNumber}-${i}`} className="hover:bg-gray-50/50">
                                 <td className="px-4 py-3 font-medium text-gray-800">{b.productName}</td>
                                 <td className="px-4 py-3 text-gray-500">{b.batchNumber}</td>
@@ -318,6 +340,14 @@ export default function AlertsPage() {
                             ))}
                           </tbody>
                         </table>
+                      </div>
+                      <div className="border-t border-gray-100">
+                        <Pagination
+                          page={expiringSoonPage}
+                          pageSize={ALERT_PAGE_SIZE}
+                          totalItems={expiringSoon.length}
+                          onPageChange={setExpiringSoonPage}
+                        />
                       </div>
                     </Card>
                   )}

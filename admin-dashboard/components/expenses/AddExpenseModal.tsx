@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { api } from '@/lib/api'
+import { MoneyInput } from '@/components/ui/MoneyInput'
 import { ExpenseCategory, ExpenseCategoryLabel, ExpensePaymentMethod, ExpensePaymentMethodLabel } from '@/types'
 
 interface Props {
@@ -14,7 +15,7 @@ interface Props {
 
 export function AddExpenseModal({ onClose, onSuccess, defaultDate }: Props) {
   const [category, setCategory]       = useState<number>(ExpenseCategory.Other)
-  const [amount, setAmount]           = useState('')
+  const [amount, setAmount]           = useState(0)
   const [description, setDescription] = useState('')
   const [expenseDate, setExpenseDate] = useState(defaultDate)
   const [paymentMethod, setPayment]   = useState<number>(ExpensePaymentMethod.Cash)
@@ -26,7 +27,7 @@ export function AddExpenseModal({ onClose, onSuccess, defaultDate }: Props) {
     e.preventDefault()
     setError('')
 
-    const amt = parseFloat(amount.replace(/,/g, ''))
+    const amt = amount
     if (!amt || amt <= 0) { setError('Số tiền phải lớn hơn 0.'); return }
     if (!description.trim()) { setError('Vui lòng nhập mô tả.'); return }
 
@@ -85,12 +86,10 @@ export function AddExpenseModal({ onClose, onSuccess, defaultDate }: Props) {
           {/* Amount */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Số tiền (VNĐ)</label>
-            <input
-              type="number"
+            <MoneyInput
               value={amount}
-              onChange={e => setAmount(e.target.value)}
-              placeholder="100000"
-              min="1"
+              onChange={setAmount}
+              placeholder="100,000"
               className="w-full px-4 py-3 rounded-md border border-gray-300 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

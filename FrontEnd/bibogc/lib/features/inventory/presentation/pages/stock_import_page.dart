@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/utils/thousands_separator_formatter.dart';
 import '../../../../core/widgets/app_button.dart';
 
 class StockImportPage extends StatelessWidget {
@@ -429,13 +430,13 @@ class _StockImportViewState extends State<StockImportView> {
                     controller: _costPriceController,
                     decoration: const InputDecoration(
                       labelText: 'Giá vốn / đơn vị *',
+                      suffixText: 'đ',
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [ThousandsSeparatorFormatter()],
                     validator: (value) {
                       final parsed = double.tryParse(
-                        (value ?? '').replaceAll(',', '.'),
+                        (value ?? '').replaceAll(',', ''),
                       );
                       if (parsed == null || parsed <= 0) {
                         return 'Giá vốn phải > 0';
@@ -448,13 +449,13 @@ class _StockImportViewState extends State<StockImportView> {
                     controller: _unitPriceController,
                     decoration: const InputDecoration(
                       labelText: 'Đơn giá nhập (unit price) *',
+                      suffixText: 'đ',
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [ThousandsSeparatorFormatter()],
                     validator: (value) {
                       final parsed = double.tryParse(
-                        (value ?? '').replaceAll(',', '.'),
+                        (value ?? '').replaceAll(',', ''),
                       );
                       if (parsed == null || parsed <= 0) {
                         return 'Đơn giá phải > 0';
@@ -572,10 +573,10 @@ class _StockImportViewState extends State<StockImportView> {
 
     final quantity = int.parse(_quantityController.text);
     final costPrice = double.parse(
-      _costPriceController.text.replaceAll(',', '.'),
+      _costPriceController.text.replaceAll(',', ''),
     );
     final unitPrice = double.parse(
-      _unitPriceController.text.replaceAll(',', '.'),
+      _unitPriceController.text.replaceAll(',', ''),
     );
 
     context.read<StockImportBloc>().add(

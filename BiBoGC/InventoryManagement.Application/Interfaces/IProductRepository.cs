@@ -36,6 +36,9 @@ public interface IProductRepository
         int pageSize = 10,
         string? searchTerm = null,
         ProductStatuses? status = null,
+        Guid? categoryId = null,
+        Guid? supplierId = null,
+        bool? isLowStock = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
