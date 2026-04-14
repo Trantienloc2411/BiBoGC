@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/bloc/theme_cubit.dart';
 import 'core/config/app_routes.dart';
@@ -25,6 +26,11 @@ class _BiBoAppState extends State<BiBoApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+      ),
+    );
 
     _themeCubit = ThemeCubit()..loadSavedTheme();
 
@@ -82,10 +88,7 @@ class _BiBoAppState extends State<BiBoApp> with WidgetsBindingObserver {
           builder: (context, child) {
             return BlocProvider.value(
               value: _themeCubit,
-              child: SafeArea(
-                maintainBottomViewPadding: true,
-                child: child ?? const SizedBox.shrink(),
-              ),
+              child: child ?? const SizedBox.shrink(),
             );
           },
           routerConfig: appRouter,

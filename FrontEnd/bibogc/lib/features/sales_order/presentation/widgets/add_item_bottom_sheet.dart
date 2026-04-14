@@ -335,8 +335,8 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    IconButton.filled(
-                      icon: const Icon(Icons.remove),
+                    _QuantityButton(
+                      icon: Icons.remove,
                       onPressed: _quantity > 1
                           ? () => _setQuantity(_quantity - 1)
                           : null,
@@ -389,8 +389,8 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    IconButton.filled(
-                      icon: const Icon(Icons.add),
+                    _QuantityButton(
+                      icon: Icons.add,
                       onPressed: () {
                         final maxStock = _getMaxStock();
                         if (maxStock <= 0 || _quantity < maxStock) {
@@ -527,4 +527,32 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
   }
 
   String _formatPrice(double price) => CurrencyUtils.formatCurrency(price);
+}
+
+/// Filled circular +/- button that keeps the primary color at reduced opacity
+/// when disabled, instead of going fully grey.
+class _QuantityButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onPressed;
+
+  const _QuantityButton({required this.icon, this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.primary;
+    final onColor = Theme.of(context).colorScheme.onPrimary;
+    final isDisabled = onPressed == null;
+
+    return IconButton(
+      icon: Icon(icon),
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        backgroundColor: isDisabled ? color.withAlpha(80) : color,
+        foregroundColor: isDisabled ? onColor.withAlpha(140) : onColor,
+        disabledBackgroundColor: color.withAlpha(80),
+        disabledForegroundColor: onColor.withAlpha(140),
+        shape: const CircleBorder(),
+      ),
+    );
+  }
 }
