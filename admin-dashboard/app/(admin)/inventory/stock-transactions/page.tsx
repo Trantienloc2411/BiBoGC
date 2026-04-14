@@ -10,10 +10,11 @@ import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Pagination } from '@/components/ui/Pagination'
 import { FormDialog, FormField, FormError, inputClass, selectClass } from '@/components/ui/FormDialog'
+import { MoneyInput } from '@/components/ui/MoneyInput'
 import { useToast } from '@/components/ui/Toast'
 import { Plus, X, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react'
 
-const PAGE_SIZE = 20
+const DEFAULT_PAGE_SIZE = 7
 
 const IN_TYPES = new Set(['Purchase', 'AdjustmentIn', 'Return'])
 
@@ -35,8 +36,10 @@ export default function StockTransactionsPage() {
 
   const [txns, setTxns] = useState<StockTransactionDtoV2[]>([])
   const [totalCount, setTotalCount] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
+  const pageSizeRef = useRef(DEFAULT_PAGE_SIZE)
+  pageSizeRef.current = pageSize
   const [loading, setLoading] = useState(true)
 
   const [filterType, setFilterType] = useState('')
@@ -70,8 +73,9 @@ export default function StockTransactionsPage() {
   const load = useCallback(async (p: number) => {
     setLoading(true)
     try {
+      const ps = pageSizeRef.current
       const params: Parameters<typeof stockTransactionApi.list>[0] = {
-        pageNumber: p, pageSize: PAGE_SIZE,
+        pageNumber: p, pageSize: ps,
         transactionType: filterType || undefined,
         fromDate: fromDate || undefined,
         toDate: toDate || undefined,
@@ -80,11 +84,17 @@ export default function StockTransactionsPage() {
       const data = await stockTransactionApi.list(params)
       setTxns(data.items)
       setTotalCount(data.totalCount)
-      setTotalPages(data.totalPages)
     } catch {
       showError('Không thể tải giao dịch kho')
     } finally { setLoading(false) }
   }, [filterType, fromDate, toDate, productSearch, showError])
+
+  function handlePageSizeChange(newSize: number) {
+    setPageSize(newSize)
+    pageSizeRef.current = newSize
+    setPage(1)
+    load(1)
+  }
 
   useEffect(() => { setPage(1); load(1) }, [filterType, fromDate, toDate, productSearch]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { load(page) }, [page, load])
@@ -185,12 +195,24 @@ export default function StockTransactionsPage() {
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1.5">Từ ngày</label>
-          <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)}
+          <input type="date" value={fromDate}
+            max={toDate || undefined}
+            onChange={e => {
+              const val = e.target.value
+              setFromDate(val)
+              if (toDate && val > toDate) setToDate('')
+            }}
             className="text-sm text-gray-700 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400" />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1.5">Đến ngày</label>
-          <input type="date" value={toDate} onChange={e => setToDate(e.target.value)}
+          <input type="date" value={toDate}
+            min={fromDate || undefined}
+            onChange={e => {
+              const val = e.target.value
+              setToDate(val)
+              if (fromDate && val < fromDate) setFromDate('')
+            }}
             className="text-sm text-gray-700 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400" />
         </div>
         {hasFilters && (
@@ -203,60 +225,69 @@ export default function StockTransactionsPage() {
 
       <p className="text-sm text-gray-400 px-1">{totalCount.toLocaleString()} giao dịch</p>
 
-      {loading ? <LoadingSpinner /> : (
-        <>
-          {txns.length === 0 ? (
-            <Card><p className="text-center text-gray-400 py-8 text-sm">Không có giao dịch nào</p></Card>
-          ) : (
-            <Card className="p-0 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50/60">
-                      <th className="text-left font-medium text-gray-500 px-4 py-3">Sản phẩm</th>
-                      <th className="text-left font-medium text-gray-500 px-4 py-3">Lô</th>
-                      <th className="text-left font-medium text-gray-500 px-4 py-3">Loại</th>
-                      <th className="text-right font-medium text-gray-500 px-4 py-3">SL</th>
-                      <th className="text-right font-medium text-gray-500 px-4 py-3">Đơn giá</th>
-                      <th className="text-right font-medium text-gray-500 px-4 py-3">Giá trị</th>
-                      <th className="text-left font-medium text-gray-500 px-4 py-3">Ngày</th>
+      <Card className="p-0 overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center py-12"><LoadingSpinner /></div>
+        ) : txns.length === 0 ? (
+          <p className="text-center text-gray-400 py-8 text-sm">Không có giao dịch nào</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50/60">
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Sản phẩm</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Lô</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Loại</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">SL</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">Đơn giá</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">Giá trị</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Ngày</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {txns.map(t => {
+                  const meta = TYPE_META[t.transactionType]
+                  const isIn = IN_TYPES.has(t.transactionType)
+                  return (
+                    <tr key={t.id} className="hover:bg-gray-50/50">
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-gray-800">{t.productName}</p>
+                        <p className="text-xs text-gray-400 mt-0.5 font-mono">{t.sku}</p>
+                        {t.notes && <p className="text-xs text-gray-400 mt-0.5 truncate max-w-[200px]">{t.notes}</p>}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">{t.batchNumber ?? '—'}</td>
+                      <td className="px-4 py-3">
+                        <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium rounded-md border', meta?.colorClass ?? 'bg-gray-50 text-gray-600 border-gray-200')}>
+                          {isIn ? <ArrowDownToLine size={11} /> : <ArrowUpFromLine size={11} />}
+                          {meta?.label ?? t.transactionType}
+                        </span>
+                      </td>
+                      <td className={cn('px-4 py-3 text-right font-semibold', isIn ? 'text-emerald-600' : 'text-red-600')}>
+                        {isIn ? '+' : '−'}{Math.abs(t.quantity)}
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-600">{formatCurrency(t.unitPrice)}</td>
+                      <td className="px-4 py-3 text-right text-gray-700 font-medium">{formatCurrency(t.totalAmount)}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{formatDateTime(t.transactionDate)}</td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {txns.map(t => {
-                      const meta = TYPE_META[t.transactionType]
-                      const isIn = IN_TYPES.has(t.transactionType)
-                      return (
-                        <tr key={t.id} className="hover:bg-gray-50/50">
-                          <td className="px-4 py-3">
-                            <p className="font-medium text-gray-800">{t.productName}</p>
-                            <p className="text-xs text-gray-400 mt-0.5 font-mono">{t.sku}</p>
-                            {t.notes && <p className="text-xs text-gray-400 mt-0.5 truncate max-w-[200px]">{t.notes}</p>}
-                          </td>
-                          <td className="px-4 py-3 text-gray-500 text-xs">{t.batchNumber ?? '—'}</td>
-                          <td className="px-4 py-3">
-                            <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium rounded-md border', meta?.colorClass ?? 'bg-gray-50 text-gray-600 border-gray-200')}>
-                              {isIn ? <ArrowDownToLine size={11} /> : <ArrowUpFromLine size={11} />}
-                              {meta?.label ?? t.transactionType}
-                            </span>
-                          </td>
-                          <td className={cn('px-4 py-3 text-right font-semibold', isIn ? 'text-emerald-600' : 'text-red-600')}>
-                            {isIn ? '+' : '−'}{Math.abs(t.quantity)}
-                          </td>
-                          <td className="px-4 py-3 text-right text-gray-600">{formatCurrency(t.unitPrice)}</td>
-                          <td className="px-4 py-3 text-right text-gray-700 font-medium">{formatCurrency(t.totalAmount)}</td>
-                          <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{formatDateTime(t.transactionDate)}</td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
-          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-        </>
-      )}
+                  )
+                })}
+                {Array.from({ length: Math.max(0, pageSize - txns.length) }).map((_, i) => (
+                  <tr key={`empty-${i}`} className="h-[52px]"><td colSpan={7} /></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <div className="border-t border-gray-100">
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            totalItems={totalCount}
+            onPageChange={setPage}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        </div>
+      </Card>
 
       <FormDialog open={showAdjust} title="Điều chỉnh tồn kho" submitLabel="Xác nhận" loading={adjustLoading} onSubmit={handleAdjust} onCancel={() => setShowAdjust(false)}>
         <FormField label="Sản phẩm" required>
@@ -328,8 +359,7 @@ export default function StockTransactionsPage() {
             placeholder="Nhập số lượng" />
         </FormField>
         <FormField label="Đơn giá">
-          <input type="number" min={0} className={inputClass} value={adjustForm.unitPrice || ''}
-            onChange={e => setAdjustForm(f => ({ ...f, unitPrice: Number(e.target.value) }))} />
+          <MoneyInput className={inputClass} value={adjustForm.unitPrice ?? 0} onChange={v => setAdjustForm(f => ({ ...f, unitPrice: v }))} placeholder="0" />
         </FormField>
         <FormField label="Ghi chú">
           <textarea className={inputClass} rows={2} value={adjustForm.notes ?? ''}

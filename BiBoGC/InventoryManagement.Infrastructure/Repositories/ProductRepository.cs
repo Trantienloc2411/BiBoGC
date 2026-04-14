@@ -39,9 +39,32 @@ public class ProductRepository : IProductRepository
         int pageSize = 10,
         string? searchTerm = null,
         ProductStatuses? status = null,
+        Guid? categoryId = null,
+        Guid? supplierId = null,
+        bool? isLowStock = null,
         CancellationToken cancellationToken = default)
     {
-        // Load all products with batches
+        // Resolve supplier filter at DB level before loading products
+        HashSet<Guid>? supplierProductIds = null;
+        if (supplierId.HasValue)
+        {
+            var ids = await _context.StockTransactions
+                .Where(t => t.SupplierId == supplierId.Value)
+                .Select(t => t.ProductId)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+            supplierProductIds = ids.ToHashSet();
+        }
+
+        // Resolve category filter: include the selected category and all its descendants
+        HashSet<Guid>? categoryIds = null;
+        if (categoryId.HasValue)
+        {
+            var allCategories = await _context.Categories.ToListAsync(cancellationToken);
+            categoryIds = CollectDescendantIds(categoryId.Value, allCategories);
+        }
+
+        // Load all products with related data
         var allProducts = await _context.Products
             .Include(p => p.Batches.Where(b => !b.IsDeleted))
             .Include(p => p.Variants.Where(v => !v.IsDeleted))
@@ -50,12 +73,13 @@ public class ProductRepository : IProductRepository
 
         IEnumerable<Product> filteredProducts = allProducts;
 
-        // Apply search filter in memory (due to Value Object)
+        // Search: name, general SKU, variant SKU, description
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             var search = searchTerm.Trim().ToLower();
             filteredProducts = filteredProducts.Where(p =>
                 p.Name.ToLower().Contains(search) ||
+                p.SkuGeneral.Value.ToLower().Contains(search) ||
                 p.Variants.Any(v => v.SkuUnique.Value.ToLower().Contains(search)) ||
                 p.Description.ToLower().Contains(search));
         }
@@ -63,12 +87,20 @@ public class ProductRepository : IProductRepository
         if (status.HasValue)
             filteredProducts = filteredProducts.Where(p => p.Status == status.Value);
 
-        // Get total count
+        if (categoryIds is not null)
+            filteredProducts = filteredProducts.Where(p => p.CategoryId.HasValue && categoryIds.Contains(p.CategoryId.Value));
+
+        if (supplierProductIds is not null)
+            filteredProducts = filteredProducts.Where(p => supplierProductIds.Contains(p.Id));
+
+        if (isLowStock == true)
+            filteredProducts = filteredProducts.Where(p => p.IsLowStock());
+
         var totalCount = filteredProducts.Count();
 
-        // Apply pagination
+        // Always sort: newest first
         var products = filteredProducts
-            .OrderBy(p => p.Name)
+            .OrderByDescending(p => p.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToList();
@@ -158,5 +190,23 @@ public class ProductRepository : IProductRepository
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    private static HashSet<Guid> CollectDescendantIds(Guid rootId, IEnumerable<Category> allCategories)
+    {
+        var lookup = allCategories.ToLookup(c => c.ParentCategoryId);
+        var result = new HashSet<Guid>();
+        var queue = new Queue<Guid>();
+        queue.Enqueue(rootId);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            result.Add(current);
+            foreach (var child in lookup[current])
+                queue.Enqueue(child.Id);
+        }
+
+        return result;
     }
 }

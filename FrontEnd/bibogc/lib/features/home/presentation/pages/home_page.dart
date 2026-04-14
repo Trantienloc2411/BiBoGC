@@ -121,7 +121,6 @@ class _HomePageState extends State<HomePage> {
         BlocProvider.value(value: _invoiceBloc),
       ],
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
         body: LayoutBuilder(
           builder: (context, constraints) {
             if (constraints.maxWidth > 800) {

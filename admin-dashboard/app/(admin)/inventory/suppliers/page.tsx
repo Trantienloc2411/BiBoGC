@@ -13,15 +13,17 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/ui/Toast'
 import { Plus, Pencil, Trash2, Search, X, Phone, MapPin, Building2 } from 'lucide-react'
 
-const PAGE_SIZE = 12
+const PAGE_SIZE = 9
 
 export default function SuppliersPage() {
   const { success, error: showError } = useToast()
 
   const [suppliers, setSuppliers] = useState<SupplierDtoV2[]>([])
   const [totalCount, setTotalCount] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(PAGE_SIZE)
+  const pageSizeRef = useRef(PAGE_SIZE)
+  pageSizeRef.current = pageSize
   const [loading, setLoading] = useState(true)
   const [searchInput, setSearchInput] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
@@ -58,14 +60,21 @@ export default function SuppliersPage() {
   const load = useCallback(async (p: number) => {
     setLoading(true)
     try {
-      const data = await supplierApi.list({ pageNumber: p, pageSize: PAGE_SIZE, searchTerm: searchTerm || undefined })
+      const ps = pageSizeRef.current
+      const data = await supplierApi.list({ pageNumber: p, pageSize: ps, searchTerm: searchTerm || undefined })
       setSuppliers(data.items)
       setTotalCount(data.totalCount)
-      setTotalPages(data.totalPages)
     } catch {
       showError('Không thể tải danh sách nhà cung cấp')
     } finally { setLoading(false) }
   }, [searchTerm, showError])
+
+  function handlePageSizeChange(newSize: number) {
+    setPageSize(newSize)
+    pageSizeRef.current = newSize
+    setPage(1)
+    load(1)
+  }
 
   useEffect(() => { setPage(1); load(1) }, [searchTerm]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { load(page) }, [page, load])
@@ -163,62 +172,73 @@ export default function SuppliersPage() {
 
       <p className="text-sm text-gray-400 px-1">{totalCount.toLocaleString()} nhà cung cấp</p>
 
-      {loading ? <LoadingSpinner /> : (
-        <>
-          {suppliers.length === 0 ? (
-            <Card><p className="text-center text-gray-400 py-8 text-sm">Không có nhà cung cấp nào</p></Card>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {suppliers.map(s => (
-                <Card key={s.id} className="flex flex-col gap-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center shrink-0">
-                        <Building2 size={18} className="text-blue-600" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-gray-800 truncate">{s.name}</p>
-                        {s.contactName && <p className="text-xs text-gray-500 mt-0.5 truncate">{s.contactName}</p>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
+      <Card className="p-0 overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center py-12"><LoadingSpinner /></div>
+        ) : suppliers.length === 0 ? (
+          <p className="text-center text-gray-400 py-8 text-sm">Không có nhà cung cấp nào</p>
+        ) : (
+          <div className="p-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {suppliers.map(s => (
+              <Card key={s.id} className="flex flex-col gap-3">
+                {/* Header: icon + name/contact + inactive badge */}
+                <div className="flex items-start gap-2.5">
+                  <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center shrink-0">
+                    <Building2 size={18} className="text-blue-600" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-gray-800 truncate">{s.name}</p>
                       {!s.isActive && (
-                        <span className="text-xs bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">Ngưng</span>
+                        <span className="shrink-0 text-xs bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">Ngưng</span>
                       )}
-                      <Button size="sm" variant="secondary" onClick={() => openEdit(s)} className="gap-1.5 px-3 py-1.5">
-                        <Pencil size={14} /> Sửa
-                      </Button>
-                      <Button size="sm" variant="danger" onClick={() => setDeleteTarget(s)} className="gap-1.5 px-3 py-1.5">
-                        <Trash2 size={14} /> Xoá
-                      </Button>
                     </div>
+                    {s.contactName && <p className="text-xs text-gray-500 mt-0.5 truncate">{s.contactName}</p>}
                   </div>
+                </div>
 
-                  <div className="space-y-1.5 text-xs text-gray-500">
-                    {s.contactPhone && (
-                      <a href={`tel:${s.contactPhone}`} className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
-                        <Phone size={12} className="shrink-0" /> {s.contactPhone}
-                      </a>
-                    )}
-                    {s.address && (
-                      <span className="flex items-start gap-1.5">
-                        <MapPin size={12} className="shrink-0 mt-0.5" /> {s.address}
-                      </span>
-                    )}
-                  </div>
-
-                  {s.createAt && (
-                    <p className="text-xs text-gray-300 mt-auto pt-2 border-t border-gray-50">
-                      Thêm ngày {formatDate(s.createAt)}
-                    </p>
+                {/* Contact details */}
+                <div className="space-y-1.5 text-xs text-gray-500">
+                  {s.contactPhone && (
+                    <a href={`tel:${s.contactPhone}`} className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
+                      <Phone size={12} className="shrink-0" /> {s.contactPhone}
+                    </a>
                   )}
-                </Card>
-              ))}
-            </div>
-          )}
-          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-        </>
-      )}
+                  {s.address && (
+                    <span className="flex items-start gap-1.5">
+                      <MapPin size={12} className="shrink-0 mt-0.5" /> {s.address}
+                    </span>
+                  )}
+                </div>
+
+                {/* Footer: date + action buttons */}
+                <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-gray-100">
+                  <p className="text-xs text-gray-300">
+                    {s.createAt ? `Thêm ngày ${formatDate(s.createAt)}` : ''}
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <Button size="sm" variant="secondary" onClick={() => openEdit(s)} className="gap-1.5 px-3 py-1.5">
+                      <Pencil size={13} /> Sửa
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => setDeleteTarget(s)} className="gap-1.5 px-3 py-1.5">
+                      <Trash2 size={13} /> Xoá
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+        <div className="border-t border-gray-100">
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            totalItems={totalCount}
+            onPageChange={setPage}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        </div>
+      </Card>
 
       <FormDialog open={showForm} title={editing ? 'Sửa nhà cung cấp' : 'Thêm nhà cung cấp'} loading={formLoading} onSubmit={handleSubmit} onCancel={() => setShowForm(false)}>
         <FormField label="Tên nhà cung cấp" required>

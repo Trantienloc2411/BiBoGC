@@ -59,36 +59,19 @@ public class ProductsController : ControllerBase
     /// Get paginated list of products
     /// </summary>
     /// <remarks>
-    /// Retrieves a paginated list of products with optional search functionality.
-    /// 
-    /// **Search behavior:**
-    /// - Searches across product name, SKU, and description
-    /// - Case-insensitive matching
-    /// - Results sorted alphabetically by name
-    /// 
-    /// **Pagination:**
-    /// - Page numbers are 1-based
-    /// - Default page size is 10, maximum is 100
-    /// - Response includes total count and page metadata
-    /// 
-    /// **Response fields:**
-    /// - items: Array of product objects
-    /// - pageNumber: Current page (1-based)
-    /// - pageSize: Items per page
-    /// - totalCount: Total items across all pages
-    /// - totalPages: Total number of pages
-    /// - hasPrevious: Boolean indicating if previous page exists
-    /// - hasNext: Boolean indicating if next page exists
-    /// 
-    /// **Example usage for frontend/AI:**
-    /// ```
-    /// GET /api/products?pageNumber=1&amp;pageSize=10&amp;searchTerm=coca
-    /// ```
+    /// Retrieves a paginated list of products with search and filter capability.
+    /// Results are always sorted by newest created first.
+    ///
+    /// **Search:** name, SKU (general + variants), description — case-insensitive.
+    ///
+    /// **Filters:**
+    /// - status: Active=1, Inactive=2, Discontinued=3, OutOfStock=4
+    /// - categoryId: filter by category GUID
+    /// - supplierId: products that have at least one Purchase transaction from this supplier
+    /// - isLowStock: true = only products where TotalStock &lt; LowStockThreshold
+    ///
+    /// **Pagination:** pageNumber (1-based), pageSize (default 10, max 100)
     /// </remarks>
-    /// <param name="pageNumber">Page number (1-based, default: 1)</param>
-    /// <param name="pageSize">Items per page (1-100, default: 10)</param>
-    /// <param name="searchTerm">Optional search term</param>
-    /// <returns>Paginated list of products</returns>
     /// <response code="200">Returns paginated product list</response>
     /// <response code="400">Invalid pagination parameters</response>
     [HttpGet]
@@ -99,14 +82,20 @@ public class ProductsController : ControllerBase
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] string? searchTerm = null,
-        [FromQuery] ProductStatuses? status = null)
+        [FromQuery] ProductStatuses? status = null,
+        [FromQuery] Guid? categoryId = null,
+        [FromQuery] Guid? supplierId = null,
+        [FromQuery] bool? isLowStock = null)
     {
         var query = new GetProductsQuery
         {
             PageNumber = pageNumber,
             PageSize = pageSize,
             SearchTerm = searchTerm,
-            Status = status
+            Status = status,
+            CategoryId = categoryId,
+            SupplierId = supplierId,
+            IsLowStock = isLowStock
         };
 
         var result = await _mediator.Send(query);

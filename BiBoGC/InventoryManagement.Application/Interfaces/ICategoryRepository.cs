@@ -20,4 +20,5 @@ public interface ICategoryRepository
     Task UpdateAsync(Category category, CancellationToken cancellationToken = default);
     Task DeleteAsync(Category category, CancellationToken cancellationToken = default);
     Task<int> GetProductCountAsync(Guid categoryId, CancellationToken cancellationToken = default);
+    Task<Dictionary<Guid, int>> GetProductCountsByCategoryAsync(CancellationToken cancellationToken = default);
 }

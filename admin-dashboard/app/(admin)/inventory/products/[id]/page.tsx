@@ -16,6 +16,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { FormDialog, FormField, FormError, inputClass } from '@/components/ui/FormDialog'
+import { MoneyInput } from '@/components/ui/MoneyInput'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/ui/Toast'
 import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Package, Layers } from 'lucide-react'
@@ -294,10 +295,28 @@ function BatchSection({ productId, batches, onRefresh }: { productId: string; ba
         </FormField>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Ngày sản xuất">
-            <input type="date" className={inputClass} value={form.manufacturingDate ?? ''} onChange={e => setForm(f => ({ ...f, manufacturingDate: e.target.value || undefined }))} />
+            <input type="date" className={inputClass} value={form.manufacturingDate ?? ''}
+              max={form.expirationDate || undefined}
+              onChange={e => {
+                const val = e.target.value
+                setForm(f => ({
+                  ...f,
+                  manufacturingDate: val || undefined,
+                  expirationDate: f.expirationDate && val > f.expirationDate ? undefined : f.expirationDate,
+                }))
+              }} />
           </FormField>
           <FormField label="Hạn sử dụng">
-            <input type="date" className={inputClass} value={form.expirationDate ?? ''} onChange={e => setForm(f => ({ ...f, expirationDate: e.target.value || undefined }))} />
+            <input type="date" className={inputClass} value={form.expirationDate ?? ''}
+              min={form.manufacturingDate || undefined}
+              onChange={e => {
+                const val = e.target.value
+                setForm(f => ({
+                  ...f,
+                  expirationDate: val || undefined,
+                  manufacturingDate: f.manufacturingDate && val < f.manufacturingDate ? undefined : f.manufacturingDate,
+                }))
+              }} />
           </FormField>
         </div>
         <FormError message={formError} />
@@ -453,10 +472,10 @@ function VariantSection({ productId, variants, onRefresh }: { productId: string;
         </div>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Giá bán">
-            <input type="number" className={inputClass} value={form.salePrice || ''} onChange={e => setForm(f => ({ ...f, salePrice: Number(e.target.value) }))} />
+            <MoneyInput className={inputClass} value={form.salePrice ?? 0} onChange={v => setForm(f => ({ ...f, salePrice: v }))} placeholder="0" />
           </FormField>
           <FormField label="Giá vốn">
-            <input type="number" className={inputClass} value={form.costPrice || ''} onChange={e => setForm(f => ({ ...f, costPrice: Number(e.target.value) }))} />
+            <MoneyInput className={inputClass} value={form.costPrice ?? 0} onChange={v => setForm(f => ({ ...f, costPrice: v }))} placeholder="0" />
           </FormField>
         </div>
         <FormField label="Barcode">

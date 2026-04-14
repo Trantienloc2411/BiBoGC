@@ -1,3 +1,4 @@
+import 'package:bibogc/core/utils/currency_utils.dart';
 import 'package:bibogc/core/utils/dialog_utils.dart';
 import 'package:bibogc/core/config/app_routes.dart';
 import 'package:bibogc/core/events/home_refresh_bus.dart';
@@ -197,7 +198,6 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
     bool isDraft,
   ) {
     final theme = Theme.of(context);
-    final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final isLoading = state.actionStatus == SalesOrderStatus.loading;
 
     final currentIds = order.items.map((e) => e.id).toSet();
@@ -274,7 +274,7 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
                     final item = reversedItems[index];
                     final isNew = newIds.contains(item.id);
                     Widget tile = _buildItemTile(
-                      context, item, order, isDraft, currencyFormat,
+                      context, item, order, isDraft,
                     );
                     if (isDraft) {
                       tile = Dismissible(
@@ -317,7 +317,6 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
     SalesOrderItem item,
     SalesOrder order,
     bool isDraft,
-    NumberFormat currencyFormat,
   ) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
@@ -347,7 +346,7 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
                         ),
                       ),
                       Text(
-                        currencyFormat.format(item.lineTotal),
+                        CurrencyUtils.formatCurrency(item.lineTotal),
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -380,7 +379,7 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
               children: [
                 Text('${item.quantity} ${item.unit}'),
                 Text(
-                  currencyFormat.format(item.lineTotal),
+                  CurrencyUtils.formatCurrency(item.lineTotal),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -445,7 +444,6 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
 
   Widget _buildTotalsSection(BuildContext context, SalesOrder order) {
     final theme = Theme.of(context);
-    final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
 
     return Card(
       child: Padding(
@@ -454,23 +452,23 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
           children: [
             _TotalRow(
               label: 'Tạm tính',
-              value: currencyFormat.format(order.subTotal),
+              value: CurrencyUtils.formatCurrency(order.subTotal),
             ),
             const SizedBox(height: 8),
             _TotalRow(
               label: 'Giảm giá',
-              value: '- ${currencyFormat.format(order.discountAmount)}',
+              value: '- ${CurrencyUtils.formatCurrency(order.discountAmount)}',
               valueColor: Colors.green,
             ),
             const SizedBox(height: 8),
             _TotalRow(
               label: 'Thuế',
-              value: currencyFormat.format(order.taxAmount),
+              value: CurrencyUtils.formatCurrency(order.taxAmount),
             ),
             const Divider(height: 20),
             _TotalRow(
               label: 'Tổng cộng',
-              value: currencyFormat.format(order.totalAmount),
+              value: CurrencyUtils.formatCurrency(order.totalAmount),
               bold: true,
               valueColor: theme.colorScheme.primary,
             ),
@@ -478,12 +476,12 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
               const SizedBox(height: 8),
               _TotalRow(
                 label: 'Tiền nhận',
-                value: currencyFormat.format(order.amountPaid),
+                value: CurrencyUtils.formatCurrency(order.amountPaid),
               ),
               const SizedBox(height: 8),
               _TotalRow(
                 label: 'Tiền thối',
-                value: currencyFormat.format(order.changeAmount),
+                value: CurrencyUtils.formatCurrency(order.changeAmount),
                 valueColor: Colors.green,
               ),
             ],

@@ -1,3 +1,5 @@
+import 'package:bibogc/core/constants/app_colors.dart';
+import 'package:bibogc/core/utils/currency_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -11,15 +13,7 @@ import '../../../sales_order/presentation/bloc/sales_order_bloc.dart';
 class RecentActivityList extends StatelessWidget {
   const RecentActivityList({super.key});
 
-  String _formatCurrency(double amount) {
-    final parts = amount.toInt().toString().split('');
-    final buffer = StringBuffer();
-    for (var i = 0; i < parts.length; i++) {
-      if (i > 0 && (parts.length - i) % 3 == 0) buffer.write('.');
-      buffer.write(parts[i]);
-    }
-    return '$bufferđ';
-  }
+  String _formatCurrency(double amount) => CurrencyUtils.formatCurrency(amount);
 
   String _formatTime(DateTime dt) {
     final h = dt.hour.toString().padLeft(2, '0');
@@ -157,37 +151,33 @@ class RecentActivityList extends StatelessWidget {
 
   Widget _buildOrderItem(
       BuildContext context, ThemeData theme, SalesOrder order) {
-    final statusColor = switch (order.status) {
-      OrderStatus.completed => Colors.green,
-      OrderStatus.cancelled => Colors.red,
-      OrderStatus.draft => Colors.orange,
+    final isDark = theme.brightness == Brightness.dark;
+    final (Color statusBg, Color statusFg) = switch (order.status) {
+      OrderStatus.completed => AppColors.statusSuccess(isDark),
+      OrderStatus.cancelled => AppColors.statusError(isDark),
+      OrderStatus.draft => AppColors.statusDraft(isDark),
     };
     return InkWell(
       onTap: () => context.push(AppRoutes.salesOrderDetail(order.id)),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(8),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+        decoration: AppColors.cardDecoration(context),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: theme.colorScheme.primaryContainer.withAlpha(
+                  isDark ? 60 : 255,
+                ),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.receipt_long,
-                  color: Colors.blue.shade700, size: 22),
+              child: Icon(
+                Icons.receipt_long,
+                color: theme.colorScheme.onPrimaryContainer,
+                size: 22,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -223,13 +213,13 @@ class RecentActivityList extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: statusColor.withAlpha(30),
+                    color: statusBg,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     order.status.label,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: statusColor,
+                      color: statusFg,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -244,32 +234,28 @@ class RecentActivityList extends StatelessWidget {
 
   Widget _buildInvoiceItem(
       BuildContext context, ThemeData theme, Invoice invoice) {
+    final isDark = theme.brightness == Brightness.dark;
     return InkWell(
       onTap: () => context.push(AppRoutes.invoiceDetail(invoice.id)),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(8),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+        decoration: AppColors.cardDecoration(context),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.teal.shade50,
+                color: theme.colorScheme.secondaryContainer.withAlpha(
+                  isDark ? 60 : 255,
+                ),
                 shape: BoxShape.circle,
               ),
-              child:
-                  Icon(Icons.description, color: Colors.teal.shade700, size: 22),
+              child: Icon(
+                Icons.description,
+                color: theme.colorScheme.onSecondaryContainer,
+                size: 22,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -295,7 +281,7 @@ class RecentActivityList extends StatelessWidget {
               _formatCurrency(invoice.grandTotal),
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Colors.teal.shade700,
+                color: theme.colorScheme.secondary,
               ),
             ),
           ],

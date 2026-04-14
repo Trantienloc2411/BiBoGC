@@ -15,7 +15,7 @@ import { exportInvoicesZip } from '@/lib/exportService'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/ui/Toast'
 
-const PAGE_SIZE = 20
+const DEFAULT_PAGE_SIZE = 10
 
 const PAYMENT_LABELS: Record<string, string> = {
   Cash: 'Tiền mặt',
@@ -103,6 +103,9 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<InvoiceDto[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
+  const pageSizeRef = useRef(DEFAULT_PAGE_SIZE)
+  pageSizeRef.current = pageSize
   const [loading, setLoading] = useState(true)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -118,9 +121,10 @@ export default function InvoicesPage() {
   const load = useCallback(async (p: number) => {
     setLoading(true)
     try {
+      const ps = pageSizeRef.current
       const params = new URLSearchParams({
         page: String(p),
-        pageSize: String(PAGE_SIZE),
+        pageSize: String(ps),
       })
       if (dateFrom) params.set('dateFrom', dateFrom)
       if (dateTo) params.set('dateTo', dateTo)
@@ -139,6 +143,13 @@ export default function InvoicesPage() {
       setLoading(false)
     }
   }, [dateFrom, dateTo])
+
+  function handlePageSizeChange(newSize: number) {
+    setPageSize(newSize)
+    pageSizeRef.current = newSize
+    setPage(1)
+    load(1)
+  }
 
   useEffect(() => {
     setPage(1)
@@ -176,8 +187,6 @@ export default function InvoicesPage() {
     }
   }
 
-  const totalPages = Math.ceil(total / PAGE_SIZE)
-
   const zipConfirmDescription = (() => {
     if (dateFrom && dateTo) return `Xuất tất cả hóa đơn từ ${dateFrom} đến ${dateTo} thành file ZIP?`
     if (dateFrom) return `Xuất tất cả hóa đơn từ ${dateFrom} thành file ZIP?`
@@ -206,7 +215,12 @@ export default function InvoicesPage() {
           <input
             type="date"
             value={dateFrom}
-            onChange={e => setDateFrom(e.target.value)}
+            max={dateTo || undefined}
+            onChange={e => {
+              const val = e.target.value
+              setDateFrom(val)
+              if (dateTo && val > dateTo) setDateTo('')
+            }}
             className="text-sm text-gray-700 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
           />
         </div>
@@ -215,7 +229,12 @@ export default function InvoicesPage() {
           <input
             type="date"
             value={dateTo}
-            onChange={e => setDateTo(e.target.value)}
+            min={dateFrom || undefined}
+            onChange={e => {
+              const val = e.target.value
+              setDateTo(val)
+              if (dateFrom && val < dateFrom) setDateFrom('')
+            }}
             className="text-sm text-gray-700 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
           />
         </div>
@@ -231,67 +250,73 @@ export default function InvoicesPage() {
 
       <p className="text-sm text-gray-400 px-1">{total.toLocaleString()} hoá đơn</p>
 
-      {loading ? <LoadingSpinner /> : (
-        <>
-          {invoices.length === 0 ? (
-            <Card>
-              <p className="text-center text-gray-400 py-8 text-sm">Không có hoá đơn nào</p>
-            </Card>
-          ) : (
-            <Card className="p-0 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50/60">
-                      <th className="text-left font-medium text-gray-500 px-4 py-3">Số hoá đơn</th>
-                      <th className="text-left font-medium text-gray-500 px-4 py-3">Mã đơn hàng</th>
-                      <th className="text-left font-medium text-gray-500 px-4 py-3">Thanh toán</th>
-                      <th className="text-right font-medium text-gray-500 px-4 py-3">Tổng tiền</th>
-                      <th className="text-left font-medium text-gray-500 px-4 py-3">Ngày</th>
-                      <th className="text-right font-medium text-gray-500 px-4 py-3"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {invoices.map(inv => (
-                      <tr key={inv.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-800">{inv.invoiceNumber}</td>
-                        <td className="px-4 py-3 text-gray-600">
-                          <Link href={`/orders/${inv.salesOrderId}`} className="hover:text-blue-600 hover:underline">
-                            {inv.orderNumber}
-                          </Link>
-                        </td>
-                        <td className="px-4 py-3 text-gray-500">
-                          {PAYMENT_LABELS[inv.paymentMethod] ?? inv.paymentMethod}
-                        </td>
-                        <td className="px-4 py-3 text-right text-gray-700">{formatCurrency(inv.grandTotal)}</td>
-                        <td className="px-4 py-3 text-gray-500">{formatDateTime(inv.invoiceDate)}</td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              onClick={() => setPendingPdf({ id: inv.id, number: inv.invoiceNumber })}
-                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                              title="Tải PDF"
-                            >
-                              <Download size={15} />
-                            </button>
-                            <Link href={`/invoices/${inv.id}`}>
-                              <Button size="sm" variant="ghost" className="gap-1.5">
-                                <Eye size={15} /> Chi tiết
-                              </Button>
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
-
-          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-        </>
-      )}
+      <Card className="p-0 overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center py-12"><LoadingSpinner /></div>
+        ) : invoices.length === 0 ? (
+          <p className="text-center text-gray-400 py-8 text-sm">Không có hoá đơn nào</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50/60">
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Số hoá đơn</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Mã đơn hàng</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Thanh toán</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">Tổng tiền</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Ngày</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {invoices.map(inv => (
+                  <tr key={inv.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-gray-800">{inv.invoiceNumber}</td>
+                    <td className="px-4 py-3 text-gray-600">
+                      <Link href={`/orders/${inv.salesOrderId}`} className="hover:text-blue-600 hover:underline">
+                        {inv.orderNumber}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {PAYMENT_LABELS[inv.paymentMethod] ?? inv.paymentMethod}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-700">{formatCurrency(inv.grandTotal)}</td>
+                    <td className="px-4 py-3 text-gray-500">{formatDateTime(inv.invoiceDate)}</td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => setPendingPdf({ id: inv.id, number: inv.invoiceNumber })}
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                          title="Tải PDF"
+                        >
+                          <Download size={15} />
+                        </button>
+                        <Link href={`/invoices/${inv.id}`}>
+                          <Button size="sm" variant="ghost" className="gap-1.5">
+                            <Eye size={15} /> Chi tiết
+                          </Button>
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {Array.from({ length: Math.max(0, pageSize - invoices.length) }).map((_, i) => (
+                  <tr key={`empty-${i}`} className="h-[52px]"><td colSpan={6} /></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <div className="border-t border-gray-100">
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            totalItems={total}
+            onPageChange={setPage}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        </div>
+      </Card>
 
       {/* Single PDF download confirm */}
       <ConfirmDialog

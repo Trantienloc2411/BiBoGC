@@ -14,6 +14,7 @@ interface Toast {
   type: ToastType
   title: string
   message?: string
+  errors?: string[]
   duration?: number
 }
 
@@ -48,9 +49,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     return onApiError((err) => {
-      const title = `Lỗi server (${err.status})`
-      const message = err.message ?? `${err.statusText} — ${err.path}`
-      addToast({ type: 'error', title, message, duration: 6000 })
+      const title =
+        err.status === 400 ? (err.title ?? 'Dữ liệu không hợp lệ') :
+        err.status === 404 ? 'Không tìm thấy' :
+        err.status === 500 ? 'Lỗi server' :
+        err.status === 0   ? 'Không thể kết nối' :
+        (err.title ?? `Lỗi (${err.status})`)
+      const errors = err.errors && err.errors.length > 0 ? err.errors : undefined
+      const message = errors ? undefined : (err.title ?? `${err.statusText}`)
+      addToast({ type: 'error', title, message, errors, duration: 8000 })
     })
   }, [addToast])
 
@@ -118,9 +125,15 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
       {ICONS[toast.type]}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-800">{toast.title}</p>
-        {toast.message && (
+        {toast.errors && toast.errors.length > 0 ? (
+          <ul className="mt-1 space-y-0.5 list-disc list-inside">
+            {toast.errors.map((e, i) => (
+              <li key={i} className="text-sm text-gray-500 break-words">{e}</li>
+            ))}
+          </ul>
+        ) : toast.message ? (
           <p className="text-sm text-gray-500 mt-0.5 break-words">{toast.message}</p>
-        )}
+        ) : null}
       </div>
       <button
         onClick={handleClose}

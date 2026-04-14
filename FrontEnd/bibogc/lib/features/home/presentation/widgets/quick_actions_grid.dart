@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/config/app_routes.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class QuickActionsGrid extends StatelessWidget {
   const QuickActionsGrid({super.key});
@@ -18,8 +19,8 @@ class QuickActionsGrid extends StatelessWidget {
               child: _buildActionCard(
                 context,
                 icon: Icons.receipt_long,
-                color: Colors.blue.shade100,
-                iconColor: Colors.blue.shade800,
+                containerColor: _containerColor(context, isSecondary: false),
+                iconColor: Theme.of(context).colorScheme.onPrimaryContainer,
                 label: 'Đơn hàng',
                 subLabel: 'Bán hàng',
                 onTap: () => context.push(AppRoutes.salesOrders),
@@ -30,8 +31,8 @@ class QuickActionsGrid extends StatelessWidget {
               child: _buildActionCard(
                 context,
                 icon: Icons.description,
-                color: Colors.teal.shade100,
-                iconColor: Colors.teal.shade800,
+                containerColor: _containerColor(context, isSecondary: true),
+                iconColor: Theme.of(context).colorScheme.onSecondaryContainer,
                 label: 'Hóa đơn',
                 subLabel: 'Lịch sử',
                 onTap: () => context.push(AppRoutes.invoices),
@@ -42,8 +43,8 @@ class QuickActionsGrid extends StatelessWidget {
               child: _buildActionCard(
                 context,
                 icon: Icons.inventory_2_outlined,
-                color: Colors.purple.shade100,
-                iconColor: Colors.purple.shade800,
+                containerColor: _containerColor(context, isTertiary: true),
+                iconColor: Theme.of(context).colorScheme.onTertiaryContainer,
                 label: 'Sản phẩm',
                 subLabel: 'Kho hàng',
                 onTap: () => context.push(AppRoutes.products),
@@ -55,6 +56,18 @@ class QuickActionsGrid extends StatelessWidget {
     );
   }
 
+  /// Returns a tinted container color that adapts to dark/light mode.
+  Color _containerColor(
+    BuildContext context, {
+    bool isSecondary = false,
+    bool isTertiary = false,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    if (isTertiary) return cs.tertiaryContainer;
+    if (isSecondary) return cs.secondaryContainer;
+    return cs.primaryContainer;
+  }
+
   Widget _buildLargeSaleButton(BuildContext context) {
     final theme = Theme.of(context);
     return InkWell(
@@ -64,9 +77,15 @@ class QuickActionsGrid extends StatelessWidget {
         height: 100,
         padding: const EdgeInsets.symmetric(horizontal: 24),
         decoration: BoxDecoration(
-          color: theme.colorScheme.primaryContainer.withAlpha(102),
+          color: theme.colorScheme.primaryContainer.withAlpha(
+            theme.brightness == Brightness.dark ? 80 : 100,
+          ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: theme.colorScheme.primary.withAlpha(26)),
+          border: Border.all(
+            color: theme.colorScheme.primary.withAlpha(
+              theme.brightness == Brightness.dark ? 60 : 26,
+            ),
+          ),
         ),
         child: Row(
           children: [
@@ -75,17 +94,19 @@ class QuickActionsGrid extends StatelessWidget {
               decoration: BoxDecoration(
                 color: theme.colorScheme.primary,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.colorScheme.primary.withAlpha(102),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                boxShadow: theme.brightness == Brightness.dark
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: theme.colorScheme.primary.withAlpha(100),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.point_of_sale,
-                color: Colors.white,
+                color: theme.colorScheme.onPrimary,
                 size: 32,
               ),
             ),
@@ -125,35 +146,29 @@ class QuickActionsGrid extends StatelessWidget {
   Widget _buildActionCard(
     BuildContext context, {
     required IconData icon,
-    required Color color,
+    required Color containerColor,
     required Color iconColor,
     required String label,
     required String subLabel,
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(13),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+        decoration: AppColors.cardDecoration(context, radius: 20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: isDark ? containerColor.withAlpha(60) : containerColor,
+                shape: BoxShape.circle,
+              ),
               child: Icon(icon, color: iconColor, size: 22),
             ),
             const SizedBox(height: 6),

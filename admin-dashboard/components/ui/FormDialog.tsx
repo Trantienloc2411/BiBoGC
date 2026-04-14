@@ -54,7 +54,18 @@ export function FormField({ label, required, children }: { label: string; requir
 
 export function FormError({ message }: { message: string }) {
   if (!message) return null
-  return <div className="bg-red-50 border border-red-200 rounded-md px-4 py-3 text-sm text-red-600">{message}</div>
+  const lines = message.split('\n').filter(Boolean)
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-md px-4 py-3 text-sm text-red-600">
+      {lines.length > 1 ? (
+        <ul className="list-disc list-inside space-y-0.5">
+          {lines.map((l, i) => <li key={i}>{l}</li>)}
+        </ul>
+      ) : (
+        message
+      )}
+    </div>
+  )
 }
 
 export const inputClass = 'w-full px-3.5 py-2.5 rounded-md border border-gray-300 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500'

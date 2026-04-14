@@ -677,6 +677,17 @@ export const VariantUnitLabel: Record<number, string> = {
 }
 
 /**
+ * CategoryTreeNode — response from GET /api/categories/tree and GET /api/categories/{id}/tree
+ * Optimised tree endpoint: no N+1, includes productCount per node.
+ */
+export interface CategoryTreeNode {
+  id: string
+  name: string
+  productCount: number
+  subCategories: CategoryTreeNode[]
+}
+
+/**
  * CategoryDtoV2 — matches Postman GET /api/categories response:
  * id, name, description, parentCategoryId, isActive, displayOrder, subCategories[]
  */

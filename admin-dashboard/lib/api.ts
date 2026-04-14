@@ -12,7 +12,10 @@ export type ApiErrorDetail = {
   status: number
   statusText: string
   path: string
-  message?: string
+  /** Server's ProblemDetails title or generic fallback */
+  title?: string
+  /** Validation error list from ProblemDetails errors[] */
+  errors?: string[]
 }
 
 type ApiErrorListener = (err: ApiErrorDetail) => void
@@ -27,12 +30,30 @@ function emitError(detail: ApiErrorDetail) {
   listeners.forEach(fn => fn(detail))
 }
 
-async function extractErrorMessage(res: Response): Promise<string | undefined> {
+interface ProblemDetails {
+  title?: string
+  detail?: string
+  message?: string
+  errors?: string[] | Record<string, string[]>
+}
+
+function parseProblemDetails(json: ProblemDetails): { title?: string; errors: string[] } {
+  let errors: string[] = []
+  if (Array.isArray(json.errors)) {
+    errors = json.errors
+  } else if (json.errors && typeof json.errors === 'object') {
+    errors = Object.values(json.errors as Record<string, string[]>).flat()
+  }
+  const title = json.detail ?? json.message ?? json.title
+  return { title, errors }
+}
+
+async function extractErrorDetail(res: Response): Promise<{ title?: string; errors: string[] }> {
   try {
     const json = await res.clone().json()
-    return json?.detail ?? json?.message ?? json?.title ?? json?.errors?.[0] ?? undefined
+    return parseProblemDetails(json)
   } catch {
-    return undefined
+    return { errors: [] }
   }
 }
 
@@ -77,12 +98,13 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<Respon
   }
 
   if (!res.ok && res.status !== 401) {
-    const message = await extractErrorMessage(res)
+    const { title, errors } = await extractErrorDetail(res)
     emitError({
       status: res.status,
       statusText: res.statusText,
       path,
-      message,
+      title,
+      errors: errors.length > 0 ? errors : undefined,
     })
   }
 
@@ -121,12 +143,13 @@ async function apiDownload(path: string): Promise<{ blob: Blob; filename: string
   }
 
   if (!res.ok) {
-    const message = await extractErrorMessage(res)
+    const { title, errors } = await extractErrorDetail(res)
     emitError({
       status: res.status,
       statusText: res.statusText,
       path,
-      message,
+      title,
+      errors: errors.length > 0 ? errors : undefined,
     })
     throw new Error(`Export failed: ${res.status}`)
   }
@@ -194,7 +217,8 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   })
   if (!res.ok) {
     const json = await res.json().catch(() => ({}))
-    throw new Error(json?.detail ?? json?.message ?? json?.title ?? json?.errors?.[0] ?? `POST ${path} failed: ${res.status}`)
+    const { title, errors } = parseProblemDetails(json)
+    throw new Error(errors.length > 0 ? errors.join('\n') : (title ?? `POST ${path} failed: ${res.status}`))
   }
   const json = await res.json()
   return (json.data ?? json) as T
@@ -207,7 +231,8 @@ export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
   })
   if (!res.ok) {
     const json = await res.json().catch(() => ({}))
-    throw new Error(json?.detail ?? json?.message ?? json?.title ?? json?.errors?.[0] ?? `PUT ${path} failed: ${res.status}`)
+    const { title, errors } = parseProblemDetails(json)
+    throw new Error(errors.length > 0 ? errors.join('\n') : (title ?? `PUT ${path} failed: ${res.status}`))
   }
   const json = await res.json()
   return (json.data ?? json) as T
@@ -217,7 +242,8 @@ export async function apiDelete(path: string): Promise<void> {
   const res = await apiFetch(path, { method: 'DELETE' })
   if (!res.ok) {
     const json = await res.json().catch(() => ({}))
-    throw new Error(json?.detail ?? json?.message ?? json?.title ?? `DELETE ${path} failed: ${res.status}`)
+    const { title, errors } = parseProblemDetails(json)
+    throw new Error(errors.length > 0 ? errors.join('\n') : (title ?? `DELETE ${path} failed: ${res.status}`))
   }
 }
 
@@ -235,6 +261,7 @@ import type {
   CreateVariantRequestV2,
   UpdateVariantRequest,
   CategoryDtoV2,
+  CategoryTreeNode,
   CreateCategoryRequestV2,
   UpdateCategoryRequest,
   SupplierDtoV2,
@@ -285,6 +312,12 @@ export const categoryApi = {
   create: (data: CreateCategoryRequestV2) => apiPost<CategoryDtoV2>('/api/categories', data),
   update: (id: string, data: UpdateCategoryRequest) => apiPut<CategoryDtoV2>(`/api/categories/${id}`, data),
   delete: (id: string) => apiDelete(`/api/categories/${id}`),
+  /** Full category tree from optimised endpoint — no N+1, includes productCount */
+  tree: (params?: { includeInactive?: boolean }) =>
+    apiGet<CategoryTreeNode[]>('/api/categories/tree', params as Record<string, unknown> | undefined),
+  /** Subtree rooted at a given node */
+  subtree: (id: string, params?: { includeInactive?: boolean }) =>
+    apiGet<CategoryTreeNode>(`/api/categories/${id}/tree`, params as Record<string, unknown> | undefined),
 }
 
 export const supplierApi = {
