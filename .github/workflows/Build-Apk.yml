@@ -1,0 +1,79 @@
+name: Build Flutter APK
+
+on:
+  push:
+    branches: ["main", "development"]
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.x"
+          channel: stable
+          cache: true
+
+      - name: Install Flutter dependencies
+        working-directory: FrontEnd/bibogc
+        run: flutter pub get
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > FrontEnd/bibogc/android/app/bibogc-release.jks
+
+      - name: Create key.properties
+        run: |
+          cat > FrontEnd/bibogc/android/key.properties <<EOF
+          storePassword=${{ secrets.STORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=bibogc-release.jks
+          EOF
+
+      - name: Build Release APK
+        working-directory: FrontEnd/bibogc
+        run: flutter build apk --release
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bibogc-release-apk
+          path: FrontEnd/bibogc/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "BiBoGC ${{ github.ref_name }}"
+          tag_name: ${{ github.ref_name }}
+          body: |
+            ## BiBoGC Android Release ${{ github.ref_name }}
+
+            ### Download
+            Download the APK below and install it on your Android device.
+
+            > Enable **Install from unknown sources** in your device settings if prompted.
+          files: FrontEnd/bibogc/build/app/outputs/flutter-apk/app-release.apk
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
