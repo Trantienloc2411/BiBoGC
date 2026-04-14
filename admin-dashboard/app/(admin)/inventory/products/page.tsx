@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { productApi, categoryApi, supplierApi } from '@/lib/api'
+import { productApi, categoryApi } from '@/lib/api'
 import type {
   ProductDto, ProductStatus,
   CreateProductRequestV2, UpdateProductRequest,
-  CategoryDtoV2, SupplierDtoV2,
+  CategoryTreeNode,
 } from '@/types'
 import { formatCurrency } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
@@ -15,6 +15,8 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Pagination } from '@/components/ui/Pagination'
 import { FormDialog, FormField, FormError, inputClass, selectClass } from '@/components/ui/FormDialog'
 import { CategoryPicker } from '@/components/ui/CategoryPicker'
+import { AsyncSupplierSelect } from '@/components/ui/AsyncSupplierSelect'
+import { MoneyInput } from '@/components/ui/MoneyInput'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/ui/Toast'
 import { Search, Eye, Plus, Pencil, Trash2, X, AlertTriangle, Download } from 'lucide-react'
@@ -22,7 +24,7 @@ import { cn } from '@/lib/utils'
 import { useExportFile } from '@/hooks/useExportFile'
 import { exportExistingProducts } from '@/lib/exportService'
 
-const PAGE_SIZE = 20
+const DEFAULT_PAGE_SIZE = 10
 
 
 const STATUS_STYLES: Record<string, string> = {
@@ -70,8 +72,10 @@ export default function ProductsPage() {
 
   const [products, setProducts] = useState<ProductDto[]>([])
   const [totalCount, setTotalCount] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
+  const pageSizeRef = useRef(DEFAULT_PAGE_SIZE)
+  pageSizeRef.current = pageSize
   const [loading, setLoading] = useState(true)
 
   const [searchInput, setSearchInput] = useState('')
@@ -81,8 +85,7 @@ export default function ProductsPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [lowStockOnly, setLowStockOnly] = useState(false)
 
-  const [categories, setCategories] = useState<CategoryDtoV2[]>([])
-  const [suppliers, setSuppliers] = useState<SupplierDtoV2[]>([])
+  const [categories, setCategories] = useState<{ id: string; name: string; depth: number }[]>([])
 
   const [showCreate, setShowCreate] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
@@ -113,18 +116,16 @@ export default function ProductsPage() {
   }, [searchInput])
 
   useEffect(() => {
-    categoryApi.list().then(data => {
-      setCategories(flattenCats(data.items ?? []))
-    }).catch(() => {})
-    supplierApi.list({ pageSize: 200 }).then(data => {
-      setSuppliers(data.items ?? [])
+    categoryApi.tree().then(tree => {
+      setCategories(flattenTree(tree))
     }).catch(() => {})
   }, [])
 
   const load = useCallback(async (p: number) => {
     setLoading(true)
     try {
-      const params: Record<string, unknown> = { pageNumber: p, pageSize: PAGE_SIZE }
+      const ps = pageSizeRef.current
+      const params: Record<string, unknown> = { pageNumber: p, pageSize: ps }
       if (searchTerm) params.searchTerm = searchTerm
       if (categoryId) params.categoryId = categoryId
       if (supplierId) params.supplierId = supplierId
@@ -133,7 +134,6 @@ export default function ProductsPage() {
       const data = await productApi.list(params as Parameters<typeof productApi.list>[0])
       setProducts(data.items)
       setTotalCount(data.totalCount)
-      setTotalPages(data.totalPages)
     } catch {
       showError('Không thể tải danh sách sản phẩm')
     } finally {
@@ -141,15 +141,26 @@ export default function ProductsPage() {
     }
   }, [searchTerm, categoryId, supplierId, statusFilter, lowStockOnly, showError])
 
+  function handlePageSizeChange(newSize: number) {
+    setPageSize(newSize)
+    pageSizeRef.current = newSize
+    setPage(1)
+    load(1)
+  }
+
   // Filter changes: reset to page 1 and reload. Also handles initial mount load.
   useEffect(() => { setPage(1); load(1) }, [searchTerm, categoryId, supplierId, statusFilter, lowStockOnly]) // eslint-disable-line react-hooks/exhaustive-deps
   // Pagination clicks: only fire for pages > 1 to avoid duplicating the filter effect on mount.
   useEffect(() => { if (page > 1) load(page) }, [page, load])
 
-  function flattenCats(cats: CategoryDtoV2[], result: CategoryDtoV2[] = []): CategoryDtoV2[] {
-    for (const c of cats) {
-      result.push(c)
-      if (c.subCategories?.length) flattenCats(c.subCategories, result)
+  function flattenTree(
+    nodes: CategoryTreeNode[],
+    depth = 0,
+    result: { id: string; name: string; depth: number }[] = [],
+  ): { id: string; name: string; depth: number }[] {
+    for (const node of nodes) {
+      result.push({ id: node.id, name: node.name, depth })
+      if (node.subCategories?.length) flattenTree(node.subCategories, depth + 1, result)
     }
     return result
   }
@@ -265,16 +276,20 @@ export default function ProductsPage() {
           <select value={categoryId} onChange={e => setCategoryId(e.target.value)}
             className="text-sm text-gray-700 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400">
             <option value="">Tất cả</option>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {categories.map(c => (
+              <option key={c.id} value={c.id}>
+                {c.depth > 0 ? `${'　'.repeat(c.depth)}└ ${c.name}` : c.name}
+              </option>
+            ))}
           </select>
         </div>
-        <div>
+        <div className="min-w-[200px]">
           <label className="block text-xs font-medium text-gray-500 mb-1.5">Nhà cung cấp</label>
-          <select value={supplierId} onChange={e => setSupplierId(e.target.value)}
-            className="text-sm text-gray-700 border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400">
-            <option value="">Tất cả</option>
-            {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
+          <AsyncSupplierSelect
+            value={supplierId}
+            onChange={setSupplierId}
+            placeholder="Tất cả nhà cung cấp"
+          />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1.5">Trạng thái</label>
@@ -298,66 +313,75 @@ export default function ProductsPage() {
 
       <p className="text-sm text-gray-400 px-1">{totalCount.toLocaleString()} sản phẩm</p>
 
-      {loading ? <LoadingSpinner /> : (
-        <>
-          {products.length === 0 ? (
-            <Card><p className="text-center text-gray-400 py-8 text-sm">Không có sản phẩm nào</p></Card>
-          ) : (
-            <Card className="p-0 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50/60">
-                      <th className="text-left font-medium text-gray-500 px-4 py-3">SKU</th>
-                      <th className="text-left font-medium text-gray-500 px-4 py-3">Tên sản phẩm</th>
-                      <th className="text-left font-medium text-gray-500 px-4 py-3">Danh mục</th>
-                      <th className="text-right font-medium text-gray-500 px-4 py-3">Tồn kho</th>
-                      <th className="text-right font-medium text-gray-500 px-4 py-3">Giá bán</th>
-                      <th className="text-left font-medium text-gray-500 px-4 py-3">Trạng thái</th>
-                      <th className="text-right font-medium text-gray-500 px-4 py-3">Hành động</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {products.map(p => (
-                      <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-4 py-3 text-gray-500 font-mono text-xs">{p.sku}</td>
-                        <td className="px-4 py-3">
-                          <p className="font-medium text-gray-800">{p.name}</p>
-                          {p.supplierName && <p className="text-xs text-gray-400 mt-0.5">{p.supplierName}</p>}
-                        </td>
-                        <td className="px-4 py-3 text-gray-500 text-sm">{p.categoryName ?? '—'}</td>
-                        <td className="px-4 py-3 text-right">
-                          <span className={cn('font-medium', p.isLowStock ? 'text-red-600' : 'text-gray-700')}>
-                            {p.availableStock ?? 0}
-                          </span>
-                          {p.isLowStock && <AlertTriangle size={13} className="inline ml-1 text-amber-500" />}
-                        </td>
-                        <td className="px-4 py-3 text-right text-gray-700">{formatCurrency(p.price)}</td>
-                        <td className="px-4 py-3">
-                          <span className={cn('inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-md border',
-                            STATUS_STYLES[p.status] ?? 'bg-gray-50 text-gray-600 border-gray-200')}>
-                            {STATUS_LABELS[p.status] ?? p.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Link href={`/inventory/products/${p.id}`}>
-                              <Button size="sm" variant="ghost" className="gap-1"><Eye size={14} /></Button>
-                            </Link>
-                            <Button size="sm" variant="ghost" onClick={() => openEdit(p)}><Pencil size={14} /></Button>
-                            <Button size="sm" variant="ghost" onClick={() => setDeleteTarget(p)} className="text-red-500 hover:text-red-700"><Trash2 size={14} /></Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
-          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-        </>
-      )}
+      <Card className="p-0 overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center py-12"><LoadingSpinner /></div>
+        ) : products.length === 0 ? (
+          <p className="text-center text-gray-400 py-8 text-sm">Không có sản phẩm nào</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50/60">
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">SKU</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Tên sản phẩm</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Danh mục</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">Tồn kho</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">Giá bán</th>
+                  <th className="text-left font-medium text-gray-500 px-4 py-3">Trạng thái</th>
+                  <th className="text-right font-medium text-gray-500 px-4 py-3">Hành động</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {products.map(p => (
+                  <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-4 py-3 text-gray-500 font-mono text-xs">{p.sku}</td>
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-gray-800">{p.name}</p>
+                      {p.supplierName && <p className="text-xs text-gray-400 mt-0.5">{p.supplierName}</p>}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 text-sm">{p.categoryName ?? '—'}</td>
+                    <td className="px-4 py-3 text-right">
+                      <span className={cn('font-medium', p.isLowStock ? 'text-red-600' : 'text-gray-700')}>
+                        {p.availableStock ?? 0}
+                      </span>
+                      {p.isLowStock && <AlertTriangle size={13} className="inline ml-1 text-amber-500" />}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-700">{formatCurrency(p.price)}</td>
+                    <td className="px-4 py-3">
+                      <span className={cn('inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-md border',
+                        STATUS_STYLES[p.status] ?? 'bg-gray-50 text-gray-600 border-gray-200')}>
+                        {STATUS_LABELS[p.status] ?? p.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Link href={`/inventory/products/${p.id}`}>
+                          <Button size="sm" variant="ghost" className="gap-1"><Eye size={14} /></Button>
+                        </Link>
+                        <Button size="sm" variant="ghost" onClick={() => openEdit(p)}><Pencil size={14} /></Button>
+                        <Button size="sm" variant="ghost" onClick={() => setDeleteTarget(p)} className="text-red-500 hover:text-red-700"><Trash2 size={14} /></Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {Array.from({ length: Math.max(0, pageSize - products.length) }).map((_, i) => (
+                  <tr key={`empty-${i}`} className="h-[52px]"><td colSpan={7} /></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <div className="border-t border-gray-100">
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            totalItems={totalCount}
+            onPageChange={setPage}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        </div>
+      </Card>
 
       {/* Create modal */}
       <FormDialog open={showCreate} title="Thêm sản phẩm" loading={formLoading} onSubmit={handleCreate} onCancel={() => setShowCreate(false)}>
@@ -380,7 +404,7 @@ export default function ProductsPage() {
           />
         </FormField>
         <FormField label="Giá bán">
-          <input type="number" className={inputClass} value={createForm.price || ''} onChange={e => setCreateForm(f => ({ ...f, price: Number(e.target.value) }))} />
+          <MoneyInput className={inputClass} value={createForm.price} onChange={v => setCreateForm(f => ({ ...f, price: v }))} placeholder="0" />
         </FormField>
         <FormField label="Mô tả">
           <textarea className={inputClass} rows={2} value={createForm.description} onChange={e => setCreateForm(f => ({ ...f, description: e.target.value }))} />
@@ -401,7 +425,7 @@ export default function ProductsPage() {
           <input className={cn(inputClass, 'bg-gray-50 text-gray-400 cursor-not-allowed')} value={editingProduct?.sku ?? ''} readOnly disabled />
         </FormField>
         <FormField label="Giá bán">
-          <input type="number" className={inputClass} value={editForm.price || ''} onChange={e => setEditForm(f => ({ ...f, price: Number(e.target.value) }))} />
+          <MoneyInput className={inputClass} value={editForm.price} onChange={v => setEditForm(f => ({ ...f, price: v }))} placeholder="0" />
         </FormField>
         <FormField label="Trạng thái">
           <select className={selectClass} value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: Number(e.target.value) }))}>

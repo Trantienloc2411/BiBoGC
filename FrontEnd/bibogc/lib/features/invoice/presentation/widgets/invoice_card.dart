@@ -1,3 +1,4 @@
+import 'package:bibogc/core/utils/currency_utils.dart';
 import 'package:bibogc/features/invoice/domain/entities/invoice.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -11,13 +12,11 @@ class InvoiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm', 'vi_VN');
+    final secondary = theme.colorScheme.onSurfaceVariant;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -28,10 +27,10 @@ class InvoiceCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.receipt_long,
                     size: 18,
-                    color: Colors.blueGrey,
+                    color: theme.colorScheme.secondary,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -47,16 +46,12 @@ class InvoiceCard extends StatelessWidget {
               const SizedBox(height: 6),
               Row(
                 children: [
-                  const Icon(
-                    Icons.description_outlined,
-                    size: 14,
-                    color: Colors.grey,
-                  ),
+                  Icon(Icons.description_outlined, size: 14, color: secondary),
                   const SizedBox(width: 4),
                   Text(
                     'Đơn hàng: ${invoice.orderNumber}',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
+                      color: secondary,
                     ),
                   ),
                 ],
@@ -64,12 +59,12 @@ class InvoiceCard extends StatelessWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.access_time, size: 14, color: Colors.grey),
+                  Icon(Icons.access_time, size: 14, color: secondary),
                   const SizedBox(width: 4),
                   Text(
                     dateFormat.format(invoice.invoiceDate.toLocal()),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
+                      color: secondary,
                     ),
                   ),
                 ],
@@ -78,7 +73,7 @@ class InvoiceCard extends StatelessWidget {
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(
-                  currencyFormat.format(invoice.grandTotal),
+                  CurrencyUtils.formatCurrency(invoice.grandTotal),
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.primary,

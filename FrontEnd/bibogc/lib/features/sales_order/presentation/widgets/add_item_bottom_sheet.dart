@@ -1,4 +1,5 @@
 import 'package:bibogc/core/di/injection.dart';
+import 'package:bibogc/core/utils/currency_utils.dart';
 import 'package:bibogc/core/network/dio_client.dart';
 import 'package:bibogc/core/utils/dialog_utils.dart';
 import 'package:bibogc/core/widgets/app_button.dart';
@@ -525,11 +526,5 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
     );
   }
 
-  String _formatPrice(double price) {
-    final n = price.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d)(?=(\d{3})+$)'),
-      (m) => '${m[1]}.',
-    );
-    return '$n ₫';
-  }
+  String _formatPrice(double price) => CurrencyUtils.formatCurrency(price);
 }

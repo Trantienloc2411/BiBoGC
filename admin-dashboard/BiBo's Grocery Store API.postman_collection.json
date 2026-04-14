@@ -45,7 +45,7 @@
                         }
                       ]
                     },
-                    "description": "Lấy thông tin chi tiết của một danh mục theo ID, bao gồm danh mục con."
+                    "description": "Lay thong tin chi tiet cua mot danh muc theo ID, bao gom 1 cap danh muc con truc tiep.\n\n**Path param:**\n- `id` (GUID, bat buoc): ID danh muc can xem\n\n**Loi:**\n- 404: Danh muc khong ton tai\n\n> De xem toan bo cay de quy, dung `GET /api/categories/{id}/tree`"
                   },
                   "response": [
                     {
@@ -87,7 +87,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"id\": \"f773ac01-11a5-8545-a674-6c84406af9ab\",\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"parentCategoryId\": \"43058228-7231-1e36-1358-86e6d2fd8b8d\",\n  \"isActive\": true,\n  \"displayOrder\": 2535,\n  \"subCategories\": [\n    {\n      \"value\": \"<Circular reference to #/components/schemas/CategoryDto detected>\"\n    },\n    {\n      \"value\": \"<Circular reference to #/components/schemas/CategoryDto detected>\"\n    }\n  ]\n}"
+                      "body": "{\n  \"id\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n  \"name\": \"Thuc pham\",\n  \"description\": \"Cac loai thuc pham thiet yeu\",\n  \"parentCategoryId\": null,\n  \"parentCategoryName\": null,\n  \"isActive\": true,\n  \"displayOrder\": 1,\n  \"productCount\": 12,\n  \"subCategories\": [\n    {\n      \"id\": \"a1b2c3d4-0000-0000-0000-000000000001\",\n      \"name\": \"Do uong\",\n      \"description\": \"Nuoc ngot, nuoc suoi, sua cac loai\",\n      \"parentCategoryId\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n      \"parentCategoryName\": \"Thuc pham\",\n      \"isActive\": true,\n      \"displayOrder\": 1,\n      \"productCount\": 8,\n      \"subCategories\": []\n    }\n  ]\n}"
                     },
                     {
                       "name": "Không tìm thấy danh mục",
@@ -128,7 +128,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"type\": \"string\",\n  \"title\": \"string\",\n  \"status\": 3572,\n  \"detail\": \"string\",\n  \"instance\": \"string\"\n}"
+                      "body": "{\n  \"type\": \"https://tools.ietf.org/html/rfc7231#section-6.5.4\",\n  \"title\": \"Khong tim thay danh muc\",\n  \"status\": 404,\n  \"detail\": \"Danh muc khong the tim thay\",\n  \"traceId\": \"00-abc123def456-xyz789-00\"\n}"
                     }
                   ]
                 },
@@ -174,7 +174,7 @@
                         }
                       ]
                     },
-                    "description": "Cập nhật thông tin danh mục.\n\n**Validation:**\n- name: Bắt buộc, tối đa 100 ký tự\n- Không thể đặt parentCategoryId là chính nó hoặc con của nó"
+                    "description": "Cap nhat thong tin danh muc.\n\n**Path param:**\n- `id` (GUID, bat buoc): ID danh muc can cap nhat\n\n**Body (JSON):**\n| Field | Bat buoc | Kieu | Validation | Loi khi fail |\n|---|---|---|---|---|\n| `name` | YES | string | NotEmpty, MaxLength(100) | 'Ten khong duoc de trong.' / 'Ten danh muc khong duoc qua 100 ky tu.' |\n| `description` | NO | string | MaxLength(500) | 'Mo ta danh muc khong duoc vuot qua 500 ky tu.' |\n| `parentCategoryId` | NO | GUID or null | Phai ton tai neu co | 400 Bad Request |\n| `displayOrder` | NO | int | >= 0 | 'Thu tu hien thi khong phai la mot so nguyen am' |\n| `isActive` | NO | bool | none | none |\n\n**Loi:**\n- 400: Validation fail\n- 404: Danh muc khong ton tai"
                   },
                   "response": [
                     {
@@ -230,7 +230,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"id\": \"f773ac01-11a5-8545-a674-6c84406af9ab\",\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"parentCategoryId\": \"43058228-7231-1e36-1358-86e6d2fd8b8d\",\n  \"isActive\": true,\n  \"displayOrder\": 2535,\n  \"subCategories\": [\n    {\n      \"value\": \"<Circular reference to #/components/schemas/CategoryDto detected>\"\n    },\n    {\n      \"value\": \"<Circular reference to #/components/schemas/CategoryDto detected>\"\n    }\n  ]\n}"
+                      "body": "{\n  \"id\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n  \"name\": \"Thuc pham\",\n  \"description\": \"Cac loai thuc pham thiet yeu\",\n  \"parentCategoryId\": null,\n  \"parentCategoryName\": null,\n  \"isActive\": true,\n  \"displayOrder\": 1,\n  \"productCount\": 12,\n  \"subCategories\": [\n    {\n      \"id\": \"a1b2c3d4-0000-0000-0000-000000000001\",\n      \"name\": \"Do uong\",\n      \"description\": \"Nuoc ngot, nuoc suoi, sua cac loai\",\n      \"parentCategoryId\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n      \"parentCategoryName\": \"Thuc pham\",\n      \"isActive\": true,\n      \"displayOrder\": 1,\n      \"productCount\": 8,\n      \"subCategories\": []\n    }\n  ]\n}"
                     },
                     {
                       "name": "Lỗi validation",
@@ -285,7 +285,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"type\": \"string\",\n  \"title\": \"string\",\n  \"status\": 9719,\n  \"detail\": \"string\",\n  \"errors\": {\n    \"key_0\": [\n      \"string\",\n      \"string\"\n    ]\n  }\n}"
+                      "body": "{\n  \"type\": \"https://tools.ietf.org/html/rfc7231#section-6.5.1\",\n  \"title\": \"Du lieu khong hop le\",\n  \"status\": 400,\n  \"errors\": [\n    \"Ten khong duoc de trong.\",\n    \"Ten danh muc khong duoc qua 100 ky tu.\"\n  ],\n  \"traceId\": \"00-abc123def456-xyz789-00\"\n}"
                     },
                     {
                       "name": "Không tìm thấy danh mục",
@@ -340,7 +340,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"type\": \"string\",\n  \"title\": \"string\",\n  \"status\": 3572,\n  \"detail\": \"string\",\n  \"instance\": \"string\"\n}"
+                      "body": "{\n  \"type\": \"https://tools.ietf.org/html/rfc7231#section-6.5.4\",\n  \"title\": \"Khong tim thay danh muc\",\n  \"status\": 404,\n  \"detail\": \"Danh muc khong the tim thay\",\n  \"traceId\": \"00-abc123def456-xyz789-00\"\n}"
                     }
                   ]
                 },
@@ -372,7 +372,7 @@
                         }
                       ]
                     },
-                    "description": "Xóa mềm danh mục. Danh mục sẽ được đánh dấu là đã xóa nhưng dữ liệu vẫn được lưu."
+                    "description": "Xoa mem (soft delete) mot danh muc. Du lieu khong bi xoa vat ly khoi DB.\n\n**Path param:**\n- `id` (GUID, bat buoc): ID danh muc can xoa. Validation: NotEmpty, phai la GUID hop le\n\n**Rang buoc:**\n- Khong the xoa neu danh muc con danh muc con -> 400\n\n**Loi:**\n- 400: id rong hoac khong hop le | con danh muc con\n- 404: Danh muc khong ton tai"
                   },
                   "response": [
                     {
@@ -445,7 +445,136 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"type\": \"string\",\n  \"title\": \"string\",\n  \"status\": 3572,\n  \"detail\": \"string\",\n  \"instance\": \"string\"\n}"
+                      "body": "{\n  \"type\": \"https://tools.ietf.org/html/rfc7231#section-6.5.4\",\n  \"title\": \"Khong tim thay danh muc\",\n  \"status\": 404,\n  \"detail\": \"Danh muc khong the tim thay\",\n  \"traceId\": \"00-abc123def456-xyz789-00\"\n}"
+                    }
+                  ]
+                },
+                {
+                  "name": "Lay cay danh muc tu mot node",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{testUrl}}/api/categories/:id/tree?includeInactive=false",
+                      "host": [
+                        "{{testUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "categories",
+                        ":id",
+                        "tree"
+                      ],
+                      "query": [
+                        {
+                          "key": "includeInactive",
+                          "value": "false",
+                          "description": "Loai: bool | Default: false | false = chi node active | true = bao gom ca node inactive"
+                        }
+                      ],
+                      "variable": [
+                        {
+                          "key": "id",
+                          "value": "46b70c27-ad2f-00e2-e872-bdf2949be90c",
+                          "description": "Loai: GUID | Bat buoc | ID node goc. Validation: NotEmpty, phai ton tai trong DB. Loi khi fail: 404 Not Found"
+                        }
+                      ]
+                    },
+                    "description": "Tra ve cay danh muc bat dau tu mot node cu the. Node duoc chi dinh tro thanh root, toan bo con chau (de quy khong gioi han tang) duoc long vao field `subCategories`.\n\n**Hieu suat:** Chi 2 query DB du cay co bao nhieu tang:\n1. SELECT * FROM Categories -- lay toan bo flat\n2. SELECT CategoryId, COUNT(*) FROM Products GROUP BY CategoryId\nBuild tree in-memory, tranh N+1 hoan toan.\n\n**Path param:**\n| Param | Kieu | Bat buoc | Validation | Loi khi fail |\n|---|---|---|---|---|\n| `id` | GUID | YES | NotEmpty, phai ton tai | 404 Not Found |\n\n**Query param:**\n| Param | Kieu | Default | Mo ta |\n|---|---|---|---|\n| `includeInactive` | bool | false | true = bao gom node inactive |\n\n**Response:** Object CategoryDto don (khong phai array) voi `subCategories` long nhau de quy.\n\n**Loi:**\n- 404: `id` khong ton tai trong DB"
+                  },
+                  "response": [
+                    {
+                      "name": "Cay tu node Thuc pham",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{testUrl}}/api/categories/:id/tree?includeInactive=false",
+                          "host": [
+                            "{{testUrl}}"
+                          ],
+                          "path": [
+                            "api",
+                            "categories",
+                            ":id",
+                            "tree"
+                          ],
+                          "query": [
+                            {
+                              "key": "includeInactive",
+                              "value": "false"
+                            }
+                          ],
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "46b70c27-ad2f-00e2-e872-bdf2949be90c"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"id\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n  \"name\": \"Thuc pham\",\n  \"description\": \"Cac loai thuc pham thiet yeu\",\n  \"parentCategoryId\": null,\n  \"parentCategoryName\": null,\n  \"isActive\": true,\n  \"displayOrder\": 1,\n  \"productCount\": 5,\n  \"subCategories\": [\n    {\n      \"id\": \"a1b2c3d4-0000-0000-0000-000000000001\",\n      \"name\": \"Do uong\",\n      \"description\": \"Nuoc ngot, nuoc suoi, sua cac loai\",\n      \"parentCategoryId\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n      \"parentCategoryName\": \"Thuc pham\",\n      \"isActive\": true,\n      \"displayOrder\": 1,\n      \"productCount\": 8,\n      \"subCategories\": [\n        {\n          \"id\": \"a1b2c3d4-0000-0000-0000-000000000002\",\n          \"name\": \"Nuoc ngot co ga\",\n          \"description\": \"Coca, Pepsi, 7Up cac loai\",\n          \"parentCategoryId\": \"a1b2c3d4-0000-0000-0000-000000000001\",\n          \"parentCategoryName\": \"Do uong\",\n          \"isActive\": true,\n          \"displayOrder\": 1,\n          \"productCount\": 5,\n          \"subCategories\": []\n        }\n      ]\n    },\n    {\n      \"id\": \"a1b2c3d4-0000-0000-0000-000000000003\",\n      \"name\": \"Banh keo\",\n      \"description\": \"Cac loai banh keo snack\",\n      \"parentCategoryId\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n      \"parentCategoryName\": \"Thuc pham\",\n      \"isActive\": true,\n      \"displayOrder\": 2,\n      \"productCount\": 15,\n      \"subCategories\": []\n    }\n  ]\n}"
+                    },
+                    {
+                      "name": "Khong tim thay danh muc",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{testUrl}}/api/categories/:id/tree",
+                          "host": [
+                            "{{testUrl}}"
+                          ],
+                          "path": [
+                            "api",
+                            "categories",
+                            ":id",
+                            "tree"
+                          ],
+                          "variable": [
+                            {
+                              "key": "id",
+                              "value": "00000000-0000-0000-0000-000000000000"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "Not Found",
+                      "code": 404,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"type\": \"https://tools.ietf.org/html/rfc7231#section-6.5.4\",\n  \"title\": \"Khong tim thay danh muc\",\n  \"status\": 404,\n  \"detail\": \"Danh muc khong the tim thay\",\n  \"traceId\": \"00-abc123def456-xyz789-00\"\n}"
                     }
                   ]
                 }
@@ -483,7 +612,7 @@
                     }
                   ]
                 },
-                "description": "Lấy danh sách tất cả danh mục với tùy chọn lọc theo parent và trạng thái active."
+                "description": "Lay danh sach danh muc dang phang (khong de quy). Co the loc theo:\n- Chi danh muc goc (parentCategoryId = null)\n- Con cua mot danh muc cu the\n\n> De xem dang cay folder-tree day du, dung GET /api/categories/tree\n\n**Query params:**\n| Param | Kieu | Default | Validation | Mo ta |\n|---|---|---|---|---|\n| `includeInactive` | bool | false | none | true = bao gom danh muc inactive |\n| `parentCategoryId` | GUID or null | null | GUID hop le neu co | null = lay root | co gia tri = lay con truc tiep |"
               },
               "response": [
                 {
@@ -529,7 +658,120 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "[\n  {\n    \"id\": \"6705bd59-36b3-c848-d9b4-64e9686c98f8\",\n    \"name\": \"string\",\n    \"description\": \"string\",\n    \"parentCategoryId\": \"ff1d8c81-aea4-e53f-9c65-4aef371feb92\",\n    \"isActive\": false,\n    \"displayOrder\": 4478,\n    \"subCategories\": [\n      {\n        \"value\": \"<Circular reference to #/components/schemas/CategoryDto detected>\"\n      },\n      {\n        \"value\": \"<Circular reference to #/components/schemas/CategoryDto detected>\"\n      }\n    ]\n  },\n  {\n    \"id\": \"f1deb8dc-ab99-24ac-ee33-01ac59d0f48c\",\n    \"name\": \"string\",\n    \"description\": \"string\",\n    \"parentCategoryId\": \"7e4400b3-8e9d-6864-f3a4-5233ed448caa\",\n    \"isActive\": false,\n    \"displayOrder\": 9680,\n    \"subCategories\": [\n      {\n        \"value\": \"<Circular reference to #/components/schemas/CategoryDto detected>\"\n      },\n      {\n        \"value\": \"<Circular reference to #/components/schemas/CategoryDto detected>\"\n      }\n    ]\n  }\n]"
+                  "body": "[\n  {\n    \"id\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n    \"name\": \"Thuc pham\",\n    \"description\": \"Cac loai thuc pham thiet yeu\",\n    \"parentCategoryId\": null,\n    \"parentCategoryName\": null,\n    \"isActive\": true,\n    \"displayOrder\": 1,\n    \"productCount\": 12,\n    \"subCategories\": []\n  },\n  {\n    \"id\": \"f1deb8dc-ab99-24ac-ee33-01ac59d0f48c\",\n    \"name\": \"Do dung gia dinh\",\n    \"description\": \"Dung cu nha bep, ve sinh\",\n    \"parentCategoryId\": null,\n    \"parentCategoryName\": null,\n    \"isActive\": true,\n    \"displayOrder\": 2,\n    \"productCount\": 7,\n    \"subCategories\": []\n  }\n]"
+                }
+              ]
+            },
+            {
+              "name": "Lay cay danh muc (toan bo)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{testUrl}}/api/categories/tree?includeInactive=false",
+                  "host": [
+                    "{{testUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "categories",
+                    "tree"
+                  ],
+                  "query": [
+                    {
+                      "key": "includeInactive",
+                      "value": "false",
+                      "description": "Loai: bool | Default: false | false = chi node active | true = bao gom ca node inactive"
+                    }
+                  ]
+                },
+                "description": "Tra ve TOAN BO cay danh muc dang folder-tree, bat dau tu tat ca root node (nhung node khong co parent).\n\n**Hieu suat:** Chi 2 query DB du cay co bao nhieu tang:\n1. SELECT * FROM Categories -- lay toan bo flat\n2. SELECT CategoryId, COUNT(*) FROM Products GROUP BY CategoryId\nBuild tree in-memory, tranh N+1 hoan toan.\n\n**Query param:**\n| Param | Kieu | Default | Validation | Mo ta |\n|---|---|---|---|---|\n| `includeInactive` | bool | false | none | true = bao gom node inactive |\n\n**Response:** Array cac root CategoryDto, moi node co field `subCategories` chua con chau long nhau de quy.\n\n**Structure moi node:**\nid (GUID), name, description, parentCategoryId (null voi root), parentCategoryName (null voi root), isActive (bool), displayOrder (int), productCount (int), subCategories (array de quy)"
+              },
+              "response": [
+                {
+                  "name": "Cay danh muc toan bo",
+                  "originalRequest": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{testUrl}}/api/categories/tree?includeInactive=false",
+                      "host": [
+                        "{{testUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "categories",
+                        "tree"
+                      ],
+                      "query": [
+                        {
+                          "key": "includeInactive",
+                          "value": "false"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "[\n  {\n    \"id\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n    \"name\": \"Thuc pham\",\n    \"description\": \"Cac loai thuc pham thiet yeu\",\n    \"parentCategoryId\": null,\n    \"parentCategoryName\": null,\n    \"isActive\": true,\n    \"displayOrder\": 1,\n    \"productCount\": 5,\n    \"subCategories\": [\n      {\n        \"id\": \"a1b2c3d4-0000-0000-0000-000000000001\",\n        \"name\": \"Do uong\",\n        \"description\": \"Nuoc ngot, nuoc suoi, sua cac loai\",\n        \"parentCategoryId\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n        \"parentCategoryName\": \"Thuc pham\",\n        \"isActive\": true,\n        \"displayOrder\": 1,\n        \"productCount\": 8,\n        \"subCategories\": [\n          {\n            \"id\": \"a1b2c3d4-0000-0000-0000-000000000002\",\n            \"name\": \"Nuoc ngot co ga\",\n            \"description\": \"Coca, Pepsi, 7Up cac loai\",\n            \"parentCategoryId\": \"a1b2c3d4-0000-0000-0000-000000000001\",\n            \"parentCategoryName\": \"Do uong\",\n            \"isActive\": true,\n            \"displayOrder\": 1,\n            \"productCount\": 5,\n            \"subCategories\": []\n          }\n        ]\n      },\n      {\n        \"id\": \"a1b2c3d4-0000-0000-0000-000000000003\",\n        \"name\": \"Banh keo\",\n        \"description\": \"Cac loai banh keo snack\",\n        \"parentCategoryId\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n        \"parentCategoryName\": \"Thuc pham\",\n        \"isActive\": true,\n        \"displayOrder\": 2,\n        \"productCount\": 15,\n        \"subCategories\": []\n      }\n    ]\n  },\n  {\n    \"id\": \"b2c3d4e5-0000-0000-0000-000000000004\",\n    \"name\": \"Do dung gia dinh\",\n    \"description\": \"Dung cu nha bep, ve sinh\",\n    \"parentCategoryId\": null,\n    \"parentCategoryName\": null,\n    \"isActive\": true,\n    \"displayOrder\": 2,\n    \"productCount\": 0,\n    \"subCategories\": []\n  }\n]"
+                },
+                {
+                  "name": "Cay danh muc (bao gom inactive)",
+                  "originalRequest": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{testUrl}}/api/categories/tree?includeInactive=true",
+                      "host": [
+                        "{{testUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "categories",
+                        "tree"
+                      ],
+                      "query": [
+                        {
+                          "key": "includeInactive",
+                          "value": "true"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "[\n  {\n    \"id\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n    \"name\": \"Thuc pham\",\n    \"description\": \"Cac loai thuc pham thiet yeu\",\n    \"parentCategoryId\": null,\n    \"parentCategoryName\": null,\n    \"isActive\": true,\n    \"displayOrder\": 1,\n    \"productCount\": 5,\n    \"subCategories\": [\n      {\n        \"id\": \"a1b2c3d4-0000-0000-0000-000000000001\",\n        \"name\": \"Do uong\",\n        \"description\": \"Nuoc ngot, nuoc suoi, sua cac loai\",\n        \"parentCategoryId\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n        \"parentCategoryName\": \"Thuc pham\",\n        \"isActive\": true,\n        \"displayOrder\": 1,\n        \"productCount\": 8,\n        \"subCategories\": [\n          {\n            \"id\": \"a1b2c3d4-0000-0000-0000-000000000002\",\n            \"name\": \"Nuoc ngot co ga\",\n            \"description\": \"Coca, Pepsi, 7Up cac loai\",\n            \"parentCategoryId\": \"a1b2c3d4-0000-0000-0000-000000000001\",\n            \"parentCategoryName\": \"Do uong\",\n            \"isActive\": true,\n            \"displayOrder\": 1,\n            \"productCount\": 5,\n            \"subCategories\": []\n          }\n        ]\n      },\n      {\n        \"id\": \"a1b2c3d4-0000-0000-0000-000000000003\",\n        \"name\": \"Banh keo\",\n        \"description\": \"Cac loai banh keo snack\",\n        \"parentCategoryId\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n        \"parentCategoryName\": \"Thuc pham\",\n        \"isActive\": true,\n        \"displayOrder\": 2,\n        \"productCount\": 15,\n        \"subCategories\": []\n      }\n    ]\n  },\n  {\n    \"id\": \"b2c3d4e5-0000-0000-0000-000000000004\",\n    \"name\": \"Do dung gia dinh\",\n    \"description\": \"Dung cu nha bep, ve sinh\",\n    \"parentCategoryId\": null,\n    \"parentCategoryName\": null,\n    \"isActive\": true,\n    \"displayOrder\": 2,\n    \"productCount\": 0,\n    \"subCategories\": []\n  }\n]"
                 }
               ]
             },
@@ -567,7 +809,7 @@
                     "categories"
                   ]
                 },
-                "description": "Tạo một danh mục sản phẩm mới.\n\n**Validation:**\n- name: Bắt buộc, tối đa 100 ký tự\n- description: Tùy chọn, tối đa 500 ký tự\n- parentCategoryId: Tùy chọn, phải tồn tại nếu có"
+                "description": "Tao mot danh muc san pham moi.\n\n**Body (JSON):**\n| Field | Bat buoc | Kieu | Validation | Loi khi fail |\n|---|---|---|---|---|\n| `name` | YES | string | NotEmpty, MaxLength(100) | 'Ten khong duoc de trong.' / 'Ten danh muc khong duoc qua 100 ky tu.' |\n| `description` | NO | string | MaxLength(500) | 'Mo ta danh muc khong duoc vuot qua 500 ky tu.' |\n| `parentCategoryId` | NO | GUID or null | Phai ton tai neu co | 400 Bad Request |\n| `displayOrder` | NO | int | >= 0 | 'Thu tu hien thi khong phai la mot so nguyen am' |\n\n**Business rules:**\n- Ten danh muc khong duoc trung -> 400 (Category with name '...' already exists.)\n- parentCategoryId phai la ID danh muc dang ton tai -> 400\n\n**Response:** 201 Created voi CategoryDto vua tao."
               },
               "response": [
                 {
@@ -615,7 +857,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"id\": \"f773ac01-11a5-8545-a674-6c84406af9ab\",\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"parentCategoryId\": \"43058228-7231-1e36-1358-86e6d2fd8b8d\",\n  \"isActive\": true,\n  \"displayOrder\": 2535,\n  \"subCategories\": [\n    {\n      \"value\": \"<Circular reference to #/components/schemas/CategoryDto detected>\"\n    },\n    {\n      \"value\": \"<Circular reference to #/components/schemas/CategoryDto detected>\"\n    }\n  ]\n}"
+                  "body": "{\n  \"id\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n  \"name\": \"Thuc pham\",\n  \"description\": \"Cac loai thuc pham thiet yeu\",\n  \"parentCategoryId\": null,\n  \"parentCategoryName\": null,\n  \"isActive\": true,\n  \"displayOrder\": 1,\n  \"productCount\": 12,\n  \"subCategories\": [\n    {\n      \"id\": \"a1b2c3d4-0000-0000-0000-000000000001\",\n      \"name\": \"Do uong\",\n      \"description\": \"Nuoc ngot, nuoc suoi, sua cac loai\",\n      \"parentCategoryId\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n      \"parentCategoryName\": \"Thuc pham\",\n      \"isActive\": true,\n      \"displayOrder\": 1,\n      \"productCount\": 8,\n      \"subCategories\": []\n    }\n  ]\n}"
                 },
                 {
                   "name": "Lỗi validation",
@@ -662,7 +904,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"type\": \"string\",\n  \"title\": \"string\",\n  \"status\": 9719,\n  \"detail\": \"string\",\n  \"errors\": {\n    \"key_0\": [\n      \"string\",\n      \"string\"\n    ]\n  }\n}"
+                  "body": "{\n  \"type\": \"https://tools.ietf.org/html/rfc7231#section-6.5.1\",\n  \"title\": \"Du lieu khong hop le\",\n  \"status\": 400,\n  \"errors\": [\n    \"Ten khong duoc de trong.\",\n    \"Ten danh muc khong duoc qua 100 ky tu.\"\n  ],\n  \"traceId\": \"00-abc123def456-xyz789-00\"\n}"
                 }
               ]
             }
@@ -2472,16 +2714,6 @@
             {
               "name": "Lấy danh sách sản phẩm (phân trang)",
               "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4OGNjYmU1NS0wYzkwLTQ5NzMtOWZhYy03YTkyYjcwNGQ5NTYiLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiI4OGNjYmU1NS0wYzkwLTQ5NzMtOWZhYy03YTkyYjcwNGQ5NTYiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbmlzdHJhdG9yIiwiZXhwIjoxNzcwMjY2MjEyLCJpc3MiOiJCaUJvR0MiLCJhdWQiOiJCaUJvR0MuQ2xpZW50In0.TeW-5N6n4hC8U_NqYbUYYfzAlTpfXj0vFy7JYBurAv4",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "method": "GET",
                 "header": [
                   {
@@ -2490,9 +2722,9 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{baseUrl}}/api/products?pageNumber=1&pageSize=10&searchTerm=",
+                  "raw": "{{testUrl}}/api/products?pageNumber=1&pageSize=10&searchTerm=&status=&categoryId=&supplierId=&isLowStock=",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{testUrl}}"
                   ],
                   "path": [
                     "api",
@@ -2502,25 +2734,49 @@
                     {
                       "key": "pageNumber",
                       "value": "1",
-                      "description": "Số trang (bắt đầu từ 1)"
+                      "description": "Loai: int | Default: 1 | Trang hien tai (bat dau tu 1)"
                     },
                     {
                       "key": "pageSize",
                       "value": "10",
-                      "description": "Số lượng item mỗi trang (1-100)"
+                      "description": "Loai: int | Default: 10 | Max: 100 | So luong item moi trang"
                     },
                     {
                       "key": "searchTerm",
                       "value": "",
-                      "description": "Từ khóa tìm kiếm"
+                      "description": "Loai: string | Tim kiem theo: Ten san pham, SKU chung, SKU bien the, Mo ta. Khong phan biet hoa thuong."
+                    },
+                    {
+                      "key": "status",
+                      "value": "",
+                      "description": "Loai: int (enum) | Loc theo trang thai: Active=1, Inactive=2, Discontinued=3, OutOfStock=4. De trong = tat ca trang thai.",
+                      "disabled": true
+                    },
+                    {
+                      "key": "categoryId",
+                      "value": "",
+                      "description": "Loai: GUID | Loc san pham thuoc danh muc nay. De trong = tat ca danh muc.",
+                      "disabled": true
+                    },
+                    {
+                      "key": "supplierId",
+                      "value": "",
+                      "description": "Loai: GUID | Loc san pham da duoc nhap tu nha cung cap nay (co giao dich Purchase trong StockTransactions). De trong = tat ca nha cung cap.",
+                      "disabled": true
+                    },
+                    {
+                      "key": "isLowStock",
+                      "value": "true",
+                      "description": "Loai: bool | true = Chi lay san pham co TotalStock < LowStockThreshold (sap het hang). false hoac de trong = tat ca.",
+                      "disabled": true
                     }
                   ]
                 },
-                "description": "Lấy danh sách sản phẩm với hỗ trợ phân trang và tìm kiếm.\n\n**Tìm kiếm:**\n\n- Tìm theo tên, SKU, mô tả\n    \n- Không phân biệt hoa thường"
+                "description": "Lay danh sach san pham co phan trang, tim kiem va loc nhieu tieu chi.\nKet qua luon duoc sap xep theo san pham moi tao nhat.\n\n**Tim kiem (searchTerm):**\n- Ten san pham\n- SKU chung (SkuGeneral)\n- SKU bien the\n- Mo ta san pham\n- Khong phan biet hoa thuong\n\n**Loc (filters):**\n| Param | Kieu | Mo ta |\n|---|---|---|\n| `status` | int (enum) | Active=1, Inactive=2, Discontinued=3, OutOfStock=4 |\n| `categoryId` | GUID | San pham thuoc danh muc nay |\n| `supplierId` | GUID | San pham da duoc nhap tu nha cung cap nay |\n| `isLowStock` | bool | true = TotalStock < LowStockThreshold |\n\n**Phan trang:**\n- pageNumber: so trang (bat dau tu 1)\n- pageSize: so item moi trang (default 10, max 100)\n\n**Sort:** Luon sap xep theo CreatedAt giam dan (moi nhat truoc)"
               },
               "response": [
                 {
-                  "name": "Danh sách sản phẩm phân trang",
+                  "name": "Danh sach san pham phan trang",
                   "originalRequest": {
                     "method": "GET",
                     "header": [
@@ -2530,7 +2786,7 @@
                       }
                     ],
                     "url": {
-                      "raw": "{{testUrl}}/api/products?pageNumber=1&pageSize=10&searchTerm=string",
+                      "raw": "{{testUrl}}/api/products?pageNumber=1&pageSize=10&searchTerm=&status=&categoryId=&supplierId=&isLowStock=",
                       "host": [
                         "{{testUrl}}"
                       ],
@@ -2542,17 +2798,41 @@
                         {
                           "key": "pageNumber",
                           "value": "1",
-                          "description": "Số trang (bắt đầu từ 1)"
+                          "description": "Loai: int | Default: 1 | Trang hien tai (bat dau tu 1)"
                         },
                         {
                           "key": "pageSize",
                           "value": "10",
-                          "description": "Số lượng item mỗi trang (1-100)"
+                          "description": "Loai: int | Default: 10 | Max: 100 | So luong item moi trang"
                         },
                         {
                           "key": "searchTerm",
-                          "value": "string",
-                          "description": "Từ khóa tìm kiếm"
+                          "value": "",
+                          "description": "Loai: string | Tim kiem theo: Ten san pham, SKU chung, SKU bien the, Mo ta. Khong phan biet hoa thuong."
+                        },
+                        {
+                          "key": "status",
+                          "value": "",
+                          "description": "Loai: int (enum) | Loc theo trang thai: Active=1, Inactive=2, Discontinued=3, OutOfStock=4. De trong = tat ca trang thai.",
+                          "disabled": true
+                        },
+                        {
+                          "key": "categoryId",
+                          "value": "",
+                          "description": "Loai: GUID | Loc san pham thuoc danh muc nay. De trong = tat ca danh muc.",
+                          "disabled": true
+                        },
+                        {
+                          "key": "supplierId",
+                          "value": "",
+                          "description": "Loai: GUID | Loc san pham da duoc nhap tu nha cung cap nay (co giao dich Purchase trong StockTransactions). De trong = tat ca nha cung cap.",
+                          "disabled": true
+                        },
+                        {
+                          "key": "isLowStock",
+                          "value": "true",
+                          "description": "Loai: bool | true = Chi lay san pham co TotalStock < LowStockThreshold (sap het hang). false hoac de trong = tat ca.",
+                          "disabled": true
                         }
                       ]
                     }
@@ -2567,7 +2847,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"items\": [\n    {\n      \"id\": \"f1060d89-cebe-a1be-3d54-df4a49a55341\",\n      \"name\": \"string\",\n      \"sku\": \"string\",\n      \"price\": 9520.058517658512,\n      \"description\": \"string\",\n      \"status\": \"string\",\n      \"requiresBatchTracking\": true,\n      \"totalStock\": 1797,\n      \"availableStock\": 6025,\n      \"expiredStock\": 8797,\n      \"expiringSoonStock\": 8802,\n      \"categoryId\": \"474758dd-4cf0-ecaf-3192-ba9d2c81cd78\",\n      \"categoryName\": \"string\",\n      \"createdAt\": \"2023-03-07T00:09:17.274Z\",\n      \"updatedAt\": \"2006-06-23T07:53:35.984Z\",\n      \"batches\": [\n        {\n          \"id\": \"3c471fdc-8db4-6a33-9f46-2935b02da4bf\",\n          \"productId\": \"d0db3250-3504-b514-d6cb-c45ef0197e1d\",\n          \"batchNumber\": \"string\",\n          \"quantity\": 833,\n          \"manufacturingDate\": \"1969-08-16T01:24:29.367Z\",\n          \"expirationDate\": \"1960-07-10T01:27:29.874Z\",\n          \"costPrice\": 9208.385331514548,\n          \"isExpired\": false,\n          \"daysUntilExpiration\": 4753,\n          \"isExpiringSoon\": true\n        },\n        {\n          \"id\": \"e4cb6184-f086-3590-2df8-19d860c8f3fc\",\n          \"productId\": \"edf53865-5ef4-3d9e-28db-17156c3d030b\",\n          \"batchNumber\": \"string\",\n          \"quantity\": 2081,\n          \"manufacturingDate\": \"1954-03-30T03:57:54.322Z\",\n          \"expirationDate\": \"1987-08-17T04:28:54.940Z\",\n          \"costPrice\": 3957.2871678253896,\n          \"isExpired\": false,\n          \"daysUntilExpiration\": 6729,\n          \"isExpiringSoon\": false\n        }\n      ]\n    },\n    {\n      \"id\": \"c9359f98-5cd8-38ce-9b45-a70d462de6e4\",\n      \"name\": \"string\",\n      \"sku\": \"string\",\n      \"price\": 3904.8697762542297,\n      \"description\": \"string\",\n      \"status\": \"string\",\n      \"requiresBatchTracking\": false,\n      \"totalStock\": 6174,\n      \"availableStock\": 1104,\n      \"expiredStock\": 738,\n      \"expiringSoonStock\": 4739,\n      \"categoryId\": \"d547e6d3-1571-4ab3-974c-8ecb92c588ca\",\n      \"categoryName\": \"string\",\n      \"createdAt\": \"1954-04-20T22:39:28.810Z\",\n      \"updatedAt\": \"2012-02-07T18:42:49.476Z\",\n      \"batches\": [\n        {\n          \"id\": \"82c7e107-3137-085c-7ada-13215cba3790\",\n          \"productId\": \"0cbab9b3-922c-94d7-1aae-4c211c11719e\",\n          \"batchNumber\": \"string\",\n          \"quantity\": 955,\n          \"manufacturingDate\": \"1971-11-08T02:34:34.786Z\",\n          \"expirationDate\": \"1958-11-03T12:37:50.830Z\",\n          \"costPrice\": 9511.052109849386,\n          \"isExpired\": true,\n          \"daysUntilExpiration\": 1875,\n          \"isExpiringSoon\": false\n        },\n        {\n          \"id\": \"6090a474-a4ab-a814-f57f-f308ebfd334f\",\n          \"productId\": \"62941dd1-17bd-f456-4d35-085b0f6ae7c4\",\n          \"batchNumber\": \"string\",\n          \"quantity\": 1058,\n          \"manufacturingDate\": \"1957-10-18T01:15:06.690Z\",\n          \"expirationDate\": \"1947-01-10T12:20:24.321Z\",\n          \"costPrice\": 55.37438922751603,\n          \"isExpired\": false,\n          \"daysUntilExpiration\": 2363,\n          \"isExpiringSoon\": true\n        }\n      ]\n    }\n  ],\n  \"pageNumber\": 8427,\n  \"pageSize\": 1438,\n  \"totalCount\": 6010,\n  \"totalPages\": 5563,\n  \"hasPrevious\": false,\n  \"hasNext\": false\n}"
+                  "body": "{\n  \"items\": [\n    {\n      \"id\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n      \"name\": \"Coca Cola lon 330ml\",\n      \"sku\": \"COCA-330\",\n      \"price\": 12000,\n      \"currency\": \"VND\",\n      \"description\": \"Nuoc ngot co gas Coca Cola lon 330ml\",\n      \"status\": \"Active\",\n      \"categoryId\": \"a1b2c3d4-0000-0000-0000-000000000001\",\n      \"categoryName\": \"Do uong\",\n      \"lowStockThreshold\": 20,\n      \"requiresBatchTracking\": true,\n      \"totalStock\": 150,\n      \"availableStock\": 120,\n      \"expiredStock\": 10,\n      \"expiringSoonStock\": 20,\n      \"createdAt\": \"2026-04-14T08:00:00Z\",\n      \"updatedAt\": \"2026-04-14T10:00:00Z\",\n      \"recentBatches\": [\n        {\n          \"id\": \"b1c2d3e4-0000-0000-0000-000000000001\",\n          \"productId\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n          \"batchNumber\": \"BATCH-2026-001\",\n          \"quantity\": 100,\n          \"manufacturingDate\": \"2026-01-01T00:00:00Z\",\n          \"expirationDate\": \"2027-01-01T00:00:00Z\",\n          \"costPrice\": 9000,\n          \"isExpired\": false,\n          \"daysUntilExpiration\": 261,\n          \"isExpiringSoon\": false\n        }\n      ],\n      \"variants\": [\n        {\n          \"id\": \"c1d2e3f4-0000-0000-0000-000000000001\",\n          \"sku\": \"COCA-330-LON\",\n          \"barcode\": \"8934588012345\",\n          \"productId\": \"46b70c27-ad2f-00e2-e872-bdf2949be90c\",\n          \"productName\": \"Coca Cola lon 330ml\",\n          \"variantName\": \"Lon 330ml\",\n          \"unit\": \"Can\",\n          \"unitName\": \"Lon\",\n          \"quantityBaseUnit\": 1,\n          \"salePrice\": 12000,\n          \"costPrice\": 9000,\n          \"displayOrder\": 1,\n          \"createdAt\": \"2026-04-14T08:00:00Z\",\n          \"updatedAt\": null\n        }\n      ]\n    },\n    {\n      \"id\": \"f1deb8dc-ab99-24ac-ee33-01ac59d0f48c\",\n      \"name\": \"Pepsi lon 330ml\",\n      \"sku\": \"PEPSI-330\",\n      \"price\": 11000,\n      \"currency\": \"VND\",\n      \"description\": \"Nuoc ngot co gas Pepsi lon 330ml\",\n      \"status\": \"Active\",\n      \"categoryId\": \"a1b2c3d4-0000-0000-0000-000000000001\",\n      \"categoryName\": \"Do uong\",\n      \"lowStockThreshold\": 15,\n      \"requiresBatchTracking\": true,\n      \"totalStock\": 10,\n      \"availableStock\": 10,\n      \"expiredStock\": 0,\n      \"expiringSoonStock\": 0,\n      \"createdAt\": \"2026-04-10T08:00:00Z\",\n      \"updatedAt\": null,\n      \"recentBatches\": [],\n      \"variants\": []\n    }\n  ],\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"totalCount\": 2,\n  \"totalPages\": 1,\n  \"hasPrevious\": false,\n  \"hasNext\": false\n}"
                 },
                 {
                   "name": "Tham số không hợp lệ",
@@ -2580,7 +2860,7 @@
                       }
                     ],
                     "url": {
-                      "raw": "{{testUrl}}/api/products?pageNumber=1&pageSize=10&searchTerm=string",
+                      "raw": "{{testUrl}}/api/products?pageNumber=1&pageSize=10&searchTerm=&status=&categoryId=&supplierId=&isLowStock=",
                       "host": [
                         "{{testUrl}}"
                       ],
@@ -2592,17 +2872,41 @@
                         {
                           "key": "pageNumber",
                           "value": "1",
-                          "description": "Số trang (bắt đầu từ 1)"
+                          "description": "Loai: int | Default: 1 | Trang hien tai (bat dau tu 1)"
                         },
                         {
                           "key": "pageSize",
                           "value": "10",
-                          "description": "Số lượng item mỗi trang (1-100)"
+                          "description": "Loai: int | Default: 10 | Max: 100 | So luong item moi trang"
                         },
                         {
                           "key": "searchTerm",
-                          "value": "string",
-                          "description": "Từ khóa tìm kiếm"
+                          "value": "",
+                          "description": "Loai: string | Tim kiem theo: Ten san pham, SKU chung, SKU bien the, Mo ta. Khong phan biet hoa thuong."
+                        },
+                        {
+                          "key": "status",
+                          "value": "",
+                          "description": "Loai: int (enum) | Loc theo trang thai: Active=1, Inactive=2, Discontinued=3, OutOfStock=4. De trong = tat ca trang thai.",
+                          "disabled": true
+                        },
+                        {
+                          "key": "categoryId",
+                          "value": "",
+                          "description": "Loai: GUID | Loc san pham thuoc danh muc nay. De trong = tat ca danh muc.",
+                          "disabled": true
+                        },
+                        {
+                          "key": "supplierId",
+                          "value": "",
+                          "description": "Loai: GUID | Loc san pham da duoc nhap tu nha cung cap nay (co giao dich Purchase trong StockTransactions). De trong = tat ca nha cung cap.",
+                          "disabled": true
+                        },
+                        {
+                          "key": "isLowStock",
+                          "value": "true",
+                          "description": "Loai: bool | true = Chi lay san pham co TotalStock < LowStockThreshold (sap het hang). false hoac de trong = tat ca.",
+                          "disabled": true
                         }
                       ]
                     }
@@ -2617,7 +2921,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"type\": \"string\",\n  \"title\": \"string\",\n  \"status\": 9719,\n  \"detail\": \"string\",\n  \"errors\": {\n    \"key_0\": [\n      \"string\",\n      \"string\"\n    ]\n  }\n}"
+                  "body": "{\n  \"type\": \"https://tools.ietf.org/html/rfc7231#section-6.5.1\",\n  \"title\": \"Du lieu khong hop le\",\n  \"status\": 400,\n  \"errors\": [\n    \"pageNumber phai lon hon 0.\",\n    \"pageSize phai nam trong khoang 1-100.\"\n  ],\n  \"traceId\": \"00-abc123def456-xyz789-00\"\n}"
                 }
               ]
             },

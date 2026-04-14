@@ -62,7 +62,14 @@
       "Bash(cp \"/c/Users/ttloc/OneDrive - Netcompany/Desktop/Learn/BiBoGC/DocumentationTemplate/ProductExists.xlsx\" \"/c/Users/ttloc/OneDrive - Netcompany/Desktop/Learn/BiBoGC/BiBoGC/InventoryManagement.Infrastructure/Templates/ProductExists.xlsx\")",
       "Bash(npx tsc:*)",
       "Bash(cmd /c \"cd /d \\\\\"C:\\\\Users\\\\ttloc\\\\OneDrive - Netcompany\\\\Desktop\\\\Learn\\\\BiBoGC\\\\admin-dashboard\\\\\" && npx tsc --noEmit 2>&1\")",
-      "Bash(cmd /c \"cd /d E:\\\\Github-Repository\\\\BiBo-s-GC\\\\admin-dashboard && npx tsc --noEmit 2>&1\")"
+      "Bash(cmd /c \"cd /d E:\\\\Github-Repository\\\\BiBo-s-GC\\\\admin-dashboard && npx tsc --noEmit 2>&1\")",
+      "Bash(grep -E \"\\\\.\\(cs\\)$\")",
+      "Bash(grep \"\\\\.cs$\")",
+      "Read(//mnt/**)",
+      "Bash(ls /mnt/)",
+      "Read(//e//**)",
+      "Bash(ls /cmd/)",
+      "Bash(py -3 -c \"import os; print\\(os.getcwd\\(\\)\\)\")"
     ]
   }
 }
