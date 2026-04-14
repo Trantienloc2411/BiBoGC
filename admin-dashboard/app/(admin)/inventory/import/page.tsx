@@ -17,7 +17,7 @@ import { formatCurrency, formatNumber } from '@/lib/utils'
 import {
   ArrowLeft, Check, Search, Plus, ChevronRight,
   Building2, Package, Layers, Receipt, AlertCircle,
-  Pencil, Save, Clock,
+  Pencil, Save, Clock, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -404,8 +404,9 @@ export default function ImportProductPage() {
         <button
           type="button"
           onClick={() => handleNavigateAway('/inventory/products')}
-          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-          <ArrowLeft size={18} />
+          className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg shadow-sm transition-colors shrink-0">
+          <ArrowLeft size={15} />
+          Quay lại
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-gray-800">Nhập hàng</h1>
@@ -709,7 +710,7 @@ export default function ImportProductPage() {
               </div>
 
               <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-between">
-                <Button type="button" variant="secondary" onClick={() => setStep(1)}>Quay lại</Button>
+                <Button type="button" variant="secondary" onClick={() => setStep(1)} className="gap-1.5"><ArrowLeft size={14} /> Quay lại</Button>
                 <Button type="button" onClick={goToStep3} className="gap-1.5">
                   Tiếp theo <ChevronRight size={15} />
                 </Button>
@@ -791,7 +792,7 @@ export default function ImportProductPage() {
                 </div>
 
                 <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-between">
-                  <Button type="button" variant="secondary" onClick={() => setStep(2)}>Quay lại</Button>
+                  <Button type="button" variant="secondary" onClick={() => setStep(2)} className="gap-1.5"><ArrowLeft size={14} /> Quay lại</Button>
                   <Button type="submit" loading={submitting} className="gap-1.5">
                     <Check size={15} /> Xác nhận nhập hàng
                   </Button>
@@ -919,9 +920,10 @@ export default function ImportProductPage() {
             <button
               type="button"
               onClick={() => handleNavigateAway('/inventory/products')}
-              className="w-full text-center text-sm text-gray-400 hover:text-gray-600 py-2 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-500 hover:text-red-700 bg-white hover:bg-red-50 border border-red-200 hover:border-red-300 rounded-xl transition-colors"
             >
-              Huỷ và quay lại
+              <X size={15} />
+              Hủy nhập hàng
             </button>
 
           </div>

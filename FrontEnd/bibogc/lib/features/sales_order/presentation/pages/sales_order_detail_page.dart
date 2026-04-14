@@ -33,9 +33,16 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SalesOrderBloc, SalesOrderState>(
-      listenWhen: (prev, curr) =>
-          curr.actionStatus != prev.actionStatus &&
-          curr.actionStatus != SalesOrderStatus.initial,
+      listenWhen: (prev, curr) {
+        final hasFailure =
+            curr.actionStatus != prev.actionStatus &&
+            curr.actionStatus == SalesOrderStatus.failure;
+        final hasNewGeneratedInvoice =
+            curr.actionStatus == SalesOrderStatus.success &&
+            curr.generatedInvoice != null &&
+            curr.generatedInvoice != prev.generatedInvoice;
+        return hasFailure || hasNewGeneratedInvoice;
+      },
       listener: (context, state) {
         if (state.actionStatus == SalesOrderStatus.failure) {
           DialogUtils.showErrorDialog(
@@ -43,7 +50,6 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
             message: state.errorMessage ?? 'Thao tác thất bại',
           );
         }
-        // Keep user on this page so they can continue actions after export.
         if (state.actionStatus == SalesOrderStatus.success &&
             state.generatedInvoice != null) {
           DialogUtils.showSuccessDialog(
@@ -51,7 +57,7 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
             message: 'Xuất hóa đơn thành công!',
             onPressed: () {
               HomeRefreshBus.trigger();
-              context.go(AppRoutes.home);
+              context.go(AppRoutes.invoiceDetail(state.generatedInvoice!.id));
             },
           );
         }
