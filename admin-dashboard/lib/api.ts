@@ -75,7 +75,7 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<Respon
       status: 0,
       statusText: 'Network Error',
       path,
-      message: 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.',
+      title: 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.',
     })
     throw err
   }
@@ -124,7 +124,7 @@ async function apiDownload(path: string): Promise<{ blob: Blob; filename: string
       status: 0,
       statusText: 'Network Error',
       path,
-      message: 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.',
+      title: 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.',
     })
     throw err
   }
