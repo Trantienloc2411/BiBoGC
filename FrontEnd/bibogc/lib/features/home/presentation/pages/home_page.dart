@@ -170,38 +170,47 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildTabletLayout(BuildContext context) {
+    final theme = Theme.of(context);
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+
     return Row(
       children: [
-        NavigationRail(
-          selectedIndex: 0,
-          onDestinationSelected: (int index) {
-            switch (index) {
-              case 0:
-                context.go(AppRoutes.home);
-                break;
-              case 1:
-                context.push(AppRoutes.salesOrders);
-                break;
-              case 2:
-                context.push(AppRoutes.invoices);
-                break;
-            }
-          },
-          labelType: NavigationRailLabelType.all,
-          destinations: const [
-            NavigationRailDestination(
-              icon: Icon(Icons.home),
-              label: Text('Trang chủ'),
-            ),
-            NavigationRailDestination(
-              icon: Icon(Icons.receipt_long),
-              label: Text('Đơn hàng'),
-            ),
-            NavigationRailDestination(
-              icon: Icon(Icons.description),
-              label: Text('Hóa đơn'),
-            ),
-          ],
+        // Offset the rail by the status bar height so its first item aligns
+        // with the AppBar content baseline in the right column.
+        Container(
+          color: theme.colorScheme.surface,
+          padding: EdgeInsets.only(top: statusBarHeight),
+          child: NavigationRail(
+            selectedIndex: 0,
+            onDestinationSelected: (int index) {
+              switch (index) {
+                case 0:
+                  context.go(AppRoutes.home);
+                  break;
+                case 1:
+                  context.push(AppRoutes.salesOrders);
+                  break;
+                case 2:
+                  context.push(AppRoutes.invoices);
+                  break;
+              }
+            },
+            labelType: NavigationRailLabelType.all,
+            destinations: const [
+              NavigationRailDestination(
+                icon: Icon(Icons.home),
+                label: Text('Trang chủ'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.receipt_long),
+                label: Text('Đơn hàng'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.description),
+                label: Text('Hóa đơn'),
+              ),
+            ],
+          ),
         ),
         const VerticalDivider(thickness: 1, width: 1),
         Expanded(

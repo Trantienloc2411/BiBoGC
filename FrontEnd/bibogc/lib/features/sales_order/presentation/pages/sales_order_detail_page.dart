@@ -1,5 +1,7 @@
 import 'package:bibogc/core/utils/currency_utils.dart';
 import 'package:bibogc/core/utils/dialog_utils.dart';
+import 'package:bibogc/core/utils/thousands_separator_formatter.dart';
+import 'package:bibogc/core/widgets/denomination_grid.dart';
 import 'package:bibogc/core/config/app_routes.dart';
 import 'package:bibogc/core/events/home_refresh_bus.dart';
 import 'package:bibogc/features/sales_order/domain/entities/sales_order.dart';
@@ -580,40 +582,121 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
 
   void _applyDiscount(BuildContext context, SalesOrder order) {
     final controller = TextEditingController();
+
+    void addDenomination(int denom) {
+      final current =
+          double.tryParse(controller.text.replaceAll(',', '')) ?? 0;
+      final newValue = current + denom;
+      final formatted = CurrencyUtils.formatNumber(newValue);
+      controller.text = formatted;
+      controller.selection =
+          TextSelection.collapsed(offset: formatted.length);
+    }
+
+    void resetAmount() {
+      controller.text = '';
+    }
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Áp dụng giảm giá'),
-        content: TextField(
-          controller: controller,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            labelText: 'Số tiền giảm',
-            suffixText: '₫',
-            border: OutlineInputBorder(),
+      builder: (ctx) {
+        final theme = Theme.of(ctx);
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 32,
+            vertical: 40,
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Hủy'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-          ElevatedButton(
-            onPressed: () {
-              final amount =
-                  double.tryParse(controller.text.replaceAll(',', '')) ?? 0;
-              Navigator.of(ctx).pop();
-              context.read<SalesOrderBloc>().add(
-                SalesOrderDiscountApplied(
-                  orderId: order.id,
-                  discountAmount: amount,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 460, maxWidth: 520),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(28, 24, 28, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Áp dụng giảm giá',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: controller,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [ThousandsSeparatorFormatter()],
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        labelText: 'Số tiền giảm',
+                        suffixText: '₫',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DenominationGrid(
+                      onTap: addDenomination,
+                      onReset: resetAmount,
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            style: TextButton.styleFrom(
+                              minimumSize: const Size(0, 52),
+                              foregroundColor: theme.colorScheme.onSurface
+                                  .withAlpha(150),
+                            ),
+                            child: const Text('Hủy'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size(0, 52),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            onPressed: () {
+                              final amount = double.tryParse(
+                                    controller.text.replaceAll(',', ''),
+                                  ) ??
+                                  0;
+                              Navigator.of(ctx).pop();
+                              context.read<SalesOrderBloc>().add(
+                                SalesOrderDiscountApplied(
+                                  orderId: order.id,
+                                  discountAmount: amount,
+                                ),
+                              );
+                            },
+                            child: const Text('Áp dụng'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              );
-            },
-            child: const Text('Áp dụng'),
+              ),
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
