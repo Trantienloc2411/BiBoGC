@@ -245,13 +245,22 @@ export interface InvoiceDto {
 
 // ─── Notifications ────────────────────────────────────────────────────────────
 
+export type NotificationTypeName =
+  | 'Info' | 'Warning' | 'Error'
+  | 'NewOrder' | 'OrderCancelled' | 'OrderCompleted'
+  | 'StockReceived' | 'LowStock' | 'OutOfStock' | 'BatchAdded'
+  | 'PriceChanged' | 'ProductDiscontinued'
+
 export interface NotificationDto {
   id: string
   title: string
   message: string
-  type: 'info' | 'warning' | 'error'
+  type: NotificationTypeName
+  role: string
   isRead: boolean
   createdAt: string
+  referenceId?: string | null
+  referenceType?: string | null
 }
 
 export interface NotificationPagedResult {

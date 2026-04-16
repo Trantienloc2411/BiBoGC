@@ -146,6 +146,8 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
                 );
 
                 await _stockTransactionRepository.AddAsync(stockTransaction, cancellationToken);
+
+                await NotifyStockAlertAsync(product, cancellationToken);
             }
         }
         catch (Exception ex)
@@ -172,12 +174,38 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
         await _notificationService.NotifyAsync(
             "Đơn hàng hoàn thành",
             $"Đơn hàng {order.OrderNumber} đã được thanh toán thành công. Tổng tiền: {order.TotalAmount:N0}đ.",
-            NotificationType.Info,
+            NotificationType.OrderCompleted,
             NotificationRole.Both,
             order.Id,
             "SalesOrder",
             cancellationToken);
 
         return Result<SalesOrderDto>.Success(dto);
+    }
+
+    private async Task NotifyStockAlertAsync(Product product, CancellationToken cancellationToken)
+    {
+        if (product.Status == ProductStatuses.OutOfStock)
+        {
+            await _notificationService.NotifyAsync(
+                "Sản phẩm hết hàng",
+                $"Sản phẩm '{product.Name}' đã hết hàng.",
+                NotificationType.OutOfStock,
+                NotificationRole.Admin,
+                product.Id,
+                "Product",
+                cancellationToken);
+        }
+        else if (product.IsLowStock())
+        {
+            await _notificationService.NotifyAsync(
+                "Sắp hết hàng",
+                $"Sản phẩm '{product.Name}' sắp hết hàng. Tồn kho hiện tại: {product.TotalStock} (ngưỡng: {product.LowStockThreshold}).",
+                NotificationType.LowStock,
+                NotificationRole.Admin,
+                product.Id,
+                "Product",
+                cancellationToken);
+        }
     }
 }

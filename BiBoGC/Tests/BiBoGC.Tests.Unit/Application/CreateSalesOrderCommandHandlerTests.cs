@@ -3,6 +3,7 @@ using Moq;
 using Sale.Application.Commands.CreateSalesOrder;
 using Sale.Application.Interfaces;
 using Sale.Domain.Enum;
+using Shared.Application.Interfaces;
 
 namespace BiBoGC.Tests.Unit.Application;
 
@@ -10,10 +11,11 @@ public class CreateSalesOrderCommandHandlerTests
 {
     private readonly Mock<IOrderNumberGenerator> _generatorMock = new();
     private readonly Mock<ISalesOrderRepository> _orderRepoMock = new();
+    private readonly Mock<INotificationService> _notificationMock = new();
 
     private CreateSalesOrderCommandHandler CreateHandler()
     {
-        return new CreateSalesOrderCommandHandler(_orderRepoMock.Object, _generatorMock.Object);
+        return new CreateSalesOrderCommandHandler(_orderRepoMock.Object, _generatorMock.Object, _notificationMock.Object);
     }
 
     // ── Happy path ────────────────────────────────────────────────────────────

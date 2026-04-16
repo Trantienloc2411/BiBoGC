@@ -6,6 +6,7 @@ using InventoryManagement.Domain.Entities;
 using InventoryManagement.Domain.Enums;
 using InventoryManagement.Domain.ValueObjects;
 using Moq;
+using Shared.Application.Interfaces;
 
 namespace BiBoGC.Tests.Unit.Application;
 
@@ -13,10 +14,11 @@ public class AddBatchCommandHandlerTests
 {
     private readonly Mock<IProductBatchRepository> _batchRepoMock = new();
     private readonly Mock<IProductRepository> _productRepoMock = new();
+    private readonly Mock<INotificationService> _notificationMock = new();
 
     private AddBatchCommandHandler CreateHandler()
     {
-        return new AddBatchCommandHandler(_productRepoMock.Object, _batchRepoMock.Object);
+        return new AddBatchCommandHandler(_productRepoMock.Object, _batchRepoMock.Object, _notificationMock.Object);
     }
 
     private static Product BuildProduct()

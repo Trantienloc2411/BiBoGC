@@ -4,16 +4,18 @@ using Sale.Application.Commands.CancelOrder;
 using Sale.Application.Interfaces;
 using Sale.Domain.Domain;
 using Sale.Domain.Enum;
+using Shared.Application.Interfaces;
 
 namespace BiBoGC.Tests.Unit.Application;
 
 public class CancelOrderCommandHandlerTests
 {
     private readonly Mock<ISalesOrderRepository> _orderRepoMock = new();
+    private readonly Mock<INotificationService> _notificationMock = new();
 
     private CancelOrderCommandHandler CreateHandler()
     {
-        return new CancelOrderCommandHandler(_orderRepoMock.Object);
+        return new CancelOrderCommandHandler(_orderRepoMock.Object, _notificationMock.Object);
     }
 
     private static SalesOrder DraftOrder()

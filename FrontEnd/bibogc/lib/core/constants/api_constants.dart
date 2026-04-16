@@ -31,4 +31,8 @@ class ApiConstants {
 
   // Invoices
   static const String invoices = '/api/invoices';
+
+  // Notifications
+  static const String notifications = '/api/notifications';
+  static const String notificationsHub = '/hubs/notifications';
 }
