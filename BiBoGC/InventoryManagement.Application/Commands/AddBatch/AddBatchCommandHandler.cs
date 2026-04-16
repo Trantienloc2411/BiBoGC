@@ -50,8 +50,11 @@ public class AddBatchCommandHandler : IRequestHandler<AddBatchCommand, Result<Pr
                 );
 
             // Save changes
+            var result = await _productBatchesRepository.AddAsync(productBatch, cancellationToken);
 
-            var result =  await _productBatchesRepository.AddAsync( productBatch, cancellationToken );
+            // Sync TotalStock on the product to match the added batch quantity
+            product.IncreaseStock(request.Quantity);
+            await _productRepository.UpdateAsync(product, cancellationToken);
 
             // Return DTO
             var dto = ProductBatchDto.FromEntity(result);

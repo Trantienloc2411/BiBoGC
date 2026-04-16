@@ -91,6 +91,10 @@ public class Product : BaseEntity
             throw new ArgumentOutOfRangeException("Số lượng phải lớn hơn 0", nameof(quantityBaseUnit));
 
         TotalStock += quantityBaseUnit;
+
+        if (Status == ProductStatuses.OutOfStock && TotalStock > 0)
+            Status = ProductStatuses.Active;
+
         UpdatedAt = DateTime.UtcNow;
     }
 
