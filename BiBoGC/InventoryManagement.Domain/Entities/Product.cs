@@ -107,8 +107,17 @@ public class Product : BaseEntity
             throw new InvalidOperationException($"Không đủ số lượng hàng trong kho. Tồn kho hiện tại: {TotalStock}.");
 
         TotalStock -= quantityBaseUnit;
+
         if (TotalStock == 0)
+        {
             Status = ProductStatuses.OutOfStock;
+            RaiseDomainEvent(new ProductOutOfStockEvent(Id, Name));
+        }
+        else if (IsLowStock())
+        {
+            RaiseDomainEvent(new ProductLowStockEvent(Id, Name, TotalStock, LowStockThreshold!.Value));
+        }
+
         UpdatedAt = DateTime.UtcNow;
     }
 

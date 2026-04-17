@@ -43,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
         services.AddScoped<IProductExportService, ProductExportService>();
+        services.AddScoped<IProductImportService, ProductImportService>();
 
         return services;
     }
@@ -104,6 +105,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
         services.AddScoped<IProductExportService, ProductExportService>();
+        services.AddScoped<IProductImportService, ProductImportService>();
 
         return services;
     }

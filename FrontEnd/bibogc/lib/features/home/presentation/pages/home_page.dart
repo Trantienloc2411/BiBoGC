@@ -10,6 +10,8 @@ import '../../../../core/events/home_refresh_bus.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../../invoice/presentation/bloc/invoice_bloc.dart';
+import '../../../notification/presentation/bloc/notification_bloc.dart';
+import '../../../notification/presentation/bloc/notification_event.dart';
 import '../../../sales_order/presentation/bloc/sales_order_bloc.dart';
 import '../../presentation/widgets/home_app_bar.dart';
 import '../../presentation/widgets/quick_actions_grid.dart';
@@ -27,6 +29,7 @@ class _HomePageState extends State<HomePage> {
   // Own the bloc instances so we can refresh them without needing context.read
   late final SalesOrderBloc _salesOrderBloc;
   late final InvoiceBloc _invoiceBloc;
+  late final NotificationBloc _notificationBloc;
 
   // Daily summary state
   double? _totalRevenue;
@@ -43,6 +46,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _salesOrderBloc = getIt<SalesOrderBloc>()..add(const SalesOrdersStarted());
     _invoiceBloc = getIt<InvoiceBloc>()..add(const InvoicesStarted());
+    _notificationBloc = getIt<NotificationBloc>()..add(const NotificationStarted());
     _loadDailySummary();
     _homeRefreshSub = HomeRefreshBus.stream.listen((_) => _refreshData());
   }
@@ -63,6 +67,7 @@ class _HomePageState extends State<HomePage> {
     _homeRefreshSub?.cancel();
     _salesOrderBloc.close();
     _invoiceBloc.close();
+    _notificationBloc.close();
     super.dispose();
   }
 
@@ -119,6 +124,7 @@ class _HomePageState extends State<HomePage> {
       providers: [
         BlocProvider.value(value: _salesOrderBloc),
         BlocProvider.value(value: _invoiceBloc),
+        BlocProvider.value(value: _notificationBloc),
       ],
       child: Scaffold(
         body: LayoutBuilder(

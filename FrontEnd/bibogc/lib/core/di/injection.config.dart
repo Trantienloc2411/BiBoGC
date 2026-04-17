@@ -57,6 +57,14 @@ import '../../features/suppliers/data/repositories/supplier_repository_impl.dart
     as _i427;
 import '../../features/suppliers/domain/repositories/supplier_repository.dart'
     as _i642;
+import '../../features/notification/data/datasources/notification_remote_datasource.dart'
+    as _i803;
+import '../../features/notification/data/repositories/notification_repository_impl.dart'
+    as _i804;
+import '../../features/notification/domain/repositories/notification_repository.dart'
+    as _i805;
+import '../../features/notification/presentation/bloc/notification_bloc.dart'
+    as _i806;
 import '../../features/suppliers/presentation/bloc/supplier_bloc.dart' as _i720;
 import '../network/dio_client.dart' as _i667;
 import '../network/network_service.dart' as _i1025;
@@ -95,6 +103,18 @@ extension GetItInjectableX on _i174.GetIt {
         storage: gh<_i558.FlutterSecureStorage>(),
         logger: gh<_i974.Logger>(),
         networkService: gh<_i1025.NetworkService>(),
+      ),
+    );
+    gh.lazySingleton<_i803.NotificationRemoteDataSource>(
+      () => _i803.NotificationRemoteDataSourceImpl(
+        gh<_i667.DioClient>(),
+        gh<_i558.FlutterSecureStorage>(),
+        gh<_i974.Logger>(),
+      ),
+    );
+    gh.lazySingleton<_i805.NotificationRepository>(
+      () => _i804.NotificationRepositoryImpl(
+        gh<_i803.NotificationRemoteDataSource>(),
       ),
     );
     gh.lazySingleton<_i376.SalesOrderRemoteDataSource>(
@@ -157,6 +177,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i916.StockImportBloc>(
       () => _i916.StockImportBloc(gh<_i422.InventoryRepository>()),
+    );
+    gh.factory<_i806.NotificationBloc>(
+      () => _i806.NotificationBloc(gh<_i805.NotificationRepository>()),
     );
     return this;
   }

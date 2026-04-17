@@ -2,6 +2,7 @@ using System.Text;
 using AuthorizationModule.Application;
 using AuthorizationModule.Infrastructure;
 using AuthorizationModule.Infrastructure.Data;
+using BiBoGC.Hubs;
 using BiBoGC.Middleware;
 using Finance.Application;
 using Finance.Infrastructure;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Notification.Application;
+using Notification.Application.Interfaces;
 using Notification.Infrastructure;
 using Notification.Infrastructure.Data;
 using Sale.Application;
@@ -163,6 +165,10 @@ public class Program
         builder.Services.AddFinanceApplication();
         builder.Services.AddNotificationApplication();
 
+        // SignalR for real-time notification push
+        builder.Services.AddSignalR();
+        builder.Services.AddScoped<IRealTimeNotificationPusher, SignalRNotificationPusher>();
+
         var jwtSection = builder.Configuration.GetSection("Jwt");
         var key = Encoding.UTF8.GetBytes(jwtSection["Key"]!);
 
@@ -204,6 +210,18 @@ public class Program
                             .CreateLogger("JwtBearer");
                         logger.LogWarning("JWT Challenge issued");
                         return Task.CompletedTask;
+                    },
+                    // SignalR sends the token via query string when WebSocket transport is used
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            path.StartsWithSegments("/hubs/notifications"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
                     }
                 };
             });
@@ -235,9 +253,12 @@ public class Program
             {
                 if (builder.Environment.IsDevelopment() || allowedOrigins.Length == 0)
                 {
-                    policy.AllowAnyOrigin()
+                    // SignalR requires AllowCredentials, which is incompatible with AllowAnyOrigin.
+                    // Use a wildcard-friendly fallback origin in development.
+                    policy.WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:5173")
                         .AllowAnyMethod()
-                        .AllowAnyHeader();
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 }
                 else
                 {
@@ -286,6 +307,9 @@ public class Program
 
         // Map API controllers
         app.MapControllers();
+
+        // Map SignalR hub
+        app.MapHub<NotificationHub>("/hubs/notifications");
 
         // Redirect root to API documentation
         app.MapGet("/", () => Results.Redirect("/scalar/v1"));

@@ -7,6 +7,7 @@ import type {
   ProductDto, ProductStatus,
   CreateProductRequestV2, UpdateProductRequest,
   CategoryTreeNode,
+  ImportProductsResultDto, ImportProductRowError,
 } from '@/types'
 import { formatCurrency } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
@@ -19,7 +20,7 @@ import { AsyncSupplierSelect } from '@/components/ui/AsyncSupplierSelect'
 import { MoneyInput } from '@/components/ui/MoneyInput'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { useToast } from '@/components/ui/Toast'
-import { Search, Eye, Plus, Pencil, Trash2, X, AlertTriangle, Download } from 'lucide-react'
+import { Search, Eye, Plus, Pencil, Trash2, X, AlertTriangle, Download, Upload, FileSpreadsheet, CheckCircle2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useExportFile } from '@/hooks/useExportFile'
 import { exportExistingProducts } from '@/lib/exportService'
@@ -106,6 +107,15 @@ export default function ProductsPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<ProductDto | null>(null)
   const [deleting, setDeleting] = useState(false)
+
+  // Import Excel state
+  const [showImport, setShowImport] = useState(false)
+  const [importFile, setImportFile] = useState<File | null>(null)
+  const [importStep, setImportStep] = useState<'select' | 'preview' | 'done'>('select')
+  const [importLoading, setImportLoading] = useState(false)
+  const [importResult, setImportResult] = useState<ImportProductsResultDto | null>(null)
+  const [templateDownloading, setTemplateDownloading] = useState(false)
+  const importFileRef = useRef<HTMLInputElement>(null)
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
@@ -242,6 +252,59 @@ export default function ProductsPage() {
     } finally { setDeleting(false); setDeleteTarget(null) }
   }
 
+  function openImport() {
+    setImportFile(null)
+    setImportStep('select')
+    setImportResult(null)
+    setShowImport(true)
+  }
+
+  function closeImport() {
+    setShowImport(false)
+    if (importResult && !importResult.isDryRun && importResult.successful > 0) {
+      load(page)
+    }
+  }
+
+  async function handleDownloadTemplate() {
+    setTemplateDownloading(true)
+    try {
+      const { blob, filename } = await productApi.downloadImportTemplate()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = filename; a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      showError('Không thể tải template')
+    } finally {
+      setTemplateDownloading(false) }
+  }
+
+  async function handleDryRun() {
+    if (!importFile) return
+    setImportLoading(true)
+    try {
+      const result = await productApi.importFromExcel(importFile, true)
+      setImportResult(result)
+      setImportStep('preview')
+    } catch (err) {
+      showError('Không thể đọc file', err instanceof Error ? err.message : undefined)
+    } finally { setImportLoading(false) }
+  }
+
+  async function handleConfirmImport() {
+    if (!importFile) return
+    setImportLoading(true)
+    try {
+      const result = await productApi.importFromExcel(importFile, false)
+      setImportResult(result)
+      setImportStep('done')
+      if (result.successful > 0) success(`Đã nhập ${result.successful} sản phẩm thành công`)
+    } catch (err) {
+      showError('Nhập thất bại', err instanceof Error ? err.message : undefined)
+    } finally { setImportLoading(false) }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
@@ -257,6 +320,9 @@ export default function ProductsPage() {
           >
             <Download size={15} />
             {exportLoading ? 'Đang xuất...' : 'Xuất sản phẩm'}
+          </Button>
+          <Button size="sm" variant="secondary" onClick={openImport} className="gap-1.5">
+            <Upload size={15} /> Nhập từ Excel
           </Button>
           <Button size="sm" onClick={openCreate} className="gap-1.5"><Plus size={15} /> Thêm sản phẩm</Button>
         </div>
@@ -442,6 +508,168 @@ export default function ProductsPage() {
         description={`Bạn có chắc muốn xoá "${deleteTarget?.name}"? Thao tác này không thể hoàn tác.`}
         icon={<div className="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center"><Trash2 size={24} className="text-red-500" /></div>}
         confirmLabel="Xoá" variant="danger" loading={deleting} onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} />
+
+      {/* Import Excel modal */}
+      {showImport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-xl">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet size={18} className="text-green-600" />
+                <h2 className="text-base font-semibold text-gray-800">Nhập sản phẩm từ Excel</h2>
+              </div>
+              <button onClick={closeImport} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {/* Step: select file */}
+              {importStep === 'select' && (
+                <>
+                  <p className="text-sm text-gray-500">
+                    Tải template Excel, điền dữ liệu sản phẩm rồi tải lên để kiểm tra và nhập hàng loạt.
+                  </p>
+                  <button
+                    onClick={handleDownloadTemplate}
+                    disabled={templateDownloading}
+                    className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50"
+                  >
+                    <Download size={14} />
+                    {templateDownloading ? 'Đang tải...' : 'Tải file template (.xlsx)'}
+                  </button>
+
+                  <div
+                    className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition-colors"
+                    onClick={() => importFileRef.current?.click()}
+                    onDragOver={e => e.preventDefault()}
+                    onDrop={e => {
+                      e.preventDefault()
+                      const f = e.dataTransfer.files[0]
+                      if (f) setImportFile(f)
+                    }}
+                  >
+                    <Upload size={24} className="mx-auto text-gray-300 mb-2" />
+                    {importFile ? (
+                      <p className="text-sm font-medium text-gray-700">{importFile.name}</p>
+                    ) : (
+                      <p className="text-sm text-gray-400">Kéo thả hoặc click để chọn file .xlsx / .xls</p>
+                    )}
+                    <input
+                      ref={importFileRef}
+                      type="file"
+                      accept=".xlsx,.xls"
+                      className="hidden"
+                      onChange={e => {
+                        const f = e.target.files?.[0]
+                        if (f) setImportFile(f)
+                        e.target.value = ''
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-1">
+                    <Button variant="secondary" size="sm" onClick={closeImport}>Huỷ</Button>
+                    <Button size="sm" loading={importLoading} disabled={!importFile || importLoading} onClick={handleDryRun}>
+                      Kiểm tra file
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {/* Step: preview dry-run result */}
+              {importStep === 'preview' && importResult && (
+                <>
+                  <div className="flex gap-4 text-sm">
+                    <div className="flex-1 bg-gray-50 rounded-lg p-3 text-center">
+                      <p className="text-xs text-gray-500 mb-0.5">Tổng dòng</p>
+                      <p className="text-xl font-bold text-gray-800">{importResult.totalRows}</p>
+                    </div>
+                    <div className="flex-1 bg-emerald-50 rounded-lg p-3 text-center">
+                      <p className="text-xs text-emerald-600 mb-0.5">Hợp lệ</p>
+                      <p className="text-xl font-bold text-emerald-700">{importResult.successful}</p>
+                    </div>
+                    <div className={cn('flex-1 rounded-lg p-3 text-center', importResult.failed > 0 ? 'bg-red-50' : 'bg-gray-50')}>
+                      <p className={cn('text-xs mb-0.5', importResult.failed > 0 ? 'text-red-500' : 'text-gray-500')}>Lỗi</p>
+                      <p className={cn('text-xl font-bold', importResult.failed > 0 ? 'text-red-600' : 'text-gray-400')}>{importResult.failed}</p>
+                    </div>
+                  </div>
+
+                  {importResult.rowErrors.length > 0 && (
+                    <div className="max-h-48 overflow-y-auto space-y-1.5 border border-red-100 rounded-lg p-3 bg-red-50/40">
+                      {importResult.rowErrors.map((rowErr: ImportProductRowError) => (
+                        <div key={rowErr.rowNumber} className="text-xs">
+                          <span className="font-medium text-gray-700">Dòng {rowErr.rowNumber}</span>
+                          {rowErr.sku && <span className="text-gray-500 ml-1">({rowErr.sku})</span>}
+                          {rowErr.name && <span className="text-gray-500 ml-1">— {rowErr.name}</span>}
+                          <ul className="mt-0.5 ml-3 list-disc text-red-600 space-y-0.5">
+                            {rowErr.errors.map((e, i) => <li key={i}>{e}</li>)}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {importResult.successful === 0 && (
+                    <p className="text-sm text-red-600 flex items-center gap-1.5">
+                      <AlertCircle size={14} /> Không có dòng nào hợp lệ để nhập.
+                    </p>
+                  )}
+
+                  <div className="flex justify-between gap-2 pt-1">
+                    <Button variant="secondary" size="sm" onClick={() => { setImportStep('select'); setImportResult(null) }}>
+                      Chọn lại file
+                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="secondary" size="sm" onClick={closeImport}>Huỷ</Button>
+                      <Button
+                        size="sm"
+                        loading={importLoading}
+                        disabled={importResult.successful === 0 || importLoading}
+                        onClick={handleConfirmImport}
+                      >
+                        Nhập {importResult.successful} sản phẩm
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Step: done */}
+              {importStep === 'done' && importResult && (
+                <>
+                  <div className="text-center py-4">
+                    <CheckCircle2 size={40} className="mx-auto text-emerald-500 mb-3" />
+                    <p className="text-base font-semibold text-gray-800">
+                      Nhập thành công {importResult.successful} sản phẩm
+                    </p>
+                    {importResult.failed > 0 && (
+                      <p className="text-sm text-amber-600 mt-1">{importResult.failed} dòng bị bỏ qua do lỗi</p>
+                    )}
+                  </div>
+
+                  {importResult.rowErrors.length > 0 && (
+                    <div className="max-h-40 overflow-y-auto space-y-1.5 border border-amber-100 rounded-lg p-3 bg-amber-50/40">
+                      {importResult.rowErrors.map((rowErr: ImportProductRowError) => (
+                        <div key={rowErr.rowNumber} className="text-xs">
+                          <span className="font-medium text-gray-700">Dòng {rowErr.rowNumber}</span>
+                          {rowErr.sku && <span className="text-gray-500 ml-1">({rowErr.sku})</span>}
+                          <ul className="mt-0.5 ml-3 list-disc text-red-600 space-y-0.5">
+                            {rowErr.errors.map((e, i) => <li key={i}>{e}</li>)}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex justify-end pt-1">
+                    <Button size="sm" onClick={closeImport}>Đóng</Button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

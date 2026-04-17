@@ -15,11 +15,12 @@ public class CreateStockTransactionCommandHandlerTests
     private readonly Mock<IProductRepository> _productRepoMock = new();
     private readonly Mock<ISupplierRepository> _supplierRepoMock = new();
     private readonly Mock<IStockTransactionRepository> _txRepoMock = new();
+    private readonly Mock<INotificationService> _notificationMock = new();
 
     private CreateStockTransactionCommandHandler CreateHandler()
     {
         return new CreateStockTransactionCommandHandler(_txRepoMock.Object, _productRepoMock.Object,
-            _supplierRepoMock.Object, _auditMock.Object);
+            _supplierRepoMock.Object, _auditMock.Object, _notificationMock.Object);
     }
 
     private static Product BuildProduct()

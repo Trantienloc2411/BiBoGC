@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Notification.Application.DTOs;
 using Notification.Application.Interfaces;
 using Shared.Application.Interfaces;
 using Shared.Domain.Enums;
@@ -14,15 +15,18 @@ public class NotificationService : INotificationService
     private readonly INotificationRepository _repository;
     private readonly INotificationUnitOfWork _unitOfWork;
     private readonly ILogger<NotificationService> _logger;
+    private readonly IRealTimeNotificationPusher? _pusher;
 
     public NotificationService(
         INotificationRepository repository,
         INotificationUnitOfWork unitOfWork,
-        ILogger<NotificationService> logger)
+        ILogger<NotificationService> logger,
+        IRealTimeNotificationPusher? pusher = null)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _pusher = pusher;
     }
 
     public async Task NotifyAsync(
@@ -41,6 +45,24 @@ public class NotificationService : INotificationService
 
             await _repository.AddAsync(notification, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            // Push real-time to connected clients if pusher is available
+            if (_pusher is not null)
+            {
+                var dto = new NotificationDto
+                {
+                    Id = notification.Id,
+                    Title = notification.Title,
+                    Message = notification.Message,
+                    Type = notification.Type.ToString(),
+                    Role = notification.Role.ToString(),
+                    IsRead = false,
+                    CreatedAt = notification.CreatedAt,
+                    ReferenceId = notification.ReferenceId,
+                    ReferenceType = notification.ReferenceType
+                };
+                await _pusher.PushAsync(dto, cancellationToken);
+            }
         }
         catch (Exception ex)
         {

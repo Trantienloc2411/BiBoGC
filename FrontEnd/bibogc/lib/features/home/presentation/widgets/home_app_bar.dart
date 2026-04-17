@@ -4,6 +4,7 @@ import '../../../../core/bloc/theme_cubit.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/network/network_mode.dart';
 import '../../../../core/network/network_service.dart';
+import '../../../notification/presentation/widgets/notification_bell.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String username;
@@ -48,30 +49,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         // ── Notification bell ──────────────────────────────────────────────
-        Stack(
-          children: [
-            IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.notifications, color: onPrimary),
-              style: IconButton.styleFrom(
-                backgroundColor: onPrimary.withAlpha(40),
-                shape: const CircleBorder(),
-              ),
-            ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFF5252),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ],
-        ),
+        const NotificationBell(),
         const SizedBox(width: 4),
         // ── Theme toggle ───────────────────────────────────────────────────
         BlocBuilder<ThemeCubit, ThemeMode>(

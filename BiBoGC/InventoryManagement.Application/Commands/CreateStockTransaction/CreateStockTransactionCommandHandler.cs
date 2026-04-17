@@ -5,6 +5,7 @@ using InventoryManagement.Domain.Enums;
 using MediatR;
 using Shared.Application.Common;
 using Shared.Application.Interfaces;
+using Shared.Domain.Enums;
 
 namespace InventoryManagement.Application.Commands.CreateStockTransaction;
 
@@ -15,17 +16,20 @@ public class
     private readonly IStockTransactionRepository _stockTransactionRepository;
     private readonly ISupplierRepository _supplierRepository;
     private readonly IAuditLogger _auditLogger;
+    private readonly INotificationService _notificationService;
 
     public CreateStockTransactionCommandHandler(
         IStockTransactionRepository stockTransactionRepository,
         IProductRepository productRepository,
         ISupplierRepository supplierRepository,
-        IAuditLogger auditLogger)
+        IAuditLogger auditLogger,
+        INotificationService notificationService)
     {
         _stockTransactionRepository = stockTransactionRepository;
         _productRepository = productRepository;
         _supplierRepository = supplierRepository;
         _auditLogger = auditLogger;
+        _notificationService = notificationService;
     }
 
     public async Task<Result<StockTransactionDto>> Handle(CreateStockTransactionCommand request,
@@ -83,6 +87,9 @@ public class
 
         await _productRepository.UpdateAsync(product, cancellationToken);
 
+        // Notify stock alerts for outbound transactions
+        await NotifyStockAlertAsync(product, cancellationToken);
+
         var createdTransaction = await _stockTransactionRepository.AddAsync(transaction, cancellationToken);
 
         await _auditLogger.LogAsync(
@@ -90,6 +97,18 @@ public class
             isSuccess: true,
             description: $"Type={request.TransactionType}, ProductId={request.ProductId}, Qty={request.Quantity}, UnitPrice={request.UnitPrice:F2}",
             cancellationToken: cancellationToken);
+
+        if (transaction.TransactionType == StockTransactionType.Purchase)
+        {
+            await _notificationService.NotifyAsync(
+                "Nhập hàng thành công",
+                $"Đã nhập {request.Quantity} sản phẩm (ID: {request.ProductId}). Tổng tiền: {transaction.TotalPrice:N0}đ.",
+                NotificationType.StockReceived,
+                NotificationRole.Admin,
+                createdTransaction.Id,
+                "StockTransaction",
+                cancellationToken);
+        }
 
         // Fetch the transaction with navigation properties
         var fullTransaction = await _stockTransactionRepository.GetByIdAsync(createdTransaction.Id, cancellationToken);
@@ -112,5 +131,31 @@ public class
         };
 
         return Result<StockTransactionDto>.Success(dto);
+    }
+
+    private async Task NotifyStockAlertAsync(Domain.Entities.Product product, CancellationToken cancellationToken)
+    {
+        if (product.Status == ProductStatuses.OutOfStock)
+        {
+            await _notificationService.NotifyAsync(
+                "Sản phẩm hết hàng",
+                $"Sản phẩm '{product.Name}' đã hết hàng.",
+                NotificationType.OutOfStock,
+                NotificationRole.Admin,
+                product.Id,
+                "Product",
+                cancellationToken);
+        }
+        else if (product.IsLowStock())
+        {
+            await _notificationService.NotifyAsync(
+                "Sắp hết hàng",
+                $"Sản phẩm '{product.Name}' sắp hết hàng. Tồn kho hiện tại: {product.TotalStock} (ngưỡng: {product.LowStockThreshold}).",
+                NotificationType.LowStock,
+                NotificationRole.Admin,
+                product.Id,
+                "Product",
+                cancellationToken);
+        }
     }
 }

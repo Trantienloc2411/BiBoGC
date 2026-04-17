@@ -1,11 +1,17 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Bell, CheckCheck, AlertCircle, AlertTriangle, Info } from 'lucide-react'
+import {
+  Bell, CheckCheck,
+  AlertCircle, AlertTriangle, Info,
+  ShoppingCart, XCircle, CheckCircle2,
+  PackagePlus, Package, PackageX,
+  Tag, Ban,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useToast } from '@/components/ui/Toast'
-import { NotificationDto } from '@/types'
+import { NotificationDto, NotificationTypeName } from '@/types'
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
@@ -18,16 +24,34 @@ function timeAgo(iso: string): string {
   return `${days} ngày trước`
 }
 
-const TYPE_ICON = {
-  info:    <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />,
-  warning: <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />,
-  error:   <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />,
+type IconConfig = { icon: React.ReactNode; dot: string }
+
+const TYPE_CONFIG: Record<NotificationTypeName, IconConfig> = {
+  // Generic
+  Info:               { icon: <Info        size={16} className="text-blue-500   shrink-0 mt-0.5" />, dot: 'bg-blue-500'   },
+  Warning:            { icon: <AlertTriangle size={16} className="text-amber-500  shrink-0 mt-0.5" />, dot: 'bg-amber-500'  },
+  Error:              { icon: <AlertCircle  size={16} className="text-red-500    shrink-0 mt-0.5" />, dot: 'bg-red-500'    },
+  // Order
+  NewOrder:           { icon: <ShoppingCart size={16} className="text-indigo-500 shrink-0 mt-0.5" />, dot: 'bg-indigo-500' },
+  OrderCancelled:     { icon: <XCircle      size={16} className="text-red-500    shrink-0 mt-0.5" />, dot: 'bg-red-500'    },
+  OrderCompleted:     { icon: <CheckCircle2 size={16} className="text-green-500  shrink-0 mt-0.5" />, dot: 'bg-green-500'  },
+  // Stock
+  StockReceived:      { icon: <PackagePlus  size={16} className="text-teal-500   shrink-0 mt-0.5" />, dot: 'bg-teal-500'   },
+  LowStock:           { icon: <AlertTriangle size={16} className="text-amber-500  shrink-0 mt-0.5" />, dot: 'bg-amber-500'  },
+  OutOfStock:         { icon: <PackageX     size={16} className="text-red-500    shrink-0 mt-0.5" />, dot: 'bg-red-500'    },
+  BatchAdded:         { icon: <Package      size={16} className="text-blue-500   shrink-0 mt-0.5" />, dot: 'bg-blue-500'   },
+  // Product
+  PriceChanged:       { icon: <Tag          size={16} className="text-purple-500 shrink-0 mt-0.5" />, dot: 'bg-purple-500' },
+  ProductDiscontinued:{ icon: <Ban          size={16} className="text-gray-500   shrink-0 mt-0.5" />, dot: 'bg-gray-500'   },
 }
 
-const TYPE_DOT = {
-  info:    'bg-blue-500',
-  warning: 'bg-amber-500',
-  error:   'bg-red-500',
+const FALLBACK_CONFIG: IconConfig = {
+  icon: <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />,
+  dot:  'bg-blue-500',
+}
+
+function getConfig(type: NotificationTypeName): IconConfig {
+  return TYPE_CONFIG[type] ?? FALLBACK_CONFIG
 }
 
 export function NotificationBell() {
@@ -38,7 +62,12 @@ export function NotificationBell() {
 
   useEffect(() => {
     onNewNotification((n: NotificationDto) => {
-      const toastType = n.type === 'error' ? 'error' : n.type === 'warning' ? 'info' : 'info'
+      const toastType =
+        n.type === 'Error' || n.type === 'OutOfStock' || n.type === 'OrderCancelled' || n.type === 'ProductDiscontinued'
+          ? 'error'
+          : n.type === 'Warning' || n.type === 'LowStock'
+          ? 'info'
+          : 'info'
       toast[toastType](n.title, n.message)
     })
   }, [toast, onNewNotification])
@@ -101,34 +130,37 @@ export function NotificationBell() {
               </div>
             ) : (
               <ul>
-                {notifications.map(n => (
-                  <li key={n.id}>
-                    <button
-                      onClick={() => handleItemClick(n)}
-                      className={cn(
-                        'w-full text-left px-4 py-3 flex gap-3 hover:bg-gray-50 transition-colors border-b border-gray-50',
-                        !n.isRead && 'bg-blue-50/40'
-                      )}
-                    >
-                      {TYPE_ICON[n.type]}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className={cn(
-                            'text-sm truncate',
-                            n.isRead ? 'text-gray-600' : 'text-gray-800 font-semibold'
-                          )}>
-                            {n.title}
-                          </p>
-                          {!n.isRead && (
-                            <span className={cn('w-2 h-2 rounded-full shrink-0', TYPE_DOT[n.type])} />
-                          )}
+                {notifications.map(n => {
+                  const cfg = getConfig(n.type)
+                  return (
+                    <li key={n.id}>
+                      <button
+                        onClick={() => handleItemClick(n)}
+                        className={cn(
+                          'w-full text-left px-4 py-3 flex gap-3 hover:bg-gray-50 transition-colors border-b border-gray-50',
+                          !n.isRead && 'bg-blue-50/40'
+                        )}
+                      >
+                        {cfg.icon}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className={cn(
+                              'text-sm truncate',
+                              n.isRead ? 'text-gray-600' : 'text-gray-800 font-semibold'
+                            )}>
+                              {n.title}
+                            </p>
+                            {!n.isRead && (
+                              <span className={cn('w-2 h-2 rounded-full shrink-0', cfg.dot)} />
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
+                          <p className="text-[11px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
-                        <p className="text-[11px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
-                      </div>
-                    </button>
-                  </li>
-                ))}
+                      </button>
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </div>
