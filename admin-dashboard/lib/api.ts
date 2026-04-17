@@ -247,6 +247,23 @@ export async function apiDelete(path: string): Promise<void> {
   }
 }
 
+export async function apiPostFile<T>(path: string, formData: FormData): Promise<T> {
+  const token = getAccessToken()
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  })
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}))
+    const { title, errors } = parseProblemDetails(json)
+    emitError({ status: res.status, statusText: res.statusText, path, title, errors: errors.length > 0 ? errors : undefined })
+    throw new Error(errors.length > 0 ? errors.join('\n') : (title ?? `POST ${path} failed: ${res.status}`))
+  }
+  const json = await res.json()
+  return (json.data ?? json) as T
+}
+
 // ─── Inventory API ────────────────────────────────────────────────────────────
 
 import type {
@@ -269,6 +286,7 @@ import type {
   UpdateSupplierRequest,
   StockTransactionDtoV2,
   AdjustStockRequestV2,
+  ImportProductsResultDto,
 } from '@/types'
 
 export const productApi = {
@@ -303,6 +321,13 @@ export const productApi = {
     apiPut<ProductVariantDtoV2>(`/api/products/${productId}/variants/${variantId}`, data),
   deleteVariant: (productId: string, variantId: string) =>
     apiDelete(`/api/products/${productId}/variants/${variantId}`),
+  downloadImportTemplate: () =>
+    apiDownload('/api/products/import-template'),
+  importFromExcel: (file: File, dryRun = false) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return apiPostFile<ImportProductsResultDto>(`/api/products/import?dryRun=${dryRun}`, formData)
+  },
 }
 
 export const categoryApi = {

@@ -69,7 +69,8 @@
       "Bash(ls /mnt/)",
       "Read(//e//**)",
       "Bash(ls /cmd/)",
-      "Bash(py -3 -c \"import os; print\\(os.getcwd\\(\\)\\)\")"
+      "Bash(py -3 -c \"import os; print\\(os.getcwd\\(\\)\\)\")",
+      "Bash(npx --prefix \"E:/Github-Repository/BiBo-s-GC/admin-dashboard\" tsc --noEmit --project \"E:/Github-Repository/BiBo-s-GC/admin-dashboard/tsconfig.json\")"
     ]
   }
 }

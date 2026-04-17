@@ -807,3 +807,21 @@ export interface AdjustStockRequestV2 {
   unitPrice: number
   notes?: string
 }
+
+// ─── Product Import (Excel) ───────────────────────────────────────────────────
+
+export interface ImportProductRowError {
+  rowNumber: number
+  name: string | null
+  sku: string | null
+  errors: string[]
+}
+
+export interface ImportProductsResultDto {
+  totalRows: number
+  successful: number
+  failed: number
+  isDryRun: boolean
+  rowErrors: ImportProductRowError[]
+  importedSkus: string[]
+}

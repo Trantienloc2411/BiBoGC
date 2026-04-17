@@ -8,8 +8,9 @@ public interface IProductImportService
     /// <summary>
     /// Generates and returns the bytes of a blank Excel import template that the
     /// user fills in and uploads to <see cref="ImportFromExcelAsync"/>.
+    /// Category names are fetched from the database and added as a dropdown list.
     /// </summary>
-    byte[] GenerateImportTemplate();
+    Task<byte[]> GenerateImportTemplateAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Parses, validates and (optionally) persists products from an uploaded Excel file.

@@ -787,9 +787,9 @@ public class ProductsController : ControllerBase
     [HttpGet("import-template")]
     [Authorize(Roles = "Administrator")]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
-    public IActionResult GetImportTemplate()
+    public async Task<IActionResult> GetImportTemplate(CancellationToken cancellationToken)
     {
-        var bytes = _importService.GenerateImportTemplate();
+        var bytes = await _importService.GenerateImportTemplateAsync(cancellationToken);
         return File(bytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "MauNhapSanPham.xlsx");

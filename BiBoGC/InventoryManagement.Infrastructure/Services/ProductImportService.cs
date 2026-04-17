@@ -63,8 +63,14 @@ public partial class ProductImportService : IProductImportService
 
     // ── Template generation ──────────────────────────────────────────────────
 
-    public byte[] GenerateImportTemplate()
+    public async Task<byte[]> GenerateImportTemplateAsync(CancellationToken cancellationToken = default)
     {
+        var allCategories = await _categoryRepository.GetAllAsync(false, cancellationToken);
+        var categoryNames = allCategories
+            .OrderBy(c => c.Name)
+            .Select(c => c.Name)
+            .ToArray();
+
         using var workbook = new XLWorkbook();
 
         // ── Hidden option sheet ─────────────────────────────────────────────
@@ -74,6 +80,8 @@ public partial class ProductImportService : IProductImportService
             optSheet.Cell(i + 1, 1).Value = UnitOptions[i];
         optSheet.Cell(1, 3).Value = "Có";
         optSheet.Cell(2, 3).Value = "Không";
+        for (int i = 0; i < categoryNames.Length; i++)
+            optSheet.Cell(i + 1, 5).Value = categoryNames[i];
 
         // ── Data sheet ──────────────────────────────────────────────────────
         var sheet = workbook.AddWorksheet("Danh sách sản phẩm");
@@ -147,6 +155,18 @@ public partial class ProductImportService : IProductImportService
         btValidation.ErrorTitle = "Giá trị không hợp lệ";
         btValidation.ErrorMessage = "Nhập 'Có' hoặc 'Không'.";
 
+        // Data validation: Category dropdown (col 5) — only when categories exist
+        if (categoryNames.Length > 0)
+        {
+            var catValidation = sheet.Range(3, 5, 1000, 5).SetDataValidation();
+            catValidation.AllowedValues = XLAllowedValues.List;
+            catValidation.List(optSheet.Range(1, 5, categoryNames.Length, 5));
+            catValidation.ShowErrorMessage = false;
+            catValidation.ShowInputMessage = true;
+            catValidation.InputTitle = "Danh mục";
+            catValidation.InputMessage = "Chọn danh mục từ danh sách hoặc để trống.";
+        }
+
         // Format: price column as number
         sheet.Column(3).Style.NumberFormat.Format = "#,##0";
 
@@ -175,7 +195,7 @@ public partial class ProductImportService : IProductImportService
             ("Mã SKU (*)", "Bắt buộc. Tối đa 20 ký tự. Chỉ dùng chữ IN HOA, số (0-9), dấu gạch ngang (-) và gạch dưới (_). Ví dụ: AQUA-500ML"),
             ("Giá bán (*)", "Bắt buộc. Số >= 0 (VND). Không nhập dấu phẩy ngăn cách hàng nghìn."),
             ("Đơn vị tính (*)", "Bắt buộc. Chọn từ danh sách thả xuống: " + string.Join(", ", UnitOptions) + "."),
-            ("Danh mục", "Không bắt buộc. Nhập chính xác tên danh mục đã có trong hệ thống. Nếu không khớp, sản phẩm sẽ không có danh mục."),
+            ("Danh mục", "Không bắt buộc. Chọn từ danh sách thả xuống (các danh mục hiện có trong hệ thống). Nếu không khớp, sản phẩm sẽ không có danh mục."),
             ("Mô tả", "Không bắt buộc. Tối đa 1 000 ký tự."),
             ("Ngưỡng cảnh báo tồn kho", "Không bắt buộc. Số nguyên không âm. Khi tồn kho < ngưỡng này sẽ nhận cảnh báo."),
             ("Theo dõi lô hàng", "Không bắt buộc. 'Có' = bật theo dõi lô (ngày SX, hạn dùng). Mặc định là 'Không'."),
