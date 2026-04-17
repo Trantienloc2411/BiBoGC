@@ -5,9 +5,10 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Receipt, BarChart2, ShieldCheck, Settings2,
-  LogOut, Store, Menu, X, ShoppingCart, FileText, ChevronDown,
+  LogOut, Menu, X, ShoppingCart, FileText, ChevronDown,
   Package, FolderTree, Truck, ArrowLeftRight, Bell, PackagePlus,
 } from 'lucide-react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { NotificationBell } from '@/components/layout/NotificationBell'
@@ -93,11 +94,14 @@ export function Sidebar() {
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-5 py-5 border-b border-gray-100">
-        <div className="flex items-center gap-2.5">
-          <Store className="text-blue-600 shrink-0" size={24} />
-          <span className="font-bold text-gray-800 text-lg">BiBo&apos;s Admin</span>
-        </div>
+      <div className="flex items-center px-5 py-4 border-b border-gray-100">
+        <Image
+          src="/logo/bibo-gc-with-dashboard-icon.svg"
+          alt="BiBo's GC"
+          width={160}
+          height={32}
+          priority
+        />
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
@@ -145,10 +149,13 @@ export function Sidebar() {
   return (
     <>
       <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <Store className="text-blue-600" size={22} />
-          <span className="font-bold text-gray-800 text-base">BiBo&apos;s Admin</span>
-        </div>
+        <Image
+          src="/logo/bibo-gc-with-dashboard-icon.svg"
+          alt="BiBo's GC"
+          width={140}
+          height={28}
+          priority
+        />
         <div className="flex items-center gap-1">
           <NotificationBell />
           <button onClick={() => setMobileOpen(true)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-md">

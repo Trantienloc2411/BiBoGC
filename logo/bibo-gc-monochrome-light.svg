@@ -1,0 +1,7 @@
+<svg width="200" height="40" viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
+      <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@700&amp;display=swap');</style>
+      <rect width="200" height="40" fill="#0F172A"/>
+      <text x="0" y="30" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="white" letter-spacing="-0.5">bibo</text>
+      <rect x="91" y="4" width="46" height="28" rx="5" fill="none" stroke="white" stroke-width="2"/>
+      <text x="114" y="24" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="white" text-anchor="middle" letter-spacing="1">GC</text>
+    </svg>

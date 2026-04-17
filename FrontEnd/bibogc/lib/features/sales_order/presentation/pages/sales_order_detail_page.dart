@@ -128,17 +128,21 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
                       const SizedBox(width: 16),
                       Expanded(
                         flex: 2,
-                        child: _buildTotalsSection(context, order),
+                        child: _buildTotalsSection(
+                          context, state, order,
+                          isLoading: isLoading, showActions: isDraft,
+                        ),
                       ),
                     ],
                   )
                 else ...[
                   _buildItemsSection(context, state, order, isDraft),
                   const SizedBox(height: 16),
-                  _buildTotalsSection(context, order),
+                  _buildTotalsSection(
+                    context, state, order,
+                    isLoading: isLoading, showActions: false,
+                  ),
                 ],
-                const SizedBox(height: 16),
-                if (isDraft) _buildDraftActions(context, state, order, isLoading),
                 const SizedBox(height: 12),
                 _buildInvoiceButton(context, state, order, isLoading),
                 const SizedBox(height: 32),
@@ -328,6 +332,7 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
   ) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
+      onTap: isDraft ? () => _editQuantity(context, item, order) : null,
       title: Text(
         item.productName,
         style: const TextStyle(fontWeight: FontWeight.w600),
@@ -340,25 +345,22 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                GestureDetector(
-                  onTap: () => _editQuantity(context, item, order),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${item.quantity} ${item.unit}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.blue,
-                        ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${item.quantity} ${item.unitLabel}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.blue,
                       ),
-                      Text(
-                        CurrencyUtils.formatCurrency(item.lineTotal),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
+                    ),
+                    Text(
+                      CurrencyUtils.formatCurrency(item.lineTotal),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
                 const SizedBox(width: 4),
                 IconButton(
@@ -385,7 +387,7 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('${item.quantity} ${item.unit}'),
+                Text('${item.quantity} ${item.unitLabel}'),
                 Text(
                   CurrencyUtils.formatCurrency(item.lineTotal),
                   style: const TextStyle(fontWeight: FontWeight.bold),
@@ -450,13 +452,20 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
     );
   }
 
-  Widget _buildTotalsSection(BuildContext context, SalesOrder order) {
+  Widget _buildTotalsSection(
+    BuildContext context,
+    SalesOrderState state,
+    SalesOrder order, {
+    required bool isLoading,
+    required bool showActions,
+  }) {
     final theme = Theme.of(context);
 
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _TotalRow(
               label: 'Tạm tính',
@@ -467,11 +476,6 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
               label: 'Giảm giá',
               value: '- ${CurrencyUtils.formatCurrency(order.discountAmount)}',
               valueColor: Colors.green,
-            ),
-            const SizedBox(height: 8),
-            _TotalRow(
-              label: 'Thuế',
-              value: CurrencyUtils.formatCurrency(order.taxAmount),
             ),
             const Divider(height: 20),
             _TotalRow(
@@ -492,6 +496,10 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
                 value: CurrencyUtils.formatCurrency(order.changeAmount),
                 valueColor: Colors.green,
               ),
+            ],
+            if (showActions) ...[
+              const SizedBox(height: 16),
+              _buildDraftActions(context, state, order, isLoading),
             ],
           ],
         ),
