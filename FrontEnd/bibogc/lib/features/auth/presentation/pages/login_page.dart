@@ -36,6 +36,7 @@ class _LoginFormState extends State<_LoginForm> {
   final _passwordController = TextEditingController();
   final _authRepository = getIt<AuthRepository>();
   final _biometricAuthService = getIt<BiometricAuthService>();
+  bool _obscurePassword = true;
   bool _biometricAvailable = false;
   bool _checkingBiometric = false;
   String? _lastUsername;
@@ -72,15 +73,15 @@ class _LoginFormState extends State<_LoginForm> {
   Future<void> _handleBiometricAuthorize() async {
     setState(() => _checkingBiometric = true);
     final ok = await _biometricAuthService.authenticate(
-      reason: 'Xac thuc de truy cap tai khoan POS',
+      reason: 'Xác thực để truy cập tài khoản POS',
     );
     if (!mounted) return;
     setState(() => _checkingBiometric = false);
     if (!ok) {
       DialogUtils.showErrorDialog(
         context,
-        title: 'Xac thuc that bai',
-        message: 'Khong the xac thuc sinh trac hoc. Vui long thu lai.',
+        title: 'Xác thực thất bại',
+        message: 'Không thể xác thực sinh trắc học. Vui lòng thử lại.',
       );
       return;
     }
@@ -92,9 +93,9 @@ class _LoginFormState extends State<_LoginForm> {
     }
     DialogUtils.showErrorDialog(
       context,
-      title: 'Phien dang nhap khong ton tai',
+      title: 'Phiên đăng nhập không tồn tại',
       message:
-          'Ban can dang nhap bang mat khau it nhat mot lan truoc khi dung sinh trac hoc.',
+          'Bạn cần đăng nhập bằng mật khẩu ít nhất một lần trước khi dùng sinh trắc học.',
     );
   }
 
@@ -110,7 +111,6 @@ class _LoginFormState extends State<_LoginForm> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(leading: BackButton(onPressed: () => context.pop())),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
@@ -119,93 +119,172 @@ class _LoginFormState extends State<_LoginForm> {
             DialogUtils.showErrorDialog(
               context,
               message: state.message,
-              title: "Đăng nhập thất bại",
+              title: 'Đăng nhập thất bại',
             );
           }
         },
         builder: (context, state) {
           final isLoading = state is AuthLoading;
 
-          return SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 24),
-                    Text(
-                      "Đăng nhập",
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "Vui lòng đăng nhập để tiếp tục quản lý cửa hàng.",
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 48),
-                    TextFormField(
-                      controller: _usernameController,
-                      enabled: !isLoading,
-                      decoration: const InputDecoration(
-                        labelText: "Tên đăng nhập",
-                        hintText: "Nhập tên nhân viên",
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập tên đăng nhập';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _passwordController,
-                      enabled: !isLoading,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: "Mật khẩu",
-                        hintText: "Nhập mật khẩu",
-                        prefixIcon: Icon(Icons.lock_outline),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập mật khẩu';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 32),
-                    AppButton(
-                      onPressed: () => _handleLogin(context),
-                      isLoading: isLoading,
-                      child: const Text("Đăng nhập"),
-                    ),
-                    if (_biometricAvailable) ...[
-                      const SizedBox(height: 16),
-                      OutlinedButton.icon(
-                        onPressed: isLoading || _checkingBiometric
-                            ? null
-                            : _handleBiometricAuthorize,
-                        icon: const Icon(Icons.fingerprint),
-                        label: Text(
-                          _lastUsername == null
-                              ? 'Xac thuc bang van tay / Face ID'
-                              : 'Xac thuc cho $_lastUsername',
+          return Column(
+            children: [
+              // ── Branded header ────────────────────────────────────────────
+              Container(
+                color: theme.colorScheme.primary,
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 20, 28),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        IconButton(
+                          onPressed: () => context.pop(),
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                          color: theme.colorScheme.onPrimary.withAlpha(180),
                         ),
-                      ),
-                    ],
-                  ],
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: Row(
+                            children: [
+                              Image.asset(
+                                'assets/logos/bibo-gc-app-icon-64@2x.png',
+                                width: 52,
+                                height: 52,
+                              ),
+                              const SizedBox(width: 14),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "BiBo's GC",
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w800,
+                                      color: theme.colorScheme.onPrimary,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Đăng nhập tài khoản',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: theme.colorScheme.onPrimary.withAlpha(180),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
+
+              // ── Form ──────────────────────────────────────────────────────
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Username
+                        TextFormField(
+                          controller: _usernameController,
+                          enabled: !isLoading,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                            labelText: 'Tên đăng nhập',
+                            hintText: 'Nhập tên nhân viên',
+                            prefixIcon: Icon(Icons.person_outline_rounded),
+                          ),
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'Vui lòng nhập tên đăng nhập'
+                              : null,
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Password with visibility toggle
+                        TextFormField(
+                          controller: _passwordController,
+                          enabled: !isLoading,
+                          obscureText: _obscurePassword,
+                          textInputAction: TextInputAction.done,
+                          onFieldSubmitted: (_) => _handleLogin(context),
+                          decoration: InputDecoration(
+                            labelText: 'Mật khẩu',
+                            hintText: 'Nhập mật khẩu',
+                            prefixIcon: const Icon(Icons.lock_outline_rounded),
+                            suffixIcon: IconButton(
+                              onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                              ),
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          validator: (v) => (v == null || v.isEmpty)
+                              ? 'Vui lòng nhập mật khẩu'
+                              : null,
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Login button
+                        AppButton(
+                          onPressed: isLoading ? null : () => _handleLogin(context),
+                          isLoading: isLoading,
+                          child: const Text('Đăng nhập'),
+                        ),
+
+                        // Biometric button
+                        if (_biometricAvailable) ...[
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 52,
+                            child: OutlinedButton.icon(
+                              onPressed: isLoading || _checkingBiometric
+                                  ? null
+                                  : _handleBiometricAuthorize,
+                              icon: _checkingBiometric
+                                  ? SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                    )
+                                  : const Icon(Icons.fingerprint_rounded, size: 22),
+                              label: Text(
+                                _lastUsername == null
+                                    ? 'Xác thực vân tay / Face ID'
+                                    : 'Xác thực cho $_lastUsername',
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),

@@ -69,7 +69,8 @@
       "Bash(ls /mnt/)",
       "Read(//e//**)",
       "Bash(ls /cmd/)",
-      "Bash(py -3 -c \"import os; print\\(os.getcwd\\(\\)\\)\")"
+      "Bash(py -3 -c \"import os; print\\(os.getcwd\\(\\)\\)\")",
+      "Bash(xargs ls *)"
     ]
   }
 }
