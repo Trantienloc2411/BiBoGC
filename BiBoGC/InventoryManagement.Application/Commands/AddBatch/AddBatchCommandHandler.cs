@@ -4,6 +4,7 @@ using InventoryManagement.Domain.Entities;
 using MediatR;
 using Shared.Application.Common;
 using Shared.Application.Interfaces;
+using Shared.Domain.Enums;
 
 namespace InventoryManagement.Application.Commands.AddBatch;
 
@@ -13,13 +14,17 @@ namespace InventoryManagement.Application.Commands.AddBatch;
 public class AddBatchCommandHandler : IRequestHandler<AddBatchCommand, Result<ProductBatchDto>>
 {
     private readonly IProductRepository _productRepository;
-    private readonly IProductBatchRepository _productBatchesRepository; 
+    private readonly IProductBatchRepository _productBatchesRepository;
+    private readonly INotificationService _notificationService;
 
-
-    public AddBatchCommandHandler(IProductRepository productRepository, IProductBatchRepository productBatchRepository)
+    public AddBatchCommandHandler(
+        IProductRepository productRepository,
+        IProductBatchRepository productBatchRepository,
+        INotificationService notificationService)
     {
         _productRepository = productRepository;
         _productBatchesRepository = productBatchRepository;
+        _notificationService = notificationService;
     }
 
     public async Task<Result<ProductBatchDto>> Handle(AddBatchCommand request, CancellationToken cancellationToken)
@@ -55,6 +60,15 @@ public class AddBatchCommandHandler : IRequestHandler<AddBatchCommand, Result<Pr
             // Sync TotalStock on the product to match the added batch quantity
             product.IncreaseStock(request.Quantity);
             await _productRepository.UpdateAsync(product, cancellationToken);
+
+            await _notificationService.NotifyAsync(
+                "Lô hàng mới được thêm",
+                $"Lô '{request.BatchNumber}' ({request.Quantity} sản phẩm) đã được thêm vào sản phẩm ID: {request.ProductId}.",
+                NotificationType.BatchAdded,
+                NotificationRole.Admin,
+                result.Id,
+                "ProductBatch",
+                cancellationToken);
 
             // Return DTO
             var dto = ProductBatchDto.FromEntity(result);

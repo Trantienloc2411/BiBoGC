@@ -77,3 +77,47 @@ jobs:
           prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  cleanup-artifacts:
+    name: Keep only 2 latest artifacts
+    runs-on: ubuntu-latest
+    needs: build-apk
+    if: always()
+    permissions:
+      actions: write
+
+    steps:
+      - name: Delete old artifacts (keep latest 2)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifactName = 'bibogc-release-apk';
+            const keepCount = 2;
+
+            const { data } = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: artifactName,
+              per_page: 100,
+            });
+
+            // Newest first
+            const sorted = data.artifacts.sort(
+              (a, b) => new Date(b.created_at) - new Date(a.created_at)
+            );
+
+            const toDelete = sorted.slice(keepCount);
+            if (toDelete.length === 0) {
+              console.log(`Only ${sorted.length} artifact(s) found — nothing to delete.`);
+              return;
+            }
+
+            for (const artifact of toDelete) {
+              console.log(`Deleting artifact: ${artifact.name} (id=${artifact.id}, created=${artifact.created_at})`);
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id,
+              });
+            }
+            console.log(`Deleted ${toDelete.length} old artifact(s). Kept ${keepCount}.`);

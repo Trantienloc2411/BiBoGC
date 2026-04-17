@@ -4,6 +4,8 @@ using InventoryManagement.Domain.Enums;
 using InventoryManagement.Domain.ValueObjects;
 using MediatR;
 using Shared.Application.Common;
+using Shared.Application.Interfaces;
+using Shared.Domain.Enums;
 
 namespace InventoryManagement.Application.Commands.UpdateProduct;
 
@@ -13,10 +15,14 @@ namespace InventoryManagement.Application.Commands.UpdateProduct;
 public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Result<ProductDto>>
 {
     private readonly IProductRepository _productRepository;
+    private readonly INotificationService _notificationService;
 
-    public UpdateProductCommandHandler(IProductRepository productRepository)
+    public UpdateProductCommandHandler(
+        IProductRepository productRepository,
+        INotificationService notificationService)
     {
         _productRepository = productRepository;
+        _notificationService = notificationService;
     }
 
     public async Task<Result<ProductDto>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
@@ -25,8 +31,13 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         var product = await _productRepository.GetByIdAsync(request.Id, cancellationToken);
         if (product == null) return Result<ProductDto>.Failure($"Không tìm thấy sản phẩm với ID '{request.Id}'.");
 
+        var priceChanged = request.Price.HasValue && request.Price.Value != product.BasePrice.Value;
+        var oldPrice = product.BasePrice.Value;
+
         // Update price if provided
         if (request.Price.HasValue) product.UpdatePrice(new Money(request.Price.Value));
+
+        var discontinuedNow = false;
 
         // Update status if provided
         if (request.Status.HasValue)
@@ -43,6 +54,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
                             break;
                         case ProductStatuses.Discontinued:
                             product.Discontinue();
+                            discontinuedNow = true;
                             break;
                         case ProductStatuses.Active:
                             product.Reactivate();
@@ -61,6 +73,30 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         }
 
         await _productRepository.UpdateAsync(product, cancellationToken);
+
+        if (priceChanged)
+        {
+            await _notificationService.NotifyAsync(
+                "Giá sản phẩm thay đổi",
+                $"Sản phẩm '{product.Name}' đã đổi giá từ {oldPrice:N0}đ → {request.Price!.Value:N0}đ.",
+                NotificationType.PriceChanged,
+                NotificationRole.Seller,
+                product.Id,
+                "Product",
+                cancellationToken);
+        }
+
+        if (discontinuedNow)
+        {
+            await _notificationService.NotifyAsync(
+                "Sản phẩm ngừng kinh doanh",
+                $"Sản phẩm '{product.Name}' đã được đánh dấu ngừng kinh doanh.",
+                NotificationType.ProductDiscontinued,
+                NotificationRole.Both,
+                product.Id,
+                "Product",
+                cancellationToken);
+        }
 
         // Map to DTO
         var dto = MapToDto(product);

@@ -4,10 +4,12 @@ using InventoryManagement.Application.Commands.CreateProduct;
 using InventoryManagement.Application.Commands.DeleteBatch;
 using InventoryManagement.Application.Commands.DeleteProduct;
 using InventoryManagement.Application.Commands.DeleteProductVariant;
+using InventoryManagement.Application.Commands.ImportProducts;
 using InventoryManagement.Application.Commands.UpdateBatch;
 using InventoryManagement.Application.Commands.UpdateProduct;
 using InventoryManagement.Application.Commands.UpdateProductVariant;
 using InventoryManagement.Application.DTOs;
+using InventoryManagement.Application.Interfaces;
 using InventoryManagement.Application.Queries.GetBatch;
 using InventoryManagement.Application.Queries.GetBatches;
 using InventoryManagement.Application.Queries.GetProduct;
@@ -49,10 +51,12 @@ namespace BiBoGC.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IProductImportService _importService;
 
-    public ProductsController(IMediator mediator)
+    public ProductsController(IMediator mediator, IProductImportService importService)
     {
         _mediator = mediator;
+        _importService = importService;
     }
 
     /// <summary>
@@ -772,6 +776,62 @@ public class ProductsController : ControllerBase
         return File(export.Data,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "ProductExists.xlsx");
+    }
+
+    // ─── Import ──────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Downloads the blank Excel import template.
+    /// The user fills it in and uploads it via POST /api/products/import.
+    /// </summary>
+    [HttpGet("import-template")]
+    [Authorize(Roles = "Administrator")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetImportTemplate(CancellationToken cancellationToken)
+    {
+        var bytes = await _importService.GenerateImportTemplateAsync(cancellationToken);
+        return File(bytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "MauNhapSanPham.xlsx");
+    }
+
+    /// <summary>
+    /// Imports products from an uploaded Excel file.
+    /// Set <c>dryRun=true</c> to validate only without persisting (returns a preview).
+    /// Valid rows are imported; invalid rows are reported in the response.
+    /// </summary>
+    [HttpPost("import")]
+    [Authorize(Roles = "Administrator")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(ImportProductsResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ImportProducts(
+        IFormFile file,
+        [FromQuery] bool dryRun = false,
+        CancellationToken ct = default)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest("Vui lòng chọn file Excel (.xlsx) để tải lên.");
+
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (ext is not ".xlsx" and not ".xls")
+            return BadRequest("Chỉ hỗ trợ file Excel (.xlsx).");
+
+        if (file.Length > 10 * 1024 * 1024) // 10 MB guard
+            return BadRequest("File quá lớn (tối đa 10 MB).");
+
+        await using var stream = file.OpenReadStream();
+
+        var result = await _mediator.Send(new ImportProductsCommand
+        {
+            FileStream = stream,
+            DryRun = dryRun
+        }, ct);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { errors = result.Errors });
+
+        return Ok(result.Value);
     }
 }
 

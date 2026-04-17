@@ -245,13 +245,22 @@ export interface InvoiceDto {
 
 // ─── Notifications ────────────────────────────────────────────────────────────
 
+export type NotificationTypeName =
+  | 'Info' | 'Warning' | 'Error'
+  | 'NewOrder' | 'OrderCancelled' | 'OrderCompleted'
+  | 'StockReceived' | 'LowStock' | 'OutOfStock' | 'BatchAdded'
+  | 'PriceChanged' | 'ProductDiscontinued'
+
 export interface NotificationDto {
   id: string
   title: string
   message: string
-  type: 'info' | 'warning' | 'error'
+  type: NotificationTypeName
+  role: string
   isRead: boolean
   createdAt: string
+  referenceId?: string | null
+  referenceType?: string | null
 }
 
 export interface NotificationPagedResult {
@@ -797,4 +806,22 @@ export interface AdjustStockRequestV2 {
   quantity: number
   unitPrice: number
   notes?: string
+}
+
+// ─── Product Import (Excel) ───────────────────────────────────────────────────
+
+export interface ImportProductRowError {
+  rowNumber: number
+  name: string | null
+  sku: string | null
+  errors: string[]
+}
+
+export interface ImportProductsResultDto {
+  totalRows: number
+  successful: number
+  failed: number
+  isDryRun: boolean
+  rowErrors: ImportProductRowError[]
+  importedSkus: string[]
 }
