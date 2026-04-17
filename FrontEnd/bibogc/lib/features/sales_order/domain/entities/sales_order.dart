@@ -110,4 +110,21 @@ class SalesOrderItem {
     required this.unitPrice,
     required this.lineTotal,
   });
+
+  String get unitLabel => switch (unit.toLowerCase()) {
+    'goi' => 'Gói',
+    'cai' => 'Cái',
+    'hop' => 'Hộp',
+    'lo' => 'Lọ',
+    'thung' => 'Thùng',
+    'tui' => 'Túi',
+    'cuon' => 'Cuộn',
+    'doi' => 'Đôi',
+    'bo' => 'Bộ',
+    'vien' => 'Viên',
+    'tam' => 'Tấm',
+    'loc' => 'Lốc',
+    'lit' => 'Lít',
+    _ => unit,
+  };
 }
