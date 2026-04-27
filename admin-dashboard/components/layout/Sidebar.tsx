@@ -101,6 +101,7 @@ export function Sidebar() {
           width={160}
           height={32}
           priority
+          unoptimized
         />
       </div>
 
@@ -155,6 +156,7 @@ export function Sidebar() {
           width={140}
           height={28}
           priority
+          unoptimized
         />
         <div className="flex items-center gap-1">
           <NotificationBell />
