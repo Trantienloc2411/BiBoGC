@@ -1140,3 +1140,5 @@ lib/generated_plugin_registrant.dart
 
 # End of https://www.toptal.com/developers/gitignore/api/flutter
 BiBoGC/.claude/settings.local.json
+/FrontEnd/bibogc/android
+/FrontEnd/bibogc/.claude
