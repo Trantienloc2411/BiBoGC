@@ -96,7 +96,7 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
             if (availableStock < quantityInBaseUnits)
                 return Result<SalesOrderDto>.Failure(
                     $"Sản phẩm '{item.ProductName} - {item.VariantName}' không đủ tồn kho. " +
-                    $"Tồn: {availableStock} {product.BaseUnits}, Yêu cầu: {quantityInBaseUnits} {product.BaseUnits}");
+                    $"Tồn: {availableStock} {product.BaseUnits.ToString()}, Yêu cầu: {quantityInBaseUnits} {product.BaseUnits.ToString()}");
 
             stockDeductions.Add((product, variant, batch, quantityInBaseUnits, item));
         }

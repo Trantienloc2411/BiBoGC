@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { stockTransactionApi, productApi } from '@/lib/api'
-import type { StockTransactionDtoV2, AdjustStockRequestV2, ProductDto, ProductBatchDtoV2 } from '@/types'
+import { stockTransactionApi, productApi, supplierApi } from '@/lib/api'
+import type { StockTransactionDtoV2, AdjustStockRequestV2, ProductDto, ProductBatchDtoV2, SupplierDtoV2 } from '@/types'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
@@ -30,6 +30,7 @@ const TYPE_META: Record<string, { label: string; colorClass: string }> = {
 }
 
 const TYPE_OPTIONS = Object.entries(TYPE_META).map(([k, v]) => ({ value: k, label: v.label }))
+const CREATE_TYPE_OPTIONS = TYPE_OPTIONS.filter(o => o.value !== 'Sale')
 
 export default function StockTransactionsPage() {
   const { success, error: showError } = useToast()
@@ -50,9 +51,9 @@ export default function StockTransactionsPage() {
   const [showAdjust, setShowAdjust] = useState(false)
   const [adjustLoading, setAdjustLoading] = useState(false)
   const [adjustError, setAdjustError] = useState('')
-  const [adjustForm, setAdjustForm] = useState<AdjustStockRequestV2>({
+  const [adjustForm, setAdjustForm] = useState<AdjustStockRequestV2 & { supplierId?: string }>({
     productId: '',
-    isIncrease: true,
+    transactionType: 'AdjustmentIn' as any,
     quantity: 0,
     unitPrice: 0,
   })
@@ -69,6 +70,10 @@ export default function StockTransactionsPage() {
   const [batches, setBatches] = useState<ProductBatchDtoV2[]>([])
   const [batchesLoading, setBatchesLoading] = useState(false)
   const [selectedBatch, setSelectedBatch] = useState<ProductBatchDtoV2 | null>(null)
+
+  // Supplier state
+  const [suppliers, setSuppliers] = useState<SupplierDtoV2[]>([])
+  const [suppliersLoaded, setSuppliersLoaded] = useState(false)
 
   const load = useCallback(async (p: number) => {
     setLoading(true)
@@ -145,7 +150,7 @@ export default function StockTransactionsPage() {
   }
 
   function openAdjust() {
-    setAdjustForm({ productId: '', isIncrease: true, quantity: 0, unitPrice: 0 })
+    setAdjustForm({ productId: '', transactionType: 'AdjustmentIn' as any, quantity: 0, unitPrice: 0, manufacturingDate: '', expirationDate: '', supplierId: '' })
     setAdjustError('')
     setProductQuery('')
     setSelectedProduct(null)
@@ -154,6 +159,12 @@ export default function StockTransactionsPage() {
     setBatches([])
     setSelectedBatch(null)
     searchProducts('')
+    if (!suppliersLoaded) {
+      supplierApi.list({ pageSize: 100, isActive: true }).then(res => {
+        setSuppliers(res.items)
+        setSuppliersLoaded(true)
+      }).catch(() => {})
+    }
     setShowAdjust(true)
   }
 
@@ -161,13 +172,29 @@ export default function StockTransactionsPage() {
     e.preventDefault(); setAdjustError('')
     if (!adjustForm.productId) { setAdjustError('Vui lòng chọn sản phẩm.'); return }
     if (adjustForm.quantity <= 0) { setAdjustError('Số lượng phải lớn hơn 0.'); return }
-    if (!adjustForm.isIncrease && selectedBatch && adjustForm.quantity > selectedBatch.quantity) {
+    const isOut = !IN_TYPES.has(adjustForm.transactionType);
+    if (isOut && selectedBatch && adjustForm.quantity > selectedBatch.quantity) {
       setAdjustError(`Số lượng giảm (${adjustForm.quantity}) vượt quá tồn lô hàng (${selectedBatch.quantity}).`); return
     }
     setAdjustLoading(true)
     try {
-      await stockTransactionApi.adjust(adjustForm)
-      success('Điều chỉnh tồn kho thành công')
+      if (adjustForm.transactionType === 'Purchase' as any) {
+        if (!adjustForm.supplierId) {
+          setAdjustError('Vui lòng chọn nhà cung cấp cho giao dịch nhập hàng.')
+          setAdjustLoading(false)
+          return
+        }
+        await stockTransactionApi.createGeneral({
+          ...adjustForm,
+          transactionType: 1, // 1 is Purchase in C# enum
+        })
+      } else {
+        await stockTransactionApi.adjust({
+          ...adjustForm,
+          isIncrease: !isOut,
+        } as any)
+      }
+      success('Tạo giao dịch thành công')
       setShowAdjust(false)
       load(page)
     } catch (err) {
@@ -347,12 +374,22 @@ export default function StockTransactionsPage() {
           </FormField>
         )}
         <FormField label="Loại điều chỉnh" required>
-          <select className={selectClass} value={adjustForm.isIncrease ? '1' : '0'}
-            onChange={e => setAdjustForm(f => ({ ...f, isIncrease: e.target.value === '1' }))}>
-            <option value="1">Tăng tồn kho</option>
-            <option value="0">Giảm tồn kho</option>
+          <select className={selectClass} value={adjustForm.transactionType}
+            onChange={e => setAdjustForm(f => ({ ...f, transactionType: e.target.value as any }))}>
+            {CREATE_TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </FormField>
+        {adjustForm.transactionType === 'Purchase' as any && (
+          <FormField label="Nhà cung cấp" required>
+            <select className={selectClass} value={adjustForm.supplierId ?? ''}
+              onChange={e => setAdjustForm(f => ({ ...f, supplierId: e.target.value || undefined }))}>
+              <option value="">— Chọn nhà cung cấp —</option>
+              {suppliers.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </FormField>
+        )}
         <FormField label="Số lượng" required>
           <input type="number" min={1} className={inputClass} value={adjustForm.quantity || ''}
             onChange={e => setAdjustForm(f => ({ ...f, quantity: Number(e.target.value) }))}
@@ -361,6 +398,32 @@ export default function StockTransactionsPage() {
         <FormField label="Đơn giá">
           <MoneyInput className={inputClass} value={adjustForm.unitPrice ?? 0} onChange={v => setAdjustForm(f => ({ ...f, unitPrice: v }))} placeholder="0" />
         </FormField>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Ngày sản xuất">
+            <input type="date" className={inputClass} value={adjustForm.manufacturingDate ?? ''}
+              max={adjustForm.expirationDate || undefined}
+              onChange={e => {
+                const val = e.target.value
+                setAdjustForm(f => ({
+                  ...f,
+                  manufacturingDate: val || undefined,
+                  expirationDate: f.expirationDate && val > f.expirationDate ? undefined : f.expirationDate,
+                }))
+              }} />
+          </FormField>
+          <FormField label="Hạn sử dụng">
+            <input type="date" className={inputClass} value={adjustForm.expirationDate ?? ''}
+              min={adjustForm.manufacturingDate || undefined}
+              onChange={e => {
+                const val = e.target.value
+                setAdjustForm(f => ({
+                  ...f,
+                  expirationDate: val || undefined,
+                  manufacturingDate: f.manufacturingDate && val < f.manufacturingDate ? undefined : f.manufacturingDate,
+                }))
+              }} />
+          </FormField>
+        </div>
         <FormField label="Ghi chú">
           <textarea className={inputClass} rows={2} value={adjustForm.notes ?? ''}
             onChange={e => setAdjustForm(f => ({ ...f, notes: e.target.value }))}

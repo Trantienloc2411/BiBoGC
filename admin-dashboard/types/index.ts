@@ -801,11 +801,12 @@ export interface StockTransactionDtoV2 {
 export interface AdjustStockRequestV2 {
   productId: string
   productBatchId?: string
-  /** true = increase stock, false = decrease */
-  isIncrease: boolean
+  transactionType: StockTransactionType
   quantity: number
   unitPrice: number
   notes?: string
+  manufacturingDate?: string
+  expirationDate?: string
 }
 
 // ─── Product Import (Excel) ───────────────────────────────────────────────────

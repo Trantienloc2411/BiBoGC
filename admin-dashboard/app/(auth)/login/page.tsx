@@ -75,6 +75,7 @@ export default function LoginPage() {
             width={180}
             height={36}
             priority
+            unoptimized
           />
         </div>
 
@@ -120,6 +121,7 @@ export default function LoginPage() {
               height={72}
               className="rounded-2xl shadow-md"
               priority
+              unoptimized
             />
             <span className="text-sm text-slate-500 font-medium">
               BiBo&apos;s GC Admin

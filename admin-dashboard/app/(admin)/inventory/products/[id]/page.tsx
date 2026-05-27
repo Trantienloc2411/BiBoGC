@@ -178,75 +178,11 @@ function batchStatusBadge(b: ProductBatchDtoV2) {
   return <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">Còn hạn</span>
 }
 
-function BatchSection({ productId, batches, onRefresh }: { productId: string; batches: ProductBatchDtoV2[]; onRefresh: () => void }) {
-  const { success, error: showError } = useToast()
-  const [showForm, setShowForm] = useState(false)
-  const [editing, setEditing] = useState<ProductBatchDtoV2 | null>(null)
-  const [formLoading, setFormLoading] = useState(false)
-  const [formError, setFormError] = useState('')
-  const [form, setForm] = useState<AddBatchRequest>({ batchNumber: '', quantity: 0 })
-  const [deleteTarget, setDeleteTarget] = useState<ProductBatchDtoV2 | null>(null)
-  const [deleting, setDeleting] = useState(false)
-
-  function openCreate() {
-    setEditing(null)
-    setForm({ batchNumber: '', quantity: 0, manufacturingDate: undefined, expirationDate: undefined })
-    setFormError('')
-    setShowForm(true)
-  }
-
-  function openEdit(b: ProductBatchDtoV2) {
-    setEditing(b)
-    setForm({
-      batchNumber: b.batchNumber, quantity: b.quantity,
-      manufacturingDate: b.manufacturingDate?.slice(0, 10),
-      expirationDate: b.expirationDate?.slice(0, 10),
-    })
-    setFormError('')
-    setShowForm(true)
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault(); setFormError('')
-    if (!form.batchNumber.trim()) { setFormError('Số lô không được trống.'); return }
-    setFormLoading(true)
-    try {
-      if (editing) {
-        const body: UpdateBatchRequest = {
-          quantity: form.quantity,
-          manufacturingDate: form.manufacturingDate || undefined,
-          expirationDate: form.expirationDate || undefined,
-        }
-        await productApi.updateBatch(productId, editing.id, body)
-        success('Cập nhật lô thành công')
-      } else {
-        await productApi.addBatch(productId, { ...form, batchNumber: form.batchNumber.trim() })
-        success('Thêm lô thành công')
-      }
-      setShowForm(false)
-      onRefresh()
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Thao tác thất bại.')
-    } finally { setFormLoading(false) }
-  }
-
-  async function handleDelete() {
-    if (!deleteTarget) return
-    setDeleting(true)
-    try {
-      await productApi.deleteBatch(productId, deleteTarget.id)
-      success('Đã xoá lô hàng')
-      onRefresh()
-    } catch (err) {
-      showError('Xoá thất bại', err instanceof Error ? err.message : undefined)
-    } finally { setDeleting(false); setDeleteTarget(null) }
-  }
-
+function BatchSection({ batches }: { productId: string; batches: ProductBatchDtoV2[]; onRefresh: () => void }) {
   return (
     <>
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-400">{batches.length} lô hàng</p>
-        <Button size="sm" onClick={openCreate} className="gap-1.5"><Plus size={14} /> Thêm lô</Button>
       </div>
       {batches.length === 0 ? (
         <Card><p className="text-center text-gray-400 py-6 text-sm">Chưa có lô hàng nào</p></Card>
@@ -261,7 +197,6 @@ function BatchSection({ productId, batches, onRefresh }: { productId: string; ba
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Sản xuất</th>
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Hạn sử dụng</th>
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Tình trạng</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -272,12 +207,6 @@ function BatchSection({ productId, batches, onRefresh }: { productId: string; ba
                     <td className="px-4 py-3 text-gray-500">{b.manufacturingDate ? formatDate(b.manufacturingDate) : '—'}</td>
                     <td className="px-4 py-3 text-gray-500">{b.expirationDate ? formatDate(b.expirationDate) : '—'}</td>
                     <td className="px-4 py-3">{batchStatusBadge(b)}</td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => openEdit(b)}><Pencil size={14} /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => setDeleteTarget(b)} className="text-red-500"><Trash2 size={14} /></Button>
-                      </div>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -286,46 +215,6 @@ function BatchSection({ productId, batches, onRefresh }: { productId: string; ba
         </Card>
       )}
 
-      <FormDialog open={showForm} title={editing ? 'Sửa lô hàng' : 'Thêm lô hàng'} loading={formLoading} onSubmit={handleSubmit} onCancel={() => setShowForm(false)}>
-        <FormField label="Số lô" required>
-          <input className={inputClass} value={form.batchNumber} onChange={e => setForm(f => ({ ...f, batchNumber: e.target.value }))} />
-        </FormField>
-        <FormField label="Số lượng">
-          <input type="number" className={inputClass} value={form.quantity || ''} onChange={e => setForm(f => ({ ...f, quantity: Number(e.target.value) }))} />
-        </FormField>
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Ngày sản xuất">
-            <input type="date" className={inputClass} value={form.manufacturingDate ?? ''}
-              max={form.expirationDate || undefined}
-              onChange={e => {
-                const val = e.target.value
-                setForm(f => ({
-                  ...f,
-                  manufacturingDate: val || undefined,
-                  expirationDate: f.expirationDate && val > f.expirationDate ? undefined : f.expirationDate,
-                }))
-              }} />
-          </FormField>
-          <FormField label="Hạn sử dụng">
-            <input type="date" className={inputClass} value={form.expirationDate ?? ''}
-              min={form.manufacturingDate || undefined}
-              onChange={e => {
-                const val = e.target.value
-                setForm(f => ({
-                  ...f,
-                  expirationDate: val || undefined,
-                  manufacturingDate: f.manufacturingDate && val < f.manufacturingDate ? undefined : f.manufacturingDate,
-                }))
-              }} />
-          </FormField>
-        </div>
-        <FormError message={formError} />
-      </FormDialog>
-
-      <ConfirmDialog open={deleteTarget !== null} title="Xoá lô hàng?"
-        description={`Xoá lô "${deleteTarget?.batchNumber}"?`}
-        icon={<div className="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center"><Trash2 size={24} className="text-red-500" /></div>}
-        confirmLabel="Xoá" variant="danger" loading={deleting} onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} />
     </>
   )
 }

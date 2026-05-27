@@ -36,12 +36,47 @@ public class UpdateBatchCommandHandler : IRequestHandler<UpdateBatchCommand, Res
             var newQuantity = request.Quantity.Value;
 
             if (newQuantity > currentQuantity)
+            {
                 batch.IncreaseQuantity(newQuantity - currentQuantity);
-            else if (newQuantity < currentQuantity) batch.DecreaseQuantity(currentQuantity - newQuantity);
+                product.IncreaseStock(newQuantity - currentQuantity);
+            }
+            else if (newQuantity < currentQuantity)
+            {
+                batch.DecreaseQuantity(currentQuantity - newQuantity);
+                product.DecreaseStock(currentQuantity - newQuantity);
+            }
         }
 
-        // Note: ManufacturingDate, ExpirationDate, and CostPrice would need
-        // domain methods to update them if needed. For now, we'll save via repository.
+        if (request.ExpirationDate.HasValue && request.ExpirationDate.Value > DateTime.Now)
+        {
+            batch.UpdateExpirationDateBatch(request.ExpirationDate.Value);
+        }
+        else
+        {
+            return Result<ProductBatchDto>.Failure(
+                $"Ngày hết hạn của lô hàng không được trong quá khứ hoặc ngày hiện tại. Ngày giờ hiện tại {DateTime.Now} - Ngày giờ cập nhật cho lô hàng {request.ExpirationDate.Value}. ");
+        }
+        
+        if (request.ManufacturingDate.HasValue && request.ManufacturingDate.Value <= DateTime.Now)
+        {
+            batch.UpdateExpirationDateBatch(request.ExpirationDate.Value);
+        }
+        else
+        {
+            return Result<ProductBatchDto>.Failure(
+                $"Ngày sản xất của lô hàng không được trong quá khứ. Ngày giờ hiện tại {DateTime.Now} - Ngày giờ cập nhật cho lô hàng {request.ManufacturingDate.Value}. ");
+        }
+
+        if (request.CostPrice is > 0)
+        {
+            batch.UpdateCostPrice(request.CostPrice.Value);
+        }
+        else
+        {
+            return Result<ProductBatchDto>.Failure(
+                $"Giá nhập vào của lô không thể bằng 0 hoặc âm. Giá trị nhập vào {request.CostPrice.Value}");
+        }
+        
 
         await _productRepository.UpdateAsync(product, cancellationToken);
 
