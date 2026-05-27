@@ -77,4 +77,20 @@ public class ProductBatch : BaseEntity
     {
         return DaysUntilExpiration() <= warningDays && !IsExpired();
     }
+
+    public void UpdateManufacturingDateBatch(DateTime manufacturingDate)
+    {
+        ManufacturingDate =  manufacturingDate;
+    }
+
+    public void UpdateExpirationDateBatch(DateTime expirationDate)
+    {
+        ExpirationDate = expirationDate;
+    }
+
+    public decimal UpdateCostPrice(decimal costPrice)
+    {
+        return CostPrice = costPrice;
+    }
+    
 }

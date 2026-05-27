@@ -372,4 +372,6 @@ export const stockTransactionApi = {
   // Sale shortcut per Postman
   sale: (data: { productId: string; productBatchId?: string; quantity: number; unitPrice: number; notes?: string }) =>
     apiPost<StockTransactionDtoV2>('/api/stocktransactions/sale', data),
+  createGeneral: (data: any) =>
+    apiPost<StockTransactionDtoV2>('/api/stocktransactions', data),
 }
