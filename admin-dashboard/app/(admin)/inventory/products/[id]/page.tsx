@@ -246,7 +246,6 @@ function BatchSection({ productId, batches, onRefresh }: { productId: string; ba
     <>
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-400">{batches.length} lô hàng</p>
-        <Button size="sm" onClick={openCreate} className="gap-1.5"><Plus size={14} /> Thêm lô</Button>
       </div>
       {batches.length === 0 ? (
         <Card><p className="text-center text-gray-400 py-6 text-sm">Chưa có lô hàng nào</p></Card>
@@ -261,7 +260,6 @@ function BatchSection({ productId, batches, onRefresh }: { productId: string; ba
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Sản xuất</th>
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Hạn sử dụng</th>
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Tình trạng</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -272,12 +270,6 @@ function BatchSection({ productId, batches, onRefresh }: { productId: string; ba
                     <td className="px-4 py-3 text-gray-500">{b.manufacturingDate ? formatDate(b.manufacturingDate) : '—'}</td>
                     <td className="px-4 py-3 text-gray-500">{b.expirationDate ? formatDate(b.expirationDate) : '—'}</td>
                     <td className="px-4 py-3">{batchStatusBadge(b)}</td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => openEdit(b)}><Pencil size={14} /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => setDeleteTarget(b)} className="text-red-500"><Trash2 size={14} /></Button>
-                      </div>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -287,39 +279,7 @@ function BatchSection({ productId, batches, onRefresh }: { productId: string; ba
       )}
 
       <FormDialog open={showForm} title={editing ? 'Sửa lô hàng' : 'Thêm lô hàng'} loading={formLoading} onSubmit={handleSubmit} onCancel={() => setShowForm(false)}>
-        <FormField label="Số lô" required>
-          <input className={inputClass} value={form.batchNumber} onChange={e => setForm(f => ({ ...f, batchNumber: e.target.value }))} />
-        </FormField>
-        <FormField label="Số lượng">
-          <input type="number" className={inputClass} value={form.quantity || ''} onChange={e => setForm(f => ({ ...f, quantity: Number(e.target.value) }))} />
-        </FormField>
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Ngày sản xuất">
-            <input type="date" className={inputClass} value={form.manufacturingDate ?? ''}
-              max={form.expirationDate || undefined}
-              onChange={e => {
-                const val = e.target.value
-                setForm(f => ({
-                  ...f,
-                  manufacturingDate: val || undefined,
-                  expirationDate: f.expirationDate && val > f.expirationDate ? undefined : f.expirationDate,
-                }))
-              }} />
-          </FormField>
-          <FormField label="Hạn sử dụng">
-            <input type="date" className={inputClass} value={form.expirationDate ?? ''}
-              min={form.manufacturingDate || undefined}
-              onChange={e => {
-                const val = e.target.value
-                setForm(f => ({
-                  ...f,
-                  expirationDate: val || undefined,
-                  manufacturingDate: f.manufacturingDate && val < f.manufacturingDate ? undefined : f.manufacturingDate,
-                }))
-              }} />
-          </FormField>
-        </div>
-        <FormError message={formError} />
+        {/* Read-only UI removes form elements, but keeping the dialog structure invisible or unused for safety */}
       </FormDialog>
 
       <ConfirmDialog open={deleteTarget !== null} title="Xoá lô hàng?"
