@@ -55,7 +55,6 @@ public class CompleteOrderCommandHandlerTests
             new Sku("SKU-001"),
             false,
             Units.Chai,
-            new Money(10_000m),
             null);
 
         if (availableStock > 0)

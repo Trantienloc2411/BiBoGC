@@ -177,369 +177,369 @@ public static class DataSeeder
 
         // ===== NƯỚC NGỌT =====
         var coca = new Product("Coca-Cola Lon", "Nước ngọt có gas Coca-cola lon 330ml.", ProductStatuses.Active,
-            new Sku("COCA-330-LON"), true, Units.Lon, new Money(7500), 100);
+            new Sku("COCA-330-LON"), true, Units.Lon, 100);
         coca.SetCategory(nuocNgot.Id);
 
         var pepsi = new Product("Pepsi lon 330ml", "Nước ngọt có gas Pepsi lon 330ml", ProductStatuses.Active,
-            new Sku("PEPSI-330-LON"), true, Units.Lon, new Money(7500), 100);
+            new Sku("PEPSI-330-LON"), true, Units.Lon, 100);
         pepsi.SetCategory(nuocNgot.Id);
 
         var sevenUp = new Product("7Up Lon 330ml", "Nước ngọt có gas 7Up lon 330ml", ProductStatuses.Active,
-            new Sku("7UP-330-LON"), true, Units.Lon, new Money(8000), 100);
+            new Sku("7UP-330-LON"), true, Units.Lon, 100);
         sevenUp.SetCategory(nuocNgot.Id);
 
         var fanta = new Product("Fanta cam lon 330ml", "Nước ngọt có gas Fanta cam lon 330ml", ProductStatuses.Active,
-            new Sku("FANTA-CAM-330-LON"), true, Units.Lon, new Money(6500), 100);
+            new Sku("FANTA-CAM-330-LON"), true, Units.Lon, 100);
         fanta.SetCategory(nuocNgot.Id);
 
         var sprite = new Product("Sprite Lon 330ml", "Nước ngọt có gas Sprite lon 330ml", ProductStatuses.Active,
-            new Sku("SPRITE-330-LON"), true, Units.Lon, new Money(7500), 100);
+            new Sku("SPRITE-330-LON"), true, Units.Lon, 100);
         sprite.SetCategory(nuocNgot.Id);
 
         var sting = new Product("Sting Dâu 330ml", "Nước tăng lực Sting vị dâu lon 330ml", ProductStatuses.Active,
-            new Sku("STING-DAU-330"), true, Units.Lon, new Money(10000), 80);
+            new Sku("STING-DAU-330"), true, Units.Lon, 80);
         sting.SetCategory(nuocNgot.Id);
 
         var redbull = new Product("Red Bull 250ml", "Nước tăng lực Red Bull lon 250ml", ProductStatuses.Active,
-            new Sku("REDBULL-250"), true, Units.Lon, new Money(15000), 60);
+            new Sku("REDBULL-250"), true, Units.Lon, 60);
         redbull.SetCategory(nuocNgot.Id);
 
         var number1 = new Product("Number 1 Chanh Muối 455ml", "Nước giải khát Number 1 chanh muối chai 455ml",
-            ProductStatuses.Active, new Sku("NUMBER1-CHANHMUOI-455"), true, Units.Chai, new Money(8000), 80);
+            ProductStatuses.Active, new Sku("NUMBER1-CHANHMUOI-455"), true, Units.Chai, 80);
         number1.SetCategory(nuocNgot.Id);
 
         // ===== NƯỚC SUỐI =====
         var lavie = new Product("Lavie 500ml", "Nước suối lavie tinh khiết 500ml", ProductStatuses.Active,
-            new Sku("LAVIE-500"), true, Units.Chai, new Money(4500), 100);
+            new Sku("LAVIE-500"), true, Units.Chai, 100);
         lavie.SetCategory(nuocSuoi.Id);
 
         var aqua = new Product("Aquafina 500ml", "Nước suối Aquafina tinh khiết chai 500ml", ProductStatuses.Active,
-            new Sku("AQUAFINA-500"), true, Units.Chai, new Money(4500), 100);
+            new Sku("AQUAFINA-500"), true, Units.Chai, 100);
         aqua.SetCategory(nuocSuoi.Id);
 
         var dasani = new Product("Dasani 500ml", "Nước khoáng Dasani chai 500ml", ProductStatuses.Active,
-            new Sku("DASANI-500"), true, Units.Chai, new Money(5000), 100);
+            new Sku("DASANI-500"), true, Units.Chai, 100);
         dasani.SetCategory(nuocSuoi.Id);
 
         var vica = new Product("Vica 500ml", "Nước khoáng Vica chai 500ml", ProductStatuses.Active, new Sku("VICA-500"),
-            true, Units.Chai, new Money(5500), 80);
+            true, Units.Chai, 80);
         vica.SetCategory(nuocSuoi.Id);
 
         // ===== SỮA =====
         var vinamilk100percent = new Product("Sữa tươi tiệt trùng Vinamilk 180ml",
             "Sữa tươi hộp tiệt trùng 100% Vinamilk 180ml", ProductStatuses.Active, new Sku("VINAMILK-100%-180"), true,
-            Units.Hop, new Money(6000), 100);
+            Units.Hop, 100);
         vinamilk100percent.SetCategory(sua.Id);
 
         var thTrue = new Product("Sữa TH TrueMilk Có đường 180ml", "Sữa tiệt trùng TH TrueMilk Có đường hộp 180ml",
-            ProductStatuses.Active, new Sku("THTRUEMILK-CODUONG-180"), true, Units.Hop, new Money(8500), 100);
+            ProductStatuses.Active, new Sku("THTRUEMILK-CODUONG-180"), true, Units.Hop, 100);
         thTrue.SetCategory(sua.Id);
 
         var adnVinamilk = new Product("Sữa ADN Vinamilk 180ml", "Sữa tươi tiệt trùng ADN hộp 180ml",
-            ProductStatuses.Discontinued, new Sku("VINAMILK-ADN-180"), true, Units.Hop, new Money(5500), 100);
+            ProductStatuses.Discontinued, new Sku("VINAMILK-ADN-180"), true, Units.Hop, 100);
         adnVinamilk.SetCategory(sua.Id);
 
         var suaDacOngTho = new Product("Sữa đặc Ông Thọ 380g", "Sữa đặc có đường Ông Thọ lon 380g",
-            ProductStatuses.Active, new Sku("VINAMILK-ONG-THO-380"), true, Units.Lon, new Money(22000), 100);
+            ProductStatuses.Active, new Sku("VINAMILK-ONG-THO-380"), true, Units.Lon, 100);
         suaDacOngTho.SetCategory(sua.Id);
 
         var dutchLady = new Product("Sữa Dutch Lady Dâu 180ml", "Sữa tiệt trùng Dutch Lady vị dâu hộp 180ml",
-            ProductStatuses.Active, new Sku("DUTCHLADY-DAU-180"), true, Units.Hop, new Money(7000), 100);
+            ProductStatuses.Active, new Sku("DUTCHLADY-DAU-180"), true, Units.Hop, 100);
         dutchLady.SetCategory(sua.Id);
 
         var suaChuaVinamilk = new Product("Sữa chua uống Vinamilk Dâu 180ml",
             "Sữa chua uống Vinamilk vị dâu chai 180ml", ProductStatuses.Active, new Sku("VINAMILK-SUACHUA-DAU-180"),
-            true, Units.Chai, new Money(8000), 100);
+            true, Units.Chai, 100);
         suaChuaVinamilk.SetCategory(sua.Id);
 
         var yakult = new Product("Yakult 5 chai", "Sữa chua uống men sống Yakult lốc 5 chai", ProductStatuses.Active,
-            new Sku("YAKULT-LOC5"), true, Units.Loc, new Money(18000), 80);
+            new Sku("YAKULT-LOC5"), true, Units.Loc, 80);
         yakult.SetCategory(sua.Id);
 
         // ===== TRÀ & CÀ PHÊ =====
         var nescafe = new Product("Cà phê NescafÉ 3in1", "Cà phê hòa tan NescafÉ 3in1", ProductStatuses.Active,
-            new Sku("CAFE-NESCAFE"), true, Units.Goi, new Money(85000), 100);
+            new Sku("CAFE-NESCAFE"), true, Units.Goi, 100);
         nescafe.SetCategory(traCaPhe.Id);
 
         var tranhDao = new Product("Trà Ô Long không độ 500ml", "Trà Ô Long không độ chai 500ml",
-            ProductStatuses.Active, new Sku("OLONGKHONGDO-500"), true, Units.Chai, new Money(10000), 100);
+            ProductStatuses.Active, new Sku("OLONGKHONGDO-500"), true, Units.Chai, 100);
         tranhDao.SetCategory(traCaPhe.Id);
 
         var g7 = new Product("Cà phê G7 3in1 Hòa tan", "Cà phê hòa tan G7 3in1 hộp 21 gói", ProductStatuses.Active,
-            new Sku("CAFE-G7-3IN1"), true, Units.Hop, new Money(68000), 80);
+            new Sku("CAFE-G7-3IN1"), true, Units.Hop, 80);
         g7.SetCategory(traCaPhe.Id);
 
         var vinacafe = new Product("Cà phê Vinacafe 3in1", "Cà phê hòa tan Vinacafe 3in1 hộp 20 gói",
-            ProductStatuses.Active, new Sku("CAFE-VINACAFE-3IN1"), true, Units.Hop, new Money(52000), 80);
+            ProductStatuses.Active, new Sku("CAFE-VINACAFE-3IN1"), true, Units.Hop, 80);
         vinacafe.SetCategory(traCaPhe.Id);
 
         var traThaiXanh = new Product("Trà Thái Xanh 350ml", "Trà xanh Thái Nguyên không độ chai 350ml",
-            ProductStatuses.Active, new Sku("TRA-THAIXANH-350"), true, Units.Chai, new Money(8000), 100);
+            ProductStatuses.Active, new Sku("TRA-THAIXANH-350"), true, Units.Chai, 100);
         traThaiXanh.SetCategory(traCaPhe.Id);
 
         var liptonLipton = new Product("Trà Lipton Chanh 320ml", "Trà đen Lipton vị chanh lon 320ml",
-            ProductStatuses.Active, new Sku("LIPTON-CHANH-320"), true, Units.Lon, new Money(9000), 80);
+            ProductStatuses.Active, new Sku("LIPTON-CHANH-320"), true, Units.Lon, 80);
         liptonLipton.SetCategory(traCaPhe.Id);
 
         // ===== NƯỚC TRÁI CÂY =====
         var twister = new Product("Twister Cam 280ml", "Nước ép trái cây Twister cam chai 280ml",
-            ProductStatuses.Active, new Sku("TWISTER-CAM-280"), true, Units.Chai, new Money(8000), 80);
+            ProductStatuses.Active, new Sku("TWISTER-CAM-280"), true, Units.Chai, 80);
         twister.SetCategory(nuocTraiCay.Id);
 
         var nutriboost = new Product("Nutriboost Dâu 297ml", "Sữa trái cây Nutriboost dâu chai 297ml",
-            ProductStatuses.Active, new Sku("NUTRIBOOST-DAU-297"), true, Units.Chai, new Money(10000), 80);
+            ProductStatuses.Active, new Sku("NUTRIBOOST-DAU-297"), true, Units.Chai, 80);
         nutriboost.SetCategory(nuocTraiCay.Id);
 
         var teppy = new Product("TH True Juice Cam 330ml", "Nước ép cam nguyên chất TH True Juice chai 330ml",
-            ProductStatuses.Active, new Sku("THTRUEJUICE-CAM-330"), true, Units.Chai, new Money(15000), 60);
+            ProductStatuses.Active, new Sku("THTRUEJUICE-CAM-330"), true, Units.Chai, 60);
         teppy.SetCategory(nuocTraiCay.Id);
 
         var minute = new Product("Minute Maid Pulpy Cam 350ml", "Nước cam có tép Minute Maid Pulpy chai 350ml",
-            ProductStatuses.Active, new Sku("MINUTEMAID-CAM-350"), true, Units.Chai, new Money(12000), 70);
+            ProductStatuses.Active, new Sku("MINUTEMAID-CAM-350"), true, Units.Chai, 70);
         minute.SetCategory(nuocTraiCay.Id);
 
         // ===== BIA & RƯỢU =====
         var saigonDo = new Product("Bia Sài Gòn Đỏ 330ml", "Bia Sài Gòn Đỏ lon 330ml", ProductStatuses.Active,
-            new Sku("BIA-SAIGONDO-330"), true, Units.Lon, new Money(12000), 100);
+            new Sku("BIA-SAIGONDO-330"), true, Units.Lon, 100);
         saigonDo.SetCategory(biaRuou.Id);
 
         var heineken = new Product("Bia Heineken 330ml", "Bia Heineken lon 330ml", ProductStatuses.Active,
-            new Sku("BIA-HEINEKEN-330"), true, Units.Lon, new Money(18000), 80);
+            new Sku("BIA-HEINEKEN-330"), true, Units.Lon, 80);
         heineken.SetCategory(biaRuou.Id);
 
         var tiger = new Product("Bia Tiger 330ml", "Bia Tiger lon 330ml", ProductStatuses.Active,
-            new Sku("BIA-TIGER-330"), true, Units.Lon, new Money(14000), 100);
+            new Sku("BIA-TIGER-330"), true, Units.Lon, 100);
         tiger.SetCategory(biaRuou.Id);
 
         var bivina = new Product("Bia Bivina 330ml", "Bia Bivina lon 330ml", ProductStatuses.Active,
-            new Sku("BIA-BIVINA-330"), true, Units.Lon, new Money(10000), 100);
+            new Sku("BIA-BIVINA-330"), true, Units.Lon, 100);
         bivina.SetCategory(biaRuou.Id);
 
         // ===== MÌ GÓI =====
         var haoHao = new Product("Mì Hảo Hảo tôm chua cay", "Mì ăn liền Hảo Hảo vị tôm chua cay",
-            ProductStatuses.Active, new Sku("HAOHAO-75"), true, Units.Goi, new Money(5000), 100);
+            ProductStatuses.Active, new Sku("HAOHAO-75"), true, Units.Goi, 100);
         haoHao.SetCategory(miGoi.Id);
 
         var omachi = new Product("Mì gói Omachi xốt bò hầm", "Mì khoai tây Omachi gói vị xốt bò hầm",
-            ProductStatuses.Active, new Sku("OMACHI-BO-GOI"), true, Units.Goi, new Money(7000), 100);
+            ProductStatuses.Active, new Sku("OMACHI-BO-GOI"), true, Units.Goi, 100);
         omachi.SetCategory(miGoi.Id);
 
         var kokomi = new Product("Mì gói Kokomi đại gà quay", "Mì ăn liền Kokomi vị gà quay", ProductStatuses.Active,
-            new Sku("KOKOMI-GA"), true, Units.Goi, new Money(3500), 100);
+            new Sku("KOKOMI-GA"), true, Units.Goi, 100);
         kokomi.SetCategory(miGoi.Id);
 
         var migoreng = new Product("Mì Mì Goreng xào khô", "Mì xào khô Indomie Mì Goreng", ProductStatuses.Active,
-            new Sku("MIGORENG-GOI"), true, Units.Goi, new Money(6500), 80);
+            new Sku("MIGORENG-GOI"), true, Units.Goi, 80);
         migoreng.SetCategory(miGoi.Id);
 
         var bamien = new Product("Mì 3 Miền tôm chua cay", "Mì ăn liền 3 Miền vị tôm chua cay", ProductStatuses.Active,
-            new Sku("3MIEN-TOM"), true, Units.Goi, new Money(4500), 100);
+            new Sku("3MIEN-TOM"), true, Units.Goi, 100);
         bamien.SetCategory(miGoi.Id);
 
         var mivina = new Product("Mì Vifon gà tỏi phi", "Mì ăn liền Vifon vị gà tỏi phi", ProductStatuses.Active,
-            new Sku("VIFON-GA"), true, Units.Goi, new Money(4000), 100);
+            new Sku("VIFON-GA"), true, Units.Goi, 100);
         mivina.SetCategory(miGoi.Id);
 
         var haoHaoBo = new Product("Mì Hảo Hảo bò", "Mì ăn liền Hảo Hảo vị bò", ProductStatuses.Active,
-            new Sku("HAOHAO-BO-75"), true, Units.Goi, new Money(5000), 100);
+            new Sku("HAOHAO-BO-75"), true, Units.Goi, 100);
         haoHaoBo.SetCategory(miGoi.Id);
 
         // ===== DẦU ĂN & GIA VỊ =====
         var dauNeptune = new Product("Dầu ăn Neptune 1L", "Dầu ăn Neptune chai 1 lít", ProductStatuses.OutOfStock,
-            new Sku("NEPTUNE-1L"), true, Units.Chai, new Money(42000), 50);
+            new Sku("NEPTUNE-1L"), true, Units.Chai, 50);
         dauNeptune.SetCategory(dauAnGia.Id);
 
         var dauTuongAn = new Product("Dầu ăn Tường An 1L", "Dầu ăn Tường An chai 1 lít", ProductStatuses.Active,
-            new Sku("TUONGAN-1L"), true, Units.Chai, new Money(45000), 50);
+            new Sku("TUONGAN-1L"), true, Units.Chai, 50);
         dauTuongAn.SetCategory(dauAnGia.Id);
 
         var nuocMamChinSu = new Product("Nước mắm Chin-su 500ml", "Nước mắm Chin-su chai 500ml", ProductStatuses.Active,
-            new Sku("CHINSU-NUOCMAM-500"), true, Units.Chai, new Money(28000), 100);
+            new Sku("CHINSU-NUOCMAM-500"), true, Units.Chai, 100);
         nuocMamChinSu.SetCategory(dauAnGia.Id);
 
         var dauDau = new Product("Dầu ăn Simply 1L", "Dầu đậu nành Simply chai 1 lít", ProductStatuses.Active,
-            new Sku("SIMPLY-1L"), true, Units.Chai, new Money(48000), 50);
+            new Sku("SIMPLY-1L"), true, Units.Chai, 50);
         dauDau.SetCategory(dauAnGia.Id);
 
         var namChinSu = new Product("Nam ngư Chin-su 250ml", "Nước tương Chin-su nam ngư chai 250ml",
-            ProductStatuses.Active, new Sku("CHINSU-NAMINGU-250"), true, Units.Chai, new Money(15000), 80);
+            ProductStatuses.Active, new Sku("CHINSU-NAMINGU-250"), true, Units.Chai, 80);
         namChinSu.SetCategory(dauAnGia.Id);
         var muoiOt = new Product("Muối ớt Tây Ninh 50g", "Muối ớt xanh Tây Ninh gói 50g", ProductStatuses.Active,
-            new Sku("MUOIOT-50"), true, Units.Goi, new Money(8000), 100);
+            new Sku("MUOIOT-50"), true, Units.Goi, 100);
         muoiOt.SetCategory(dauAnGia.Id);
 
         var maggiBlock = new Product("Maggi Hạt nêm 400g", "Hạt nêm Maggi gói 400g", ProductStatuses.Active,
-            new Sku("MAGGI-HATNEM-400"), true, Units.Goi, new Money(28000), 80);
+            new Sku("MAGGI-HATNEM-400"), true, Units.Goi, 80);
         maggiBlock.SetCategory(dauAnGia.Id);
 
         var knorr = new Product("Knorr Hạt nêm 400g", "Hạt nêm Knorr gói 400g", ProductStatuses.Active,
-            new Sku("KNORR-HATNEM-400"), true, Units.Goi, new Money(32000), 80);
+            new Sku("KNORR-HATNEM-400"), true, Units.Goi, 80);
         knorr.SetCategory(dauAnGia.Id);
 
         // ===== ĐỒ HỘP =====
         var caDinh = new Product("Cá mòi sốt cà Vissan 155g", "Cá mòi sốt cà Vissan hộp 155g", ProductStatuses.Active,
-            new Sku("VISSAN-CAMOI-155"), true, Units.Hop, new Money(18000), 60);
+            new Sku("VISSAN-CAMOI-155"), true, Units.Hop, 60);
         caDinh.SetCategory(doHop.Id);
 
         var pateMasan = new Product("Pate Masan 150g", "Pate heo Masan hộp 150g", ProductStatuses.Active,
-            new Sku("MASAN-PATE-150"), true, Units.Hop, new Money(22000), 60);
+            new Sku("MASAN-PATE-150"), true, Units.Hop, 60);
         pateMasan.SetCategory(doHop.Id);
 
         var thitBo = new Product("Thịt hộp Spam 340g", "Thịt hộp Spam lon 340g", ProductStatuses.Active,
-            new Sku("SPAM-340"), true, Units.Lon, new Money(75000), 40);
+            new Sku("SPAM-340"), true, Units.Lon, 40);
         thitBo.SetCategory(doHop.Id);
 
         var ngaoNgot = new Product("Ngao sốt me Thái Lan 140g", "Ngao sốt me Thái Lan hộp 140g", ProductStatuses.Active,
-            new Sku("NGAO-ME-140"), true, Units.Hop, new Money(25000), 50);
+            new Sku("NGAO-ME-140"), true, Units.Hop, 50);
         ngaoNgot.SetCategory(doHop.Id);
 
         // ===== BÁNH QUY =====
         var oreo = new Product("Bánh Oreo 137g", "Bánh quy Oreo nhân kem vani 137g", ProductStatuses.Active,
-            new Sku("OREO-137"), true, Units.Thanh, new Money(18000), 10);
+            new Sku("OREO-137"), true, Units.Thanh, 10);
         oreo.SetCategory(banhQuy.Id);
 
         var cosy = new Product("Bánh Cosy 294g", "Bánh quy Cosy bơ sữa 294g", ProductStatuses.Active,
-            new Sku("COSYBOSUA-294"), true, Units.Hop, new Money(32000), 10);
+            new Sku("COSYBOSUA-294"), true, Units.Hop, 10);
         cosy.SetCategory(banhQuy.Id);
 
         var royco = new Product("Bánh Gấu Royco 120g", "Bánh quy Gấu Royco gói 120g", ProductStatuses.Active,
-            new Sku("ROYCO-GAU-120"), true, Units.Goi, new Money(12000), 80);
+            new Sku("ROYCO-GAU-120"), true, Units.Goi, 80);
         royco.SetCategory(banhQuy.Id);
 
         var nabisco = new Product("Bánh Ritz Nabisco 200g", "Bánh quy mặn Ritz Nabisco hộp 200g",
-            ProductStatuses.Active, new Sku("RITZ-200"), true, Units.Hop, new Money(35000), 50);
+            ProductStatuses.Active, new Sku("RITZ-200"), true, Units.Hop, 50);
         nabisco.SetCategory(banhQuy.Id);
 
         var orea = new Product("Bánh Cream-O 85g", "Bánh quy Cream-O nhân kem gói 85g", ProductStatuses.Active,
-            new Sku("CREAMO-85"), true, Units.Goi, new Money(8000), 100);
+            new Sku("CREAMO-85"), true, Units.Goi, 100);
         orea.SetCategory(banhQuy.Id);
 
         // ===== SNACK =====
         var ostar = new Product("Snack Ostar 40g", "Snack khoai tây Ostar 40g", ProductStatuses.Active,
-            new Sku("OSTAR-40"), true, Units.Goi, new Money(7000), 20);
+            new Sku("OSTAR-40"), true, Units.Goi, 20);
         ostar.SetCategory(snack.Id);
 
         var poca = new Product("Bim bim Poca 52g", "Bim bim Poca gói 52g", ProductStatuses.Active, new Sku("POCA-52"),
-            true, Units.Goi, new Money(8000), 20);
+            true, Units.Goi, 20);
         poca.SetCategory(snack.Id);
 
         var lays = new Product("Snack Lay's 52g", "Snack khoai tây Lay's vị kem chua hành tây 52g",
-            ProductStatuses.Active, new Sku("LAYS-52"), true, Units.Goi, new Money(10000), 80);
+            ProductStatuses.Active, new Sku("LAYS-52"), true, Units.Goi, 80);
         lays.SetCategory(snack.Id);
 
         var swing = new Product("Snack Swing 60g", "Snack khoai tây Swing gói 60g", ProductStatuses.Active,
-            new Sku("SWING-60"), true, Units.Goi, new Money(9000), 80);
+            new Sku("SWING-60"), true, Units.Goi, 80);
         swing.SetCategory(snack.Id);
 
         var onion = new Product("Snack Onion Rings 40g", "Snack hành tây Onion Rings gói 40g", ProductStatuses.Active,
-            new Sku("ONIONRINGS-40"), true, Units.Goi, new Money(6000), 100);
+            new Sku("ONIONRINGS-40"), true, Units.Goi, 100);
         onion.SetCategory(snack.Id);
 
         // ===== KẸO & MỨT =====
         var mentos = new Product("Kẹo Mentos 37.5g", "Kẹo nhai Mentos hương trái cây cuộn 37.5g",
-            ProductStatuses.Active, new Sku("MENTOS-37"), true, Units.Cuon, new Money(12000), 80);
+            ProductStatuses.Active, new Sku("MENTOS-37"), true, Units.Cuon, 80);
         mentos.SetCategory(keoMut.Id);
 
         var alpenlibe = new Product("Kẹo Alpenliebe 120 viên", "Kẹo ngậm Alpenliebe vị kem sữa gói 120 viên",
-            ProductStatuses.Active, new Sku("ALPENLIEBE-120"), true, Units.Goi, new Money(28000), 60);
+            ProductStatuses.Active, new Sku("ALPENLIEBE-120"), true, Units.Goi, 60);
         alpenlibe.SetCategory(keoMut.Id);
 
         var kopiko = new Product("Kẹo Kopiko Cappuccino 150g", "Kẹo cà phê Kopiko Cappuccino gói 150g",
-            ProductStatuses.Active, new Sku("KOPIKO-CAPP-150"), true, Units.Goi, new Money(18000), 70);
+            ProductStatuses.Active, new Sku("KOPIKO-CAPP-150"), true, Units.Goi, 70);
         kopiko.SetCategory(keoMut.Id);
 
         var dynamite = new Product("Kẹo Dynamite 120g", "Kẹo chua ngọt Dynamite gói 120g", ProductStatuses.Active,
-            new Sku("DYNAMITE-120"), true, Units.Goi, new Money(15000), 80);
+            new Sku("DYNAMITE-120"), true, Units.Goi, 80);
         dynamite.SetCategory(keoMut.Id);
 
         // ===== GẠO =====
         var gaoST25 = new Product("Gạo ST25 5kg", "Gạo ST25 gạo ngon nhất thế giới 5kg", ProductStatuses.Active,
-            new Sku("ST25-5"), false, Units.Tui, new Money(135000), 20);
+            new Sku("ST25-5"), false, Units.Tui, 20);
         gaoST25.SetCategory(gaoNep.Id);
 
         var gaoThom = new Product("Gạo Thơm Jasmine 5kg", "Gạo thơm Jasmine Việt Nam túi 5kg", ProductStatuses.Active,
-            new Sku("JASMINE-5"), false, Units.Tui, new Money(98000), 30);
+            new Sku("JASMINE-5"), false, Units.Tui, 30);
         gaoThom.SetCategory(gaoNep.Id);
 
         var gaoTamThom = new Product("Gạo Tám Thơm 5kg", "Gạo Tám Thơm túi 5kg", ProductStatuses.Active,
-            new Sku("TAMTHOM-5"), false, Units.Tui, new Money(115000), 25);
+            new Sku("TAMTHOM-5"), false, Units.Tui, 25);
         gaoTamThom.SetCategory(gaoNep.Id);
 
         var gaoNang = new Product("Gạo Nàng Hoa 5kg", "Gạo Nàng Hoa túi 5kg", ProductStatuses.Active,
-            new Sku("NANGHOA-5"), false, Units.Tui, new Money(105000), 25);
+            new Sku("NANGHOA-5"), false, Units.Tui, 25);
         gaoNang.SetCategory(gaoNep.Id);
 
         // ===== ĐÔNG LẠNH =====
         var xucXich = new Product("Xúc xích Đức Việt 500g", "Xúc xích heo Đức Việt gói 500g", ProductStatuses.Active,
-            new Sku("XUCXICH-DUCVIET-500"), true, Units.Goi, new Money(45000), 40);
+            new Sku("XUCXICH-DUCVIET-500"), true, Units.Goi, 40);
         xucXich.SetCategory(dongLanh.Id);
 
         var chaTom = new Product("Chả tôm Bá Kiến 200g", "Chả tôm Bá Kiến gói 200g", ProductStatuses.Active,
-            new Sku("CHATOM-BAKIEN-200"), true, Units.Goi, new Money(38000), 35);
+            new Sku("CHATOM-BAKIEN-200"), true, Units.Goi, 35);
         chaTom.SetCategory(dongLanh.Id);
 
         var nem = new Product("Nem rán CJ 300g", "Nem rán nhân thịt CJ gói 300g", ProductStatuses.Active,
-            new Sku("NEMRAN-CJ-300"), true, Units.Goi, new Money(52000), 30);
+            new Sku("NEMRAN-CJ-300"), true, Units.Goi, 30);
         nem.SetCategory(dongLanh.Id);
 
         // ===== GIẤY VỆ SINH =====
         var giayRoll = new Product("Giấy vệ sinh Pulppy 10 cuộn", "Giấy vệ sinh Pulppy 2 lớp lốc 10 cuộn",
-            ProductStatuses.Active, new Sku("PULPPY-10"), false, Units.Loc, new Money(28000), 50);
+            ProductStatuses.Active, new Sku("PULPPY-10"), false, Units.Loc, 50);
         giayRoll.SetCategory(giayVeSinh.Id);
 
         var khanGiay = new Product("Khăn giấy Kleenex 3 lớp", "Khăn giấy rút Kleenex 3 lớp hộp 100 tờ",
-            ProductStatuses.Active, new Sku("KLEENEX-100"), false, Units.Hop, new Money(25000), 60);
+            ProductStatuses.Active, new Sku("KLEENEX-100"), false, Units.Hop, 60);
         khanGiay.SetCategory(giayVeSinh.Id);
 
         var giayBella = new Product("Giấy vệ sinh Bella 12 cuộn", "Giấy vệ sinh Bella 3 lớp lốc 12 cuộn",
-            ProductStatuses.Active, new Sku("BELLA-12"), false, Units.Loc, new Money(42000), 40);
+            ProductStatuses.Active, new Sku("BELLA-12"), false, Units.Loc, 40);
         giayBella.SetCategory(giayVeSinh.Id);
 
         // ===== CHẤT TẨY RỬA =====
         var sunlight = new Product("Nước rửa chén Sunlight 750ml", "Nước rửa chén Sunlight chanh chai 750ml",
-            ProductStatuses.Active, new Sku("SUNLIGHT-750"), false, Units.Chai, new Money(32000), 50);
+            ProductStatuses.Active, new Sku("SUNLIGHT-750"), false, Units.Chai, 50);
         sunlight.SetCategory(chatTayRua.Id);
 
         var vixNuocGiat = new Product("Nước giặt OMO Matic 3.8kg", "Nước giặt OMO cho máy giặt túi 3.8kg",
-            ProductStatuses.Active, new Sku("OMO-MATIC-3.8"), false, Units.Tui, new Money(185000), 30);
+            ProductStatuses.Active, new Sku("OMO-MATIC-3.8"), false, Units.Tui, 30);
         vixNuocGiat.SetCategory(chatTayRua.Id);
 
         var botGiat = new Product("Bột giặt Tide 720g", "Bột giặt Tide trắng sáng gói 720g", ProductStatuses.Active,
-            new Sku("TIDE-720"), false, Units.Goi, new Money(38000), 50);
+            new Sku("TIDE-720"), false, Units.Goi, 50);
         botGiat.SetCategory(chatTayRua.Id);
 
         var nuocLau = new Product("Nước lau sàn Sunlight 3.6kg", "Nước lau sàn Sunlight can 3.6kg",
-            ProductStatuses.Active, new Sku("SUNLIGHT-LAUSAN-3.6"), false, Units.Can, new Money(75000), 35);
+            ProductStatuses.Active, new Sku("SUNLIGHT-LAUSAN-3.6"), false, Units.Can, 35);
         nuocLau.SetCategory(chatTayRua.Id);
 
         // ===== DẦU GỘI & SỮA TẮM =====
         var dauGoiClear = new Product("Dầu gội Clear 630ml", "Dầu gội Clear men sạch gàu chai 630ml",
-            ProductStatuses.Active, new Sku("CLEAR-630"), false, Units.Chai, new Money(125000), 40);
+            ProductStatuses.Active, new Sku("CLEAR-630"), false, Units.Chai, 40);
         dauGoiClear.SetCategory(dauGoi.Id);
 
         var dauGoiDove = new Product("Dầu gội Dove 650ml", "Dầu gội Dove phục hồi hư tổn chai 650ml",
-            ProductStatuses.Active, new Sku("DOVE-DAUGOI-650"), false, Units.Chai, new Money(135000), 40);
+            ProductStatuses.Active, new Sku("DOVE-DAUGOI-650"), false, Units.Chai, 40);
         dauGoiDove.SetCategory(dauGoi.Id);
 
         var suaTamLifebuoy = new Product("Sữa tắm Lifebuoy 850ml", "Sữa tắm Lifebuoy bảo vệ vượt trội chai 850ml",
-            ProductStatuses.Active, new Sku("LIFEBUOY-850"), false, Units.Chai, new Money(95000), 45);
+            ProductStatuses.Active, new Sku("LIFEBUOY-850"), false, Units.Chai, 45);
         suaTamLifebuoy.SetCategory(dauGoi.Id);
 
         var suaTamDove = new Product("Sữa tắm Dove 530ml", "Sữa tắm Dove dưỡng ẩm sâu chai 530ml",
-            ProductStatuses.Active, new Sku("DOVE-SUATAM-530"), false, Units.Chai, new Money(115000), 40);
+            ProductStatuses.Active, new Sku("DOVE-SUATAM-530"), false, Units.Chai, 40);
         suaTamDove.SetCategory(dauGoi.Id);
 
         // ===== KEM ĐÁNH RĂNG =====
         var psColgate = new Product("Kem đánh răng Colgate 200g", "Kem đánh răng Colgate MaxFresh tuýp 200g",
-            ProductStatuses.Active, new Sku("COLGATE-200"), false, Units.Hop, new Money(42000), 60);
+            ProductStatuses.Active, new Sku("COLGATE-200"), false, Units.Hop, 60);
         psColgate.SetCategory(kemDanhRang.Id);
 
         var psPs = new Product("Kem đánh răng P/S 230g", "Kem đánh răng P/S chăm sóc nướu tuýp 230g",
-            ProductStatuses.Active, new Sku("PS-230"), false, Units.Hop, new Money(38000), 60);
+            ProductStatuses.Active, new Sku("PS-230"), false, Units.Hop, 60);
         psPs.SetCategory(kemDanhRang.Id);
 
         var closeup = new Product("Kem đánh răng Close Up 160g", "Kem đánh răng Close Up bạc hà tuýp 160g",
-            ProductStatuses.Active, new Sku("CLOSEUP-160"), false, Units.Hop, new Money(35000), 65);
+            ProductStatuses.Active, new Sku("CLOSEUP-160"), false, Units.Hop, 65);
         closeup.SetCategory(kemDanhRang.Id);
 
         products.AddRange(new[]
@@ -772,7 +772,7 @@ public static class DataSeeder
                 "Mặc định",
                 product.BaseUnits,
                 1,
-                product.BasePrice,
+                new Money(0),
                 1,
                 null,
                 null
@@ -806,7 +806,7 @@ public static class DataSeeder
                 var manufacturingDate = DateTime.UtcNow.AddDays(-random.Next(30, 180));
                 var expiryDate = manufacturingDate.AddMonths(random.Next(6, 24));
                 var quantity = random.Next(50, 500);
-                var costPrice = product.BasePrice.Value * 0.7m; // 70% of selling price
+                var costPrice = random.Next(5000, 200000); // arbitrary cost price for seed data
 
                 var batch = new ProductBatch(
                     product.Id,
@@ -881,7 +881,7 @@ public static class DataSeeder
                         supplier.Id,
                         StockTransactionType.Sale,
                         saleQty,
-                        product.BasePrice.Value,
+                        product.Variants.Any() ? product.Variants.First().SalePrice.Value : batch.CostPrice * 1.3m,
                         saleDate,
                         "Bán lẻ tại cửa hàng"
                     );

@@ -11,7 +11,7 @@ public class ProductTests
     {
         return new Product("Nước ngọt", "Mô tả", ProductStatuses.Active,
             new Sku("SKU-001"), requiresBatch, Units.Lon,
-            new Money(10_000m), null);
+            null);
     }
 
     // ── IncreaseStock / DecreaseStock ─────────────────────────────────────────
@@ -93,7 +93,7 @@ public class ProductTests
     public void IsLowStock_NoThreshold_ReturnsFalse()
     {
         var product = new Product("P", "", ProductStatuses.Active,
-            new Sku("S1"), false, Units.Pcs, new Money(1m), null);
+            new Sku("S1"), false, Units.Pcs, null);
         product.IsLowStock().Should().BeFalse();
     }
 
@@ -101,7 +101,7 @@ public class ProductTests
     public void IsLowStock_StockBelowThreshold_ReturnsTrue()
     {
         var product = new Product("P", "", ProductStatuses.Active,
-            new Sku("S2"), false, Units.Pcs, new Money(1m), 10);
+            new Sku("S2"), false, Units.Pcs, 10);
         product.IncreaseStock(5);
         product.IsLowStock().Should().BeTrue();
     }
@@ -110,7 +110,7 @@ public class ProductTests
     public void IsLowStock_StockAboveThreshold_ReturnsFalse()
     {
         var product = new Product("P", "", ProductStatuses.Active,
-            new Sku("S3"), false, Units.Pcs, new Money(1m), 10);
+            new Sku("S3"), false, Units.Pcs, 10);
         product.IncreaseStock(15);
         product.IsLowStock().Should().BeFalse();
     }

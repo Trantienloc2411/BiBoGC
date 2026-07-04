@@ -24,8 +24,7 @@ public class AddBatchCommandHandlerTests
     private static Product BuildProduct()
     {
         return new Product("Sữa tươi", "Mô tả", ProductStatuses.Active,
-            new Sku("SKU-MILK"), true, Units.Hop,
-            new Money(25_000m), null);
+            new Sku("SKU-MILK"), true, Units.Hop, null);
     }
 
     private static AddBatchCommand ValidCommand(Guid productId)
