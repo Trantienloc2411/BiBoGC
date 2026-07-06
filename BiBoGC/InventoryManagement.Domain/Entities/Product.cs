@@ -23,12 +23,10 @@ public class Product : BaseEntity
         Sku skuGeneral,
         bool requiresBatchTracking,
         Units baseUnits,
-        Money basePrice,
         int? lowStockThreshold,
         Guid? categoryId = null)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
-        BasePrice = basePrice ?? throw new ArgumentNullException(nameof(basePrice));
         BaseUnits = baseUnits;
         SkuGeneral = skuGeneral;
         Description = description ?? string.Empty;
@@ -52,15 +50,6 @@ public class Product : BaseEntity
     public Units BaseUnits { get; private set; }
 
     public int TotalStock { get; private set; }
-
-    /// <summary>
-    /// Base price of the product. (Giá nêm yết/ giá gốc bán ra)
-    /// - Dùng để: So sánh với giá bán 
-    /// </summary>
-
-    public Money BasePrice { get; private set; }
-
-    public Money? AverageCostPrice { get; private set; }
 
     public int? LowStockThreshold { get; private set; }
 
@@ -220,16 +209,6 @@ public class Product : BaseEntity
 
         RaiseDomainEvent(new ProductVariantCreatedEvent(Id, newVariant.Id, variantName));
         return newVariant;
-    }
-
-    public void UpdatePrice(Money newPrice)
-    {
-        if (newPrice.Value < 0) throw new ArgumentException("Giá không thể âm. ", nameof(newPrice));
-        var oldPrice = BasePrice;
-        BasePrice = newPrice;
-        UpdatedAt = DateTime.UtcNow;
-
-        RaiseDomainEvent(new ProductPriceChangedEvent(Id, oldPrice.Value, newPrice.Value));
     }
 
     public void SetInactive()

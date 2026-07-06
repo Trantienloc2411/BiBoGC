@@ -285,11 +285,11 @@ function VariantSection({ productId, variants, onRefresh }: { productId: string;
     } finally { setFormLoading(false) }
   }
 
-  async function handleDelete() {
-    if (!deleteTarget) return
+  async function handleDelete(variant: ProductVariantDtoV2 | null = deleteTarget) {
+    if (!variant) return
     setDeleting(true)
     try {
-      await productApi.deleteVariant(productId, deleteTarget.id)
+      await productApi.deleteVariant(productId, variant.id)
       success('Đã xoá biến thể')
       onRefresh()
     } catch (err) {
@@ -332,7 +332,20 @@ function VariantSection({ productId, variants, onRefresh }: { productId: string;
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">
                         <Button size="sm" variant="ghost" onClick={() => openEdit(v)}><Pencil size={14} /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => setDeleteTarget(v)} className="text-red-500"><Trash2 size={14} /></Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            if (variants.length <= 1) {
+                              setDeleteTarget(v)
+                            } else {
+                              void handleDelete(v)
+                            }
+                          }}
+                          className="text-red-500"
+                        >
+                          <Trash2 size={14} />
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -376,10 +389,24 @@ function VariantSection({ productId, variants, onRefresh }: { productId: string;
         <FormError message={formError} />
       </FormDialog>
 
-      <ConfirmDialog open={deleteTarget !== null} title="Xoá biến thể?"
-        description={`Xoá "${deleteTarget?.variantName}"?`}
-        icon={<div className="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center"><Trash2 size={24} className="text-red-500" /></div>}
-        confirmLabel="Xoá" variant="danger" loading={deleting} onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} />
+      {variants.length <= 1 && deleteTarget && (
+        <ConfirmDialog
+          open={deleteTarget !== null}
+          title="Cảnh báo"
+          description="Sản phẩm này chỉ có một biến thể duy nhất, nếu xoá biến thể này sẽ làm sản phẩm không thể bán được. Đồng ý xoá?"
+          icon={<div className="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center"><Trash2 size={24} className="text-red-500" /></div>}
+          confirmLabel="Xoá"
+          variant="danger"
+          loading={deleting}
+          onConfirm={() => void handleDelete(deleteTarget)}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
     </>
   )
 }
+
+function showConfirm(title: string, message: string, action: () => Promise<void>) {
+  //implement here
+}
+

@@ -36,7 +36,6 @@ public class AddItemToOrderCommandHandlerTests
             new Sku("SKU-COCA"),
             false,
             Units.Lon,
-            new Money(10_000m),
             null);
     }
 

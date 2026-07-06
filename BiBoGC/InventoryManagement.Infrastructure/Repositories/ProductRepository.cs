@@ -159,6 +159,7 @@ public class ProductRepository : IProductRepository
 
         return await _context.Products
             .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .Include(p => p.Variants.Where(v => !v.IsDeleted))
             .Include(p => p.Category)
             .Where(p => p.Batches.Any(b =>
                 !b.IsDeleted &&
@@ -172,6 +173,7 @@ public class ProductRepository : IProductRepository
         var now = DateTime.UtcNow;
         return await _context.Products
             .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .Include(p => p.Variants.Where(v => !v.IsDeleted))
             .Include(p => p.Category)
             .Where(p => p.Batches.Any(b => !b.IsDeleted && b.ExpirationDate < now))
             .ToListAsync(cancellationToken);
@@ -181,6 +183,7 @@ public class ProductRepository : IProductRepository
     {
         var products = await _context.Products
             .Include(p => p.Batches.Where(b => !b.IsDeleted))
+            .Include(p => p.Variants.Where(v => !v.IsDeleted))
             .Include(p => p.Category)
             .ToListAsync(cancellationToken);
 

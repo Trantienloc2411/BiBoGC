@@ -31,11 +31,14 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         var product = await _productRepository.GetByIdAsync(request.Id, cancellationToken);
         if (product == null) return Result<ProductDto>.Failure($"Không tìm thấy sản phẩm với ID '{request.Id}'.");
 
-        var priceChanged = request.Price.HasValue && request.Price.Value != product.BasePrice.Value;
-        var oldPrice = product.BasePrice.Value;
+        var defaultVariant = product.Variants.OrderBy(v => v.DisplayOrder).FirstOrDefault();
+        var priceChanged = request.Price.HasValue && defaultVariant != null &&
+                            request.Price.Value != defaultVariant.SalePrice.Value;
+        var oldPrice = defaultVariant?.SalePrice.Value ?? 0m;
 
-        // Update price if provided
-        if (request.Price.HasValue) product.UpdatePrice(new Money(request.Price.Value));
+        // Update price of the default variant if provided
+        if (request.Price.HasValue && defaultVariant != null)
+            defaultVariant.UpdatePrice(new Money(request.Price.Value), defaultVariant.CostPrice);
 
         var discontinuedNow = false;
 
@@ -110,7 +113,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             Id = product.Id,
             Name = product.Name,
             Sku = product.SkuGeneral.Value,
-            Price = product.BasePrice.Value,
+            Price = product.Variants.OrderBy(v => v.DisplayOrder).FirstOrDefault()?.SalePrice.Value ?? 0m,
             Currency = "VND",
             Description = product.Description,
             Status = product.Status.ToString(),
