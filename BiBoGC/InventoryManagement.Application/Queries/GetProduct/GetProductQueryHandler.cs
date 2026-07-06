@@ -35,7 +35,7 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<Pr
             Id = product.Id,
             Name = product.Name,
             Sku = product.SkuGeneral.Value,
-            Price = product.BasePrice.Value,
+            Price = product.Variants.OrderBy(v => v.DisplayOrder).FirstOrDefault()?.SalePrice.Value ?? 0m,
             Currency = "VND",
             Description = product.Description,
             Status = product.Status.ToString(),

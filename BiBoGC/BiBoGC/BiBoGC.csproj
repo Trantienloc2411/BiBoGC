@@ -10,18 +10,18 @@
 
     <ItemGroup>
         <!-- API Documentation -->
-        <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.1.0"/>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0-preview.6.25358.103"/>
-        <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.14.28"/>
-        <PackageReference Include="Microsoft.OpenApi" Version="2.0.0-preview.29"/>
-        <PackageReference Include="Scalar.AspNetCore" Version="2.0.18"/>
+        <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.1.0" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+        <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.14.28" />
+        <PackageReference Include="Microsoft.OpenApi" Version="2.9.0" />
+        <PackageReference Include="Scalar.AspNetCore" Version="2.0.18" />
 
         <!-- MediatR for CQRS -->
-        <PackageReference Include="MediatR" Version="12.4.1"/>
+        <PackageReference Include="MediatR" Version="12.4.1" />
 
         <!-- FluentValidation -->
-        <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0"/>
-        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0"/>
+        <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
 
         <!-- Entity Framework Core - Stable version to match dotnet-ef tool -->
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.2">
@@ -30,20 +30,20 @@
         </PackageReference>
 
         <!-- Docker -->
-        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0"/>
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
     </ItemGroup>
-
+        
     <ItemGroup>
         <ProjectReference Include="..\AuthorizationModule.Infrastructure\AuthorizationModule.Infrastructure.csproj" />
-        <ProjectReference Include="..\BiBoGC.ServiceDefaults\BiBoGC.ServiceDefaults.csproj"/>
-        <ProjectReference Include="..\InventoryManagement.Application\InventoryManagement.Application.csproj"/>
-        <ProjectReference Include="..\InventoryManagement.Infrastructure\InventoryManagement.Infrastructure.csproj"/>
-        <ProjectReference Include="..\Sale.Application\Sale.Application.csproj"/>
-        <ProjectReference Include="..\Sale.Infrastructure\Sale.Infrastructure.csproj"/>
-        <ProjectReference Include="..\Finance.Application\Finance.Application.csproj"/>
-        <ProjectReference Include="..\Finance.Infrastructure\Finance.Infrastructure.csproj"/>
-        <ProjectReference Include="..\Notification.Application\Notification.Application.csproj"/>
-        <ProjectReference Include="..\Notification.Infrastructure\Notification.Infrastructure.csproj"/>
+        <ProjectReference Include="..\BiBoGC.ServiceDefaults\BiBoGC.ServiceDefaults.csproj" />
+        <ProjectReference Include="..\InventoryManagement.Application\InventoryManagement.Application.csproj" />
+        <ProjectReference Include="..\InventoryManagement.Infrastructure\InventoryManagement.Infrastructure.csproj" />
+        <ProjectReference Include="..\Sale.Application\Sale.Application.csproj" />
+        <ProjectReference Include="..\Sale.Infrastructure\Sale.Infrastructure.csproj" />
+        <ProjectReference Include="..\Finance.Application\Finance.Application.csproj" />
+        <ProjectReference Include="..\Finance.Infrastructure\Finance.Infrastructure.csproj" />
+        <ProjectReference Include="..\Notification.Application\Notification.Application.csproj" />
+        <ProjectReference Include="..\Notification.Infrastructure\Notification.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

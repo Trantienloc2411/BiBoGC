@@ -36,6 +36,7 @@ public class ProductExportService : IProductExportService
             .AsNoTracking()
             .Include(p => p.Category)
             .Include(p => p.Batches)
+            .Include(p => p.Variants)
             .Where(p => !p.IsDeleted)
             .OrderBy(p => p.Name)
             .ToListAsync(cancellationToken);
@@ -46,7 +47,7 @@ public class ProductExportService : IProductExportService
                 p.Category != null ? p.Category.Name : string.Empty,
                 p.GetAvailableStock(),
                 p.BaseUnits,
-                p.BasePrice.Value))
+                p.Variants.OrderBy(v => v.DisplayOrder).FirstOrDefault()?.GetPricePerUnit() ?? 0))
             .ToList();
 
         var chunks = products

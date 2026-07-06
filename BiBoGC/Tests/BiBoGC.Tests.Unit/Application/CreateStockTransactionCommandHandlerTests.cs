@@ -26,7 +26,7 @@ public class CreateStockTransactionCommandHandlerTests
     private static Product BuildProduct()
     {
         return new Product("Bia Hà Nội", "Mô tả", ProductStatuses.Active,
-            new Sku("SKU-BIA"), false, Units.Lon, new Money(15_000m), null);
+            new Sku("SKU-BIA"), false, Units.Lon, null);
     }
 
     private static StockTransaction BuildTxResult(Guid productId, Product product)

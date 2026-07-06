@@ -303,7 +303,6 @@ public partial class ProductImportService : IProductImportService
                     var product = new Product(
                         row.Name!.Trim(),
                         skuGeneral: new Sku(sku),
-                        basePrice: new Money(row.Price!.Value),
                         baseUnits: unitValue,
                         description: row.Description?.Trim() ?? string.Empty,
                         status: ProductStatuses.Active,
