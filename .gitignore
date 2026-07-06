@@ -1144,3 +1144,5 @@ BiBoGC/.claude/settings.local.json
 /FrontEnd/bibogc/.claude
 /BiBoGC/.vscode
 admin-dashboard/package-lock.json
+admin-dashboard/pnpm-lock.yaml
+admin-dashboard/pnpm-workspace.yaml
