@@ -29,7 +29,7 @@ public class ApiResponse<T>
     /// <summary>
     /// Create a successful response
     /// </summary>
-    public static ApiResponse<T> Ok(T data, string? message = null)
+    public static ApiResponse<T> Ok(T? data, string? message = null)
     {
         return new ApiResponse<T>
         {

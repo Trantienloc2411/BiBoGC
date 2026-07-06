@@ -58,13 +58,20 @@ const UNITS_OPTIONS: { value: number; label: string }[] = [
 ]
 
 type CreateForm = {
-  name: string; description: string; sku: string; requiresBatchTracking: boolean
-  price: number; baseUnits: number
-  categoryId: string; supplierId: string
+  name: string
+  description: string
+  sku: string
+  requiresBatchTracking: boolean
+  baseUnits: number
+  categoryId: string
+  supplierId: string
 }
 type EditForm = {
-  name: string; description: string; price: number
-  categoryId: string; supplierId: string; status: number
+  name: string
+  description: string
+  categoryId: string
+  supplierId: string
+  status: number
 }
 
 export default function ProductsPage() {
@@ -95,11 +102,11 @@ export default function ProductsPage() {
   const [formError, setFormError] = useState('')
   const [createForm, setCreateForm] = useState<CreateForm>({
     name: '', description: '', sku: '', requiresBatchTracking: false,
-    price: 0, baseUnits: 1,
+    baseUnits: 1,
     categoryId: '', supplierId: '',
   })
   const [editForm, setEditForm] = useState<EditForm>({
-    name: '', description: '', price: 0,
+    name: '', description: '', 
     categoryId: '', supplierId: '', status: 0,
   })
 
@@ -176,7 +183,7 @@ export default function ProductsPage() {
   }
 
   function openCreate() {
-    setCreateForm({ name: '', description: '', sku: '', requiresBatchTracking: false, price: 0, baseUnits: 1, categoryId: '', supplierId: '' })
+    setCreateForm({ name: '', description: '', sku: '', requiresBatchTracking: false, baseUnits: 1, categoryId: '', supplierId: '' })
     setFormError('')
     setPickerKey(k => k + 1)
     setShowCreate(true)
@@ -186,7 +193,6 @@ export default function ProductsPage() {
     setEditingProduct(p)
     setEditForm({
       name: p.name, description: p.description ?? '',
-      price: p.price,
       categoryId: p.categoryId ?? '', supplierId: p.supplierId ?? '',
       status: STATUS_VALUES.find(s => s.key === p.status)?.value ?? 0,
     })
@@ -206,9 +212,10 @@ export default function ProductsPage() {
         sku: createForm.sku.trim(),
         description: createForm.description || undefined,
         requiresBatchTracking: createForm.requiresBatchTracking,
-        price: createForm.price,
+
         categoryId: createForm.categoryId || undefined,
         baseUnits: createForm.baseUnits,
+        price: 0
       }
       await productApi.create(body)
       success('Thêm sản phẩm thành công')
@@ -228,7 +235,7 @@ export default function ProductsPage() {
       const body: UpdateProductRequest = {
         name: editForm.name.trim(),
         description: editForm.description || undefined,
-        price: editForm.price || undefined,
+        
         status: editForm.status,
       }
       await productApi.update(editingProduct.id, body)
@@ -393,7 +400,6 @@ export default function ProductsPage() {
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Tên sản phẩm</th>
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Danh mục</th>
                   <th className="text-right font-medium text-gray-500 px-4 py-3">Tồn kho</th>
-                  <th className="text-right font-medium text-gray-500 px-4 py-3">Giá bán</th>
                   <th className="text-left font-medium text-gray-500 px-4 py-3">Trạng thái</th>
                   <th className="text-right font-medium text-gray-500 px-4 py-3">Hành động</th>
                 </tr>
@@ -413,7 +419,6 @@ export default function ProductsPage() {
                       </span>
                       {p.isLowStock && <AlertTriangle size={13} className="inline ml-1 text-amber-500" />}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-700">{formatCurrency(p.price)}</td>
                     <td className="px-4 py-3">
                       <span className={cn('inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-md border',
                         STATUS_STYLES[p.status] ?? 'bg-gray-50 text-gray-600 border-gray-200')}>
@@ -469,9 +474,6 @@ export default function ProductsPage() {
             onChange={id => setCreateForm(f => ({ ...f, categoryId: id ?? '' }))}
           />
         </FormField>
-        <FormField label="Giá bán">
-          <MoneyInput className={inputClass} value={createForm.price} onChange={v => setCreateForm(f => ({ ...f, price: v }))} placeholder="0" />
-        </FormField>
         <FormField label="Mô tả">
           <textarea className={inputClass} rows={2} value={createForm.description} onChange={e => setCreateForm(f => ({ ...f, description: e.target.value }))} />
         </FormField>
@@ -489,9 +491,6 @@ export default function ProductsPage() {
         </FormField>
         <FormField label="SKU">
           <input className={cn(inputClass, 'bg-gray-50 text-gray-400 cursor-not-allowed')} value={editingProduct?.sku ?? ''} readOnly disabled />
-        </FormField>
-        <FormField label="Giá bán">
-          <MoneyInput className={inputClass} value={editForm.price} onChange={v => setEditForm(f => ({ ...f, price: v }))} placeholder="0" />
         </FormField>
         <FormField label="Trạng thái">
           <select className={selectClass} value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: Number(e.target.value) }))}>
